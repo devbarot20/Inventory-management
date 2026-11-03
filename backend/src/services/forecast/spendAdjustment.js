@@ -81,4 +81,3 @@ function applyOptionalSpendAdjustment({
 module.exports = {
   applyOptionalSpendAdjustment,
 };
-

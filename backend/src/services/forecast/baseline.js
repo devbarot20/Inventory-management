@@ -121,4 +121,3 @@ module.exports = {
   isDateInSaleEvent,
   DEFAULT_CONFIG,
 };
-

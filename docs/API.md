@@ -339,3 +339,88 @@ Update a flash sale or record `actualSpend` post-sale. Requires authentication.
 ### `DELETE /api/sales/:id`
 
 Delete a flash sale. Requires authentication.
+Delete a flash sale. Requires authentication.
+
+---
+
+## Forecasting & Stockout Risk Warnings (E3, E4)
+
+### Stockout Risk Classification
+
+| Risk Level | Condition | Explanation |
+| :--- | :--- | :--- |
+| **Low** | `unitsAvailable >= high` | Available stock comfortably covers even the peak High-demand scenario. |
+| **Medium** | `unitsAvailable >= expected && unitsAvailable < high` | Stock covers the Expected demand scenario, but peak High-demand runs out. |
+| **High** | `unitsAvailable < expected` | Expected demand exceeds available stock; stockout is likely. |
+
+For Medium and High risk cases, `expectedRunOutTime` computes the exact timestamp when stock runs out in the high scenario.
+
+### `POST /api/forecast/run/:saleEventId`
+
+Executes the forecasting engine for all products linked to a flash sale event. Creates and persists a `ForecastRun` document and individual per-SKU `Forecast` documents with stockout risk warnings.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Optional Body:**
+```json
+{
+  "config": {
+    "enableSpendAdjustment": false,
+    "lookbackDays": 60,
+    "minNormalDays": 7
+  }
+}
+```
+
+**201 Created Response:**
+
+```json
+{
+  "forecastRun": {
+    "id": "672728...",
+    "saleEvent": "672721...",
+    "status": "completed",
+    "methodVersion": "baseline-similar-sales-v1",
+    "inputs": {
+      "startDate": "2026-11-20T00:00:00.000Z",
+      "endDate": "2026-11-22T00:00:00.000Z",
+      "discountPct": 25,
+      "plannedSpend": 600,
+      "skus": ["TEE-BLK-S"]
+    },
+    "assumptions": [
+      "Baseline demand is 10 units/day calculated from 14 normal sales days.",
+      "Uplift derived from similar past sales."
+    ],
+    "dataQualityFlags": []
+  },
+  "forecasts": [
+    {
+      "id": "672729...",
+      "sku": "TEE-BLK-S",
+      "status": "ok",
+      "low": 24,
+      "expected": 32,
+      "high": 48,
+      "unitsAvailable": 25,
+      "riskLevel": "high",
+      "expectedRunOutTime": "2026-11-21T01:00:00.000Z",
+      "baselineDailyUnits": 10,
+      "upliftRatio": 1.6,
+      "similarSalesUsed": 1
+    }
+  ]
+}
+```
+
+### `GET /api/forecast/latest/:saleEventId`
+
+Retrieves the most recent completed forecast run and its forecasts for a given sale event.
+
+### `GET /api/forecast/run/:id`
+
+Retrieves a specific historical forecast run by run ID.
+
+### `GET /api/forecast/runs/:saleEventId`
+
+Lists previous forecast runs for a sale event.
