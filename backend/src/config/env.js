@@ -18,6 +18,14 @@ const env = {
   mongodbUri:
     process.env.MONGODB_URI ||
     (nodeEnv === 'production' ? '' : 'mongodb://127.0.0.1:27017/inventory_forecaster'),
+  jwtSecret:
+    process.env.JWT_SECRET ||
+    (nodeEnv === 'production'
+      ? (() => {
+          throw new Error('JWT_SECRET must be set in production!');
+        })()
+      : 'dev-jwt-secret-replace-in-production'),
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
 };
 
 module.exports = env;

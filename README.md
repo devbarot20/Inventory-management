@@ -97,7 +97,9 @@ the database connection state.
 | `backend/.env`         | `PORT`                | `5001`                       | API port                  |
 | `backend/.env`         | `CORS_ORIGIN`         | `http://localhost:3000`      | Allowed frontend origin   |
 | `backend/.env`         | `MONGODB_URI`         | `mongodb://127.0.0.1:27017/inventory_forecaster` | MongoDB connection (required in production) |
-| `frontend/.env.local`  | `NEXT_PUBLIC_API_URL` | `http://localhost:5001/api`  | Base URL of the API       |
+| `backend/.env`         | `JWT_SECRET`          | _(set in production)_        | JWT signing secret                              |
+| `backend/.env`         | `JWT_EXPIRES_IN`      | `7d`                         | JWT validity expiration                         |
+| `frontend/.env.local`  | `NEXT_PUBLIC_API_URL` | `http://localhost:5001/api`  | Base URL of the API                             |
 
 Secrets live only in `.env` files, which are git-ignored. Only `.env.example` files are committed.
 
@@ -130,7 +132,7 @@ Secrets live only in `.env` files, which are git-ignored. Only `.env.example` fi
 
 1. ✅ Repository and project setup
 2. ✅ Database and data models
-3. Authentication and authorization
+3. ✅ Authentication and authorization
 4. Product and stock management (E1)
 5. Sale event and campaign plan (E2)
 6. Forecasting service (E3)

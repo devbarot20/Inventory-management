@@ -5,6 +5,8 @@ const cors = require('cors');
 
 const env = require('./config/env');
 const routes = require('./routes');
+const ApiError = require('./errors/ApiError');
+const errorHandler = require('./middleware/errorHandler');
 
 /**
  * Builds the Express application without starting the HTTP server,
@@ -18,11 +20,13 @@ function createApp() {
 
   app.use('/api', routes);
 
-  app.use((req, res) => {
-    res
-      .status(404)
-      .json({ error: { message: `Route not found: ${req.method} ${req.originalUrl}` } });
+  // 404 handler for unknown routes
+  app.use((req, res, next) => {
+    next(ApiError.notFound(`Route not found: ${req.method} ${req.originalUrl}`));
   });
+
+  // Centralised error handling middleware
+  app.use(errorHandler);
 
   return app;
 }

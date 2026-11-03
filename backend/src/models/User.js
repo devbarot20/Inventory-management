@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const { baseSchemaOptions } = require('./common');
 
@@ -22,8 +23,7 @@ const userSchema = new mongoose.Schema(
       maxlength: [254, 'Email is too long'],
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email is invalid'],
     },
-    // Stores a bcrypt hash (hashing is added with authentication in Section 3).
-    // Never selected by default so it cannot leak through normal queries.
+    // Stores a bcrypt hash. Never selected by default so it cannot leak through normal queries.
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -46,6 +46,19 @@ const userSchema = new mongoose.Schema(
     },
   },
 );
+
+userSchema.pre('save', async function hashPassword() {
+  if (!this.isModified('password')) return;
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.methods.comparePassword = async function comparePassword(candidatePassword) {
+  if (!this.password) {
+    throw new Error('Password hash not loaded on user model instance');
+  }
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 userSchema.index({ email: 1 }, { unique: true });
 
