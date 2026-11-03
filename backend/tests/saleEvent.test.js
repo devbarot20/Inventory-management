@@ -175,4 +175,3 @@ describe('Sale Event and Campaign Planning (E2)', () => {
     });
   });
 });
-

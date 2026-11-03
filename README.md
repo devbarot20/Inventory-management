@@ -135,7 +135,7 @@ Secrets live only in `.env` files, which are git-ignored. Only `.env.example` fi
 3. ✅ Authentication and authorization
 4. ✅ Product and stock management (E1)
 5. ✅ Sale event and campaign plan (E2)
-6. Forecasting service (E3)
+6. ✅ Forecasting service (E3)
 7. Forecast API and stockout-risk warning (E3, E4)
 8. Dashboard (E5)
 9. Forecast vs actual comparison (E6)
