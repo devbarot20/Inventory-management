@@ -1,20 +1,57 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
+const TOKEN_KEY = 'ifc_auth_token';
+
+export function getToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token) {
+  if (typeof window === 'undefined') return;
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
+
+export function removeToken() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 /**
- * Small fetch wrapper for the Express API.
- * Throws an Error with the API's message when the response is not OK.
+ * Fetch wrapper for the Express API.
+ * Automatically injects JWT Bearer token if present.
+ * Properly handles FormData for file uploads.
  */
 export async function apiFetch(path, options = {}) {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = { ...(options.headers || {}) };
+
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const token = getToken();
+  if (token && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    headers,
   });
 
   const body = await res.json().catch(() => null);
 
   if (!res.ok) {
     const message = body?.error?.message || `Request failed with status ${res.status}`;
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = res.status;
+    err.details = body?.error?.details || null;
+    throw err;
   }
 
   return body;

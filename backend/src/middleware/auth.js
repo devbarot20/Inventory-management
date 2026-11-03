@@ -52,4 +52,3 @@ module.exports = {
   authenticate,
   authorize,
 };
-

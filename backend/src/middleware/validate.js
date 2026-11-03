@@ -17,4 +17,3 @@ function validate(schema, source = 'body') {
 }
 
 module.exports = validate;
-

@@ -155,15 +155,119 @@ Retrieve current authenticated user profile. Requires valid token.
 
 Verify administrative permissions. Requires valid token and `admin` role. Returns 403 Forbidden for non-admins.
 
-**Headers:**
-`Authorization: Bearer <token>`
+---
+
+## Products & Stock Management (E1)
+
+### `GET /api/products`
+
+List products, sorted alphabetically by SKU. Includes current stock snapshot availability.
+
+**Query Parameters:**
+- `search` (optional): Filter by SKU or product name.
 
 **200 OK:**
 
 ```json
 {
-  "ok": true,
-  "message": "Admin access granted",
-  "user": { ... }
+  "products": [
+    {
+      "id": "67272...",
+      "sku": "TEE-BLK-S",
+      "name": "Black T-Shirt Small",
+      "currentStock": {
+        "unitsAvailable": 120,
+        "date": "2026-11-01T00:00:00.000Z"
+      }
+    }
+  ]
+}
+```
+
+### `GET /api/products/:id`
+
+Retrieve product details by database ID or SKU, including recent stock history and sales history.
+
+### `POST /api/products`
+
+Create a new product. Requires authentication.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "sku": "HOODIE-GRY-L",
+  "name": "Grey Hoodie Large"
+}
+```
+
+**201 Created:** Returns `{ "product": { ... } }`
+
+### `PUT /api/products/:id`
+
+Update an existing product's SKU or name. Requires authentication.
+
+### `DELETE /api/products/:id`
+
+Delete a product. Requires authentication.
+
+### `POST /api/stock`
+
+Record or update a stock snapshot for a specific SKU on a date.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "sku": "HOODIE-GRY-L",
+  "date": "2026-11-03",
+  "unitsAvailable": 85
+}
+```
+
+---
+
+## CSV Import (E1)
+
+### `POST /api/import/csv`
+
+Upload a CSV file (`multipart/form-data`) or provide raw CSV text (`application/json`) with row-level validation.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Supported Types:**
+- `products`: Headers: `sku,name`
+- `sales_history`: Headers: `sku,date,unitsSold,price,discountPct`
+- `stock_snapshots`: Headers: `sku,date,unitsAvailable`
+
+**JSON Request (Raw text):**
+```json
+{
+  "type": "products",
+  "csvText": "sku,name\nTEE-001,White Tee\nTEE-002,Black Tee"
+}
+```
+
+**Multipart Request:**
+- `type`: `products` | `sales_history` | `stock_snapshots`
+- `file`: CSV file
+
+**200 OK Report:**
+```json
+{
+  "type": "products",
+  "totalRows": 5,
+  "successCount": 4,
+  "processedCount": 4,
+  "rejectedCount": 1,
+  "rejectedRows": [
+    {
+      "row": 3,
+      "data": { "sku": "bad sku!", "name": "Shirt" },
+      "reason": "Invalid SKU format"
+    }
+  ]
 }
 ```
