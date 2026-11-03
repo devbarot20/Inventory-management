@@ -16,7 +16,7 @@ export default function Home() {
       </header>
 
       {/* Feature Navigation Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/dashboard"
           className="group rounded-xl border-2 border-indigo-500 bg-indigo-50/40 p-5 shadow-sm transition hover:border-indigo-600 hover:shadow-md dark:border-indigo-500 dark:bg-indigo-950/30"
@@ -31,6 +31,23 @@ export default function Home() {
           </div>
           <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
             Interactive scenario forecasts, stockout risk alerts, and demand vs stock charts.
+          </p>
+        </Link>
+
+        <Link
+          href="/actuals"
+          className="group rounded-xl border-2 border-emerald-500 bg-emerald-50/40 p-5 shadow-sm transition hover:border-emerald-600 hover:shadow-md dark:border-emerald-500 dark:bg-emerald-950/30"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+              Actuals & Comparison →
+            </h3>
+            <span className="rounded bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">
+              E6
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+            Compare forecast vs actual sales, calculate MAE, WAPE, and evaluate risk warnings.
           </p>
         </Link>
 

@@ -178,6 +178,12 @@ export default function DashboardPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
+            href="/actuals"
+            className="rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+          >
+            Actuals vs Forecast (E6) →
+          </Link>
+          <Link
             href="/sales"
             className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
           >

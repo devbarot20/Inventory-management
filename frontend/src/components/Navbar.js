@@ -68,6 +68,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/actuals', label: 'Actuals & Comparison' },
     { href: '/sales', label: 'Flash Sales' },
     { href: '/products', label: 'Products & Stock' },
     { href: '/import', label: 'CSV Import' },
