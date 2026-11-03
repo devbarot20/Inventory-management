@@ -13,6 +13,7 @@
     "dev": "node --watch src/server.js",
     "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js --runInBand",
     "backtest": "node scripts/backtest.js",
+    "seed": "node scripts/seed.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
