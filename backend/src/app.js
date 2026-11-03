@@ -7,6 +7,7 @@ const env = require('./config/env');
 const routes = require('./routes');
 const ApiError = require('./errors/ApiError');
 const errorHandler = require('./middleware/errorHandler');
+const { securityHeaders, apiRateLimiter } = require('./middleware/security');
 
 /**
  * Builds the Express application without starting the HTTP server,
@@ -15,9 +16,11 @@ const errorHandler = require('./middleware/errorHandler');
 function createApp() {
   const app = express();
 
+  app.use(securityHeaders);
   app.use(cors({ origin: env.corsOrigin }));
   app.use(express.json({ limit: '1mb' }));
 
+  app.use('/api', apiRateLimiter);
   app.use('/api', routes);
 
   // 404 handler for unknown routes
