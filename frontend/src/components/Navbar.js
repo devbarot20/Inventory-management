@@ -67,7 +67,7 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Overview' },
+    { href: '/dashboard', label: 'Dashboard' },
     { href: '/sales', label: 'Flash Sales' },
     { href: '/products', label: 'Products & Stock' },
     { href: '/import', label: 'CSV Import' },

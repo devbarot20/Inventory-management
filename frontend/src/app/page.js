@@ -16,7 +16,24 @@ export default function Home() {
       </header>
 
       {/* Feature Navigation Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          href="/dashboard"
+          className="group rounded-xl border-2 border-indigo-500 bg-indigo-50/40 p-5 shadow-sm transition hover:border-indigo-600 hover:shadow-md dark:border-indigo-500 dark:bg-indigo-950/30"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
+              Forecast Dashboard →
+            </h3>
+            <span className="rounded bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">
+              E5
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+            Interactive scenario forecasts, stockout risk alerts, and demand vs stock charts.
+          </p>
+        </Link>
+
         <Link
           href="/sales"
           className="group rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-indigo-400 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-600"
