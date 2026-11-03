@@ -132,19 +132,21 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
       {/* Top Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Products & Stock</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+            Products & Warehouse Stock
+          </h1>
+          <p className="mt-1.5 text-base text-slate-600 dark:text-zinc-400">
             Manage your product catalogue and latest stock availability.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/import"
-            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             Import CSV
           </Link>
@@ -154,7 +156,7 @@ export default function ProductsPage() {
               setFormError(null);
               setShowAddModal(true);
             }}
-            className="rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+            className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-indigo-700"
           >
             + Add Product
           </button>
@@ -218,48 +220,48 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 text-xs uppercase text-zinc-500 dark:border-zinc-800">
+            <table className="w-full text-left text-base">
+              <thead className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-600 dark:border-zinc-800 dark:text-zinc-400">
                 <tr>
-                  <th className="pb-3 font-semibold">SKU</th>
-                  <th className="pb-3 font-semibold">Product Name</th>
-                  <th className="pb-3 font-semibold">Current Stock</th>
-                  <th className="pb-3 font-semibold">Stock As Of</th>
-                  <th className="pb-3 text-right font-semibold">Actions</th>
+                  <th className="pb-3.5 font-bold">SKU</th>
+                  <th className="pb-3.5 font-bold">Product Name</th>
+                  <th className="pb-3.5 font-bold">Current Stock</th>
+                  <th className="pb-3.5 font-bold">Stock As Of</th>
+                  <th className="pb-3.5 text-right font-bold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                 {products.map((p) => {
                   const stock = p.currentStock?.unitsAvailable;
                   return (
-                    <tr key={p.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40">
-                      <td className="py-3 font-mono font-medium text-indigo-600 dark:text-indigo-400">
+                    <tr key={p.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40">
+                      <td className="py-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
                         {p.sku}
                       </td>
-                      <td className="py-3 font-medium">{p.name}</td>
-                      <td className="py-3">
+                      <td className="py-4 font-medium">{p.name}</td>
+                      <td className="py-4">
                         {stock === null || stock === undefined ? (
-                          <span className="inline-flex rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className="inline-flex rounded-lg bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
                             No snapshot
                           </span>
                         ) : stock === 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">
                             ● 0 (Out of stock)
                           </span>
                         ) : stock <= 20 ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
                             {stock} units (Low)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
                             {stock} units
                           </span>
                         )}
                       </td>
-                      <td className="py-3 text-xs text-zinc-500 font-mono">
+                      <td className="py-4 font-mono text-sm text-slate-500">
                         {p.currentStock?.date ? p.currentStock.date.slice(0, 10) : '—'}
                       </td>
-                      <td className="py-3 text-right">
+                      <td className="py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
@@ -272,14 +274,14 @@ export default function ProductsPage() {
                               setFormError(null);
                               setShowStockModal(true);
                             }}
-                            className="rounded px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
                           >
                             Update Stock
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteProduct(p.id, p.sku)}
-                            className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                           >
                             Delete
                           </button>

@@ -176,21 +176,23 @@ export default function SalesPage() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
       {/* Page Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Flash Sales & Campaigns</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+            Flash Sales & Campaigns
+          </h1>
+          <p className="mt-1.5 text-base text-slate-600 dark:text-zinc-400">
             Configure upcoming flash sales, planned TikTok influencer spend, and linked products
             (E2).
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={openCreateModal}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+            className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-indigo-700"
           >
             + Create Flash Sale
           </button>
@@ -198,14 +200,15 @@ export default function SalesPage() {
       </div>
 
       {/* Assumptions Notice */}
-      <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-400">
-        <strong className="text-zinc-900 dark:text-zinc-200">Forecasting Principle:</strong> Planned
-        influencer spend and actual spend are stored separately. Planned spend reflects promotional
-        assumptions for the upcoming sale; post-sale actual spend is compared later in E6.
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-600 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+        <strong className="text-slate-900 dark:text-zinc-200">Forecasting Principle:</strong>{' '}
+        Planned influencer spend and actual spend are stored separately. Planned spend reflects
+        promotional assumptions for the upcoming sale; post-sale actual spend is compared later in
+        E6.
       </div>
 
       {/* Filter Tabs */}
-      <div className="mb-6 flex gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+      <div className="mb-6 flex flex-wrap gap-2.5 border-b border-slate-200 pb-4 dark:border-zinc-800">
         {[
           { key: 'all', label: `All Sales (${sales.length})` },
           { key: 'upcoming', label: 'Upcoming' },
@@ -215,10 +218,10 @@ export default function SalesPage() {
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
               filter === tab.key
-                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
             }`}
           >
             {tab.label}
@@ -227,72 +230,72 @@ export default function SalesPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+        <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
       )}
 
       {/* Sales List */}
       {loading ? (
-        <div className="py-12 text-center text-sm text-zinc-500">Loading flash sales…</div>
+        <div className="py-12 text-center text-base text-slate-500">Loading flash sales…</div>
       ) : filteredSales.length === 0 ? (
         <Card>
           <div className="py-12 text-center">
-            <p className="text-sm text-zinc-500">No flash sales found in this view.</p>
+            <p className="text-base text-slate-500">No flash sales found in this view.</p>
             <button
               onClick={openCreateModal}
-              className="mt-4 rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+              className="mt-4 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700"
             >
               Plan your first flash sale
             </button>
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {filteredSales.map((sale) => (
             <Card key={sale.id} className="relative flex flex-col justify-between">
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                      className={`inline-block rounded-full px-3 py-1 text-xs font-bold capitalize ${
                         STATUS_BADGES[sale.status] || STATUS_BADGES.upcoming
                       }`}
                     >
                       {sale.status}
                     </span>
-                    <h3 className="mt-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                    <h3 className="mt-2.5 text-xl font-bold text-slate-900 dark:text-zinc-100">
                       {sale.name}
                     </h3>
                   </div>
-                  <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                  <span className="rounded-lg bg-rose-100 px-3 py-1 text-sm font-bold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
                     {sale.discountPct}% OFF
                   </span>
                 </div>
 
                 {sale.campaignLabel && (
-                  <p className="mt-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                  <p className="mt-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                     Campaign: {sale.campaignLabel}
                   </p>
                 )}
 
-                <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-zinc-50 p-3 text-xs dark:bg-zinc-800/60">
+                <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4 text-sm dark:bg-zinc-800/60">
                   <div>
-                    <span className="text-zinc-500">Window:</span>
-                    <div className="font-mono text-zinc-800 dark:text-zinc-200">
+                    <span className="text-slate-500">Window:</span>
+                    <div className="mt-0.5 font-mono font-bold text-slate-800 dark:text-zinc-200">
                       {sale.startDate ? sale.startDate.slice(0, 10) : '—'} →{' '}
                       {sale.endDate ? sale.endDate.slice(0, 10) : '—'}
                     </div>
-                    <span className="text-[10px] text-zinc-400">
+                    <span className="text-xs text-slate-500">
                       ({sale.durationDays} day duration)
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Planned Ad Spend:</span>
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <span className="text-slate-500">Planned Ad Spend:</span>
+                    <div className="mt-0.5 text-base font-bold text-slate-900 dark:text-zinc-100">
                       ${sale.plannedSpend.toLocaleString()}
                     </div>
-                    <span className="text-[10px] text-zinc-400">
+                    <span className="text-xs text-slate-500">
                       {sale.actualSpend !== null && sale.actualSpend !== undefined
                         ? `Actual: $${sale.actualSpend.toLocaleString()}`
                         : 'Actual: Pending'}
@@ -300,15 +303,15 @@ export default function SalesPage() {
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                <div className="mt-4">
+                  <span className="text-sm font-bold text-slate-700 dark:text-zinc-300">
                     Linked Products ({sale.products.length}):
                   </span>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {sale.products.map((sku) => (
                       <span
                         key={sku}
-                        className="rounded border border-zinc-200 bg-white px-2 py-0.5 font-mono text-[11px] font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-mono text-xs font-bold text-slate-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         {sku}
                       </span>
@@ -317,22 +320,22 @@ export default function SalesPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                <span className="text-[11px] text-zinc-400">
+              <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-zinc-800">
+                <span className="text-xs text-slate-500">
                   Created {sale.createdAt ? sale.createdAt.slice(0, 10) : ''}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => openEditModal(sale)}
-                    className="rounded px-2.5 py-1 text-xs text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
+                    className="rounded-lg px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(sale.id, sale.name)}
-                    className="rounded px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                    className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
                   >
                     Delete
                   </button>

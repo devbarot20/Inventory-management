@@ -13,16 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'Inventory Demand Forecaster',
-  description: 'Flash-sale demand estimates and stockout-risk warnings',
+  title: 'Inventory Demand Forecaster for Flash Sales',
+  description:
+    'Flash-sale demand scenario estimates, stockout-risk warnings, and accuracy analytics',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-900 antialiased dark:bg-black dark:text-zinc-50">
+      <body className="flex min-h-full bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
         <Navbar />
-        <div className="flex-1">{children}</div>
+        <div className="flex-1 pl-20">{children}</div>
       </body>
     </html>
   );

@@ -78,7 +78,9 @@ export default function DashboardPage() {
     setError(null);
     try {
       if (!getToken()) {
-        throw new Error('Please sign in to run a forecast (use Sign in button in top right)');
+        throw new Error(
+          'Please sign in to run a forecast (use the Sign in button in the left sidebar).',
+        );
       }
 
       const res = await apiFetch(`/forecast/run/${selectedSaleId}`, {
@@ -112,14 +114,16 @@ export default function DashboardPage() {
       header: 'SKU',
       accessor: 'sku',
       render: (row) => (
-        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{row.sku}</span>
+        <span className="font-mono text-base font-bold text-indigo-600 dark:text-indigo-400">
+          {row.sku}
+        </span>
       ),
     },
     {
       header: 'Available Stock',
       accessor: 'unitsAvailable',
       render: (row) => (
-        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+        <span className="text-base font-bold text-slate-900 dark:text-zinc-100">
           {row.unitsAvailable !== null && row.unitsAvailable !== undefined
             ? `${row.unitsAvailable} units`
             : '—'}
@@ -130,26 +134,28 @@ export default function DashboardPage() {
       header: 'Demand Range (Low / Exp / High)',
       render: (row) =>
         row.status === 'ok' ? (
-          <div className="flex items-center gap-1 font-mono text-xs">
-            <span className="text-zinc-500">{row.low}</span>
-            <span className="text-zinc-400">/</span>
-            <span className="font-bold text-indigo-600 dark:text-indigo-400">{row.expected}</span>
-            <span className="text-zinc-400">/</span>
-            <span className="text-zinc-500">{row.high}</span>
+          <div className="flex items-center gap-1.5 font-mono text-sm sm:text-base">
+            <span className="text-slate-500">{row.low}</span>
+            <span className="text-slate-400">/</span>
+            <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
+              {row.expected}
+            </span>
+            <span className="text-slate-400">/</span>
+            <span className="text-slate-500">{row.high}</span>
           </div>
         ) : (
-          <span className="text-xs text-zinc-400 italic">Not enough data</span>
+          <span className="text-sm text-slate-400 italic">Not enough data</span>
         ),
     },
     {
       header: 'Baseline / Uplift',
       render: (row) =>
         row.status === 'ok' ? (
-          <span className="text-xs text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm font-medium text-slate-600 dark:text-zinc-300">
             {row.baselineDailyUnits} /day ({row.upliftRatio}x)
           </span>
         ) : (
-          <span className="text-xs text-zinc-400">—</span>
+          <span className="text-sm text-slate-400">—</span>
         ),
     },
     {
@@ -165,33 +171,33 @@ export default function DashboardPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 space-y-6">
+    <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
             Flash Sale Demand Forecaster
           </h1>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1.5 text-base text-slate-600 dark:text-zinc-400">
             Scenario estimation of units demand and stockout risk warnings (E3, E4, E5).
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/actuals"
-            className="rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+            className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
           >
             Actuals vs Forecast (E6) →
           </Link>
           <Link
             href="/sales"
-            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           >
             Manage Sales
           </Link>
           <Link
             href="/products"
-            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
           >
             Catalogue & Stock
           </Link>
@@ -199,18 +205,18 @@ export default function DashboardPage() {
       </div>
 
       {/* Sale Event Selector Bar */}
-      <Card className="bg-zinc-50/50 dark:bg-zinc-900/40">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1 max-w-md">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">
+      <Card>
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl flex-1">
+            <label className="mb-2 block text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
               Select Flash Sale Event to Forecast
             </label>
             {loadingSales ? (
-              <span className="text-xs text-zinc-400">Loading flash sales…</span>
+              <span className="text-base text-slate-500">Loading flash sales…</span>
             ) : sales.length === 0 ? (
-              <div className="text-xs text-zinc-500">
+              <div className="text-base text-slate-600">
                 No flash sales planned yet.{' '}
-                <Link href="/sales" className="text-indigo-600 underline">
+                <Link href="/sales" className="font-semibold text-indigo-600 underline">
                   Create a flash sale
                 </Link>
               </div>
@@ -218,7 +224,7 @@ export default function DashboardPage() {
               <select
                 value={selectedSaleId}
                 onChange={(e) => setSelectedSaleId(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-800"
+                className="w-full rounded-xl border border-slate-300 bg-white p-3 text-base font-medium text-slate-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
               >
                 {sales.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -230,13 +236,13 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer">
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700 dark:text-zinc-300">
               <input
                 type="checkbox"
                 checked={enableSpendOption}
                 onChange={(e) => setEnableSpendOption(e.target.checked)}
-                className="rounded border-zinc-300 text-indigo-600"
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
               />
               <span>Test spend elasticity (optional flag)</span>
             </label>
@@ -245,7 +251,7 @@ export default function DashboardPage() {
               type="button"
               onClick={handleRunForecast}
               disabled={runningForecast || !selectedSaleId}
-              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
             >
               {runningForecast ? 'Running Forecast Engine…' : '⚡ Run / Re-forecast'}
             </button>
@@ -253,29 +259,29 @@ export default function DashboardPage() {
         </div>
 
         {selectedSale && (
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-zinc-200 pt-3 text-xs sm:grid-cols-4 dark:border-zinc-800">
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-200 pt-4 text-sm sm:grid-cols-4 dark:border-zinc-800">
             <div>
-              <span className="text-zinc-500">Sale Window</span>
-              <div className="font-mono font-semibold">
+              <span className="text-slate-500 dark:text-zinc-400">Sale Window</span>
+              <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white">
                 {selectedSale.startDate ? selectedSale.startDate.slice(0, 10) : ''} →{' '}
                 {selectedSale.endDate ? selectedSale.endDate.slice(0, 10) : ''}
               </div>
             </div>
             <div>
-              <span className="text-zinc-500">Duration & Discount</span>
-              <div className="font-semibold">
+              <span className="text-slate-500 dark:text-zinc-400">Duration & Discount</span>
+              <div className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
                 {selectedSale.durationDays} days • {selectedSale.discountPct}% Discount
               </div>
             </div>
             <div>
-              <span className="text-zinc-500">Planned TikTok Spend</span>
-              <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <span className="text-slate-500 dark:text-zinc-400">Planned TikTok Spend</span>
+              <div className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
                 ${selectedSale.plannedSpend.toLocaleString()}
               </div>
             </div>
             <div>
-              <span className="text-zinc-500">Campaign Label</span>
-              <div className="font-semibold truncate">
+              <span className="text-slate-500 dark:text-zinc-400">Campaign Label</span>
+              <div className="mt-0.5 truncate text-base font-bold text-slate-900 dark:text-white">
                 {selectedSale.campaignLabel || 'Organic Promo'}
               </div>
             </div>
@@ -284,39 +290,43 @@ export default function DashboardPage() {
       </Card>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3.5 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+        <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">
           {error}
         </div>
       )}
 
       {/* KPI Metric Summary Badges */}
       {forecasts.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <span className="text-xs text-zinc-500">Forecasted SKUs</span>
-            <div className="mt-1 text-2xl font-bold">{forecasts.length}</div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+            <span className="text-sm font-semibold text-slate-500 dark:text-zinc-400">
+              Forecasted SKUs
+            </span>
+            <div className="mt-1.5 text-3xl font-extrabold text-slate-900 dark:text-white">
+              {forecasts.length}
+            </div>
           </div>
-          <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 dark:border-rose-900/40 dark:bg-rose-950/20">
-            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-5 dark:border-rose-900/40 dark:bg-rose-950/20">
+            <span className="text-sm font-bold text-rose-700 dark:text-rose-400">
               High Risk SKUs
             </span>
-            <div className="mt-1 text-2xl font-bold text-rose-700 dark:text-rose-300">
+            <div className="mt-1.5 text-3xl font-extrabold text-rose-700 dark:text-rose-300">
               {highRiskCount}
             </div>
           </div>
-          <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-900/40 dark:bg-amber-950/20">
+            <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
               Medium Risk SKUs
             </span>
-            <div className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-300">
+            <div className="mt-1.5 text-3xl font-extrabold text-amber-700 dark:text-amber-300">
               {mediumRiskCount}
             </div>
           </div>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
               Low Risk SKUs
             </span>
-            <div className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+            <div className="mt-1.5 text-3xl font-extrabold text-emerald-700 dark:text-emerald-300">
               {lowRiskCount}
             </div>
           </div>
@@ -329,16 +339,16 @@ export default function DashboardPage() {
         subtitle="Visual comparison of available inventory vs. Low / Expected / High demand scenarios"
       >
         {loadingForecast ? (
-          <div className="py-24 text-center text-xs text-zinc-500">Loading forecast chart…</div>
+          <div className="py-24 text-center text-base text-slate-500">Loading forecast chart…</div>
         ) : forecasts.length === 0 ? (
           <div className="py-20 text-center">
-            <p className="text-xs text-zinc-500 mb-3">
+            <p className="mb-4 text-base text-slate-600 dark:text-zinc-400">
               No forecast has been executed yet for this sale event.
             </p>
             <button
               type="button"
               onClick={handleRunForecast}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700"
+              className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-700"
             >
               Generate First Forecast Run
             </button>
@@ -363,7 +373,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Assumptions */}
           <Card title="Forecasting Assumptions">
-            <ul className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400 list-disc pl-4">
+            <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-600 dark:text-zinc-300">
               {forecastRun.assumptions && forecastRun.assumptions.length > 0 ? (
                 forecastRun.assumptions.map((a, idx) => <li key={idx}>{a}</li>)
               ) : (
@@ -375,11 +385,11 @@ export default function DashboardPage() {
           {/* Data Quality & Flags */}
           <Card title="Data Quality & History Flags">
             {forecastRun.dataQualityFlags && forecastRun.dataQualityFlags.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {forecastRun.dataQualityFlags.map((flag, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40"
+                    className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300"
                   >
                     <span>⚠️</span>
                     <span>{flag}</span>
@@ -387,14 +397,14 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-emerald-700 dark:text-emerald-400">
+              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
                 ✓ No data quality flags triggered. All products had sufficient clean historical
                 sales days without distorting stockout periods.
               </p>
             )}
 
             {notEnoughDataCount > 0 && (
-              <div className="mt-3 rounded-lg bg-zinc-100 p-2.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+              <div className="mt-3 rounded-xl bg-slate-100 p-3 text-sm text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
                 Note: {notEnoughDataCount} product(s) returned &quot;not enough data&quot; because
                 fewer than 7 normal days of sales history exist.
               </div>

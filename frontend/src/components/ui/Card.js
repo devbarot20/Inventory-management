@@ -4,15 +4,17 @@
 export default function Card({ title, subtitle, action, children, className = '' }) {
   return (
     <section
-      className={`rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 ${className}`}
+      className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 ${className}`}
     >
       {(title || action) && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3 dark:border-zinc-800">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 dark:border-zinc-800">
           <div>
             {title && (
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100">{title}</h2>
             )}
-            {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
+            {subtitle && (
+              <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">{subtitle}</p>
+            )}
           </div>
           {action && <div>{action}</div>}
         </div>

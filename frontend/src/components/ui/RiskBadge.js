@@ -25,8 +25,8 @@ const RISK_CONFIG = {
   not_enough_data: {
     label: 'Insufficient Data',
     badgeClass:
-      'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700',
-    dotClass: 'bg-zinc-400',
+      'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-400 border-slate-200 dark:border-zinc-700',
+    dotClass: 'bg-slate-400',
     description: 'Fewer than 7 normal days of sales history.',
   },
 };
@@ -41,8 +41,8 @@ export default function RiskBadge({
   const config = RISK_CONFIG[key] || {
     label: 'No Snapshot',
     badgeClass:
-      'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700',
-    dotClass: 'bg-zinc-400',
+      'bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 border-slate-200 dark:border-zinc-700',
+    dotClass: 'bg-slate-400',
     description: 'No stock snapshot recorded for comparison.',
   };
 
@@ -52,16 +52,16 @@ export default function RiskBadge({
       : null;
 
   return (
-    <div className="inline-flex flex-col items-start gap-0.5">
+    <div className="inline-flex flex-col items-start gap-1">
       <span
         title={config.description}
-        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.badgeClass}`}
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${config.badgeClass}`}
       >
-        <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
+        <span className={`h-2 w-2 rounded-full ${config.dotClass}`} />
         {config.label}
       </span>
       {formattedRunOut && (key === 'medium' || key === 'high') && (
-        <span className="text-[10px] font-mono text-rose-600 dark:text-rose-400">
+        <span className="font-mono text-xs font-medium text-rose-600 dark:text-rose-400">
           Depletes: {formattedRunOut}
         </span>
       )}

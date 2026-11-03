@@ -7,21 +7,26 @@ export default function Table({
   columns = [],
   data = [],
   keyField = 'id',
+  keyExtractor,
   emptyMessage = 'No records found.',
 }) {
   if (!data || data.length === 0) {
-    return <div className="py-8 text-center text-xs text-zinc-500">{emptyMessage}</div>;
+    return (
+      <div className="py-10 text-center text-base text-slate-500 dark:text-zinc-400">
+        {emptyMessage}
+      </div>
+    );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
-        <thead className="border-b border-zinc-200 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800">
+      <table className="w-full text-left text-sm sm:text-base">
+        <thead className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-600 dark:border-zinc-800 dark:text-zinc-400">
           <tr>
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className={`pb-2.5 font-semibold ${
+                className={`px-3 pb-3.5 font-bold ${
                   col.align === 'right'
                     ? 'text-right'
                     : col.align === 'center'
@@ -34,16 +39,16 @@ export default function Table({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
           {data.map((row, rowIdx) => (
             <tr
-              key={row[keyField] || rowIdx}
-              className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition-colors"
+              key={keyExtractor ? keyExtractor(row, rowIdx) : row[keyField] || rowIdx}
+              className="transition-colors hover:bg-slate-50/80 dark:hover:bg-zinc-800/40"
             >
               {columns.map((col, colIdx) => (
                 <td
                   key={colIdx}
-                  className={`py-3 ${
+                  className={`px-3 py-4 ${
                     col.align === 'right'
                       ? 'text-right'
                       : col.align === 'center'

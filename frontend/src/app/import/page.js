@@ -92,7 +92,7 @@ export default function ImportPage() {
 
     try {
       if (!getToken()) {
-        throw new Error('Please sign in to import data (click Sign in in the top right navbar)');
+        throw new Error('Please sign in to import data (click Sign in in the left sidebar).');
       }
 
       let data;
@@ -126,34 +126,36 @@ export default function ImportPage() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">CSV Import</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+            CSV Data Import
+          </h1>
+          <p className="mt-1.5 text-base text-slate-600 dark:text-zinc-400">
             Upload CSV files for products, historical sales, and stock snapshots with row-level
             validation.
           </p>
         </div>
         <Link
           href="/products"
-          className="self-start rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+          className="self-start rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
           ← Back to Products
         </Link>
       </div>
 
       {/* Type Selector Tabs */}
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
+      <div className="mb-6 flex flex-wrap gap-3 border-b border-slate-200 pb-4 dark:border-zinc-800">
         {Object.entries(TYPE_CONFIG).map(([key, config]) => (
           <button
             key={key}
             type="button"
             onClick={() => handleTypeChange(key)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-xl px-5 py-2.5 text-base font-bold transition-colors ${
               activeType === key
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'bg-white text-slate-700 hover:bg-slate-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
             }`}
           >
             {config.title}
@@ -163,24 +165,26 @@ export default function ImportPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column: Form & Editor */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <Card title={`Import ${TYPE_CONFIG[activeType].title}`}>
-            <p className="mb-4 text-xs text-zinc-500">{TYPE_CONFIG[activeType].description}</p>
+            <p className="mb-5 text-sm text-slate-600 dark:text-zinc-400">
+              {TYPE_CONFIG[activeType].description}
+            </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* File Upload Box */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                <label className="block text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
                   Option 1: Upload a .csv file
                 </label>
                 <input
                   type="file"
                   accept=".csv,text/csv"
                   onChange={handleFileChange}
-                  className="mt-1.5 block w-full text-sm text-zinc-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950/50 dark:file:text-indigo-300"
+                  className="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-bold file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950/50 dark:file:text-indigo-300"
                 />
                 {file && (
-                  <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+                  <p className="mt-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     Selected file: {file.name} ({Math.round(file.size / 1024)} KB)
                   </p>
                 )}
@@ -189,13 +193,13 @@ export default function ImportPage() {
               {/* Direct CSV Textarea */}
               <div>
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                  <label className="block text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
                     Option 2: Review or Paste CSV text
                   </label>
                   <button
                     type="button"
                     onClick={() => setCsvText(SAMPLES[activeType])}
-                    className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
+                    className="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
                   >
                     Reset to sample data
                   </button>
@@ -207,13 +211,13 @@ export default function ImportPage() {
                     setCsvText(e.target.value);
                     setFile(null);
                   }}
-                  className="mt-1.5 w-full rounded-lg border border-zinc-300 bg-zinc-50 p-3 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-950"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 p-3.5 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   placeholder="Paste CSV rows here…"
                 />
               </div>
 
               {error && (
-                <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950/50 dark:text-red-300">
+                <div className="rounded-xl bg-red-50 p-3.5 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">
                   {error}
                 </div>
               )}
@@ -221,7 +225,7 @@ export default function ImportPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+                className="w-full rounded-xl bg-indigo-600 py-3 text-base font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
               >
                 {loading
                   ? 'Processing & Validating CSV…'
@@ -233,38 +237,38 @@ export default function ImportPage() {
           {/* Validation & Import Report */}
           {report && (
             <Card title="Import Results Report">
-              <div className="grid grid-cols-3 gap-3 text-center sm:text-left">
-                <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
-                  <div className="text-xs text-zinc-500">Total Rows</div>
-                  <div className="text-xl font-bold">{report.totalRows}</div>
+              <div className="grid grid-cols-3 gap-4 text-center sm:text-left">
+                <div className="rounded-xl bg-slate-100 p-4 dark:bg-zinc-800">
+                  <div className="text-sm font-medium text-slate-500">Total Rows</div>
+                  <div className="mt-1 text-2xl font-extrabold">{report.totalRows}</div>
                 </div>
-                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/40">
-                  <div className="text-xs text-emerald-700 dark:text-emerald-300">
+                <div className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-950/40">
+                  <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                     Successful Rows
                   </div>
-                  <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
+                  <div className="mt-1 text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
                     {report.successCount}
                   </div>
                 </div>
                 <div
-                  className={`rounded-lg p-3 ${
+                  className={`rounded-xl p-4 ${
                     report.rejectedCount > 0
                       ? 'bg-red-50 dark:bg-red-950/40'
-                      : 'bg-zinc-100 dark:bg-zinc-800'
+                      : 'bg-slate-100 dark:bg-zinc-800'
                   }`}
                 >
                   <div
-                    className={`text-xs ${
-                      report.rejectedCount > 0 ? 'text-red-700 dark:text-red-300' : 'text-zinc-500'
+                    className={`text-sm font-semibold ${
+                      report.rejectedCount > 0 ? 'text-red-700 dark:text-red-300' : 'text-slate-500'
                     }`}
                   >
                     Rejected Rows
                   </div>
                   <div
-                    className={`text-xl font-bold ${
+                    className={`mt-1 text-2xl font-extrabold ${
                       report.rejectedCount > 0
                         ? 'text-red-700 dark:text-red-300'
-                        : 'text-zinc-700 dark:text-zinc-300'
+                        : 'text-slate-700 dark:text-zinc-300'
                     }`}
                   >
                     {report.rejectedCount}
@@ -274,26 +278,26 @@ export default function ImportPage() {
 
               {report.rejectedCount > 0 ? (
                 <div className="mt-5">
-                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
+                  <h4 className="mb-2.5 text-sm font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
                     Rejected Rows Details ({report.rejectedCount})
                   </h4>
-                  <div className="max-h-60 overflow-y-auto rounded-lg border border-red-200 dark:border-red-900/50">
-                    <table className="w-full text-left text-xs">
+                  <div className="max-h-64 overflow-y-auto rounded-xl border border-red-200 dark:border-red-900/50">
+                    <table className="w-full text-left text-sm">
                       <thead className="bg-red-50 text-red-900 dark:bg-red-950/70 dark:text-red-200">
                         <tr>
-                          <th className="p-2.5">Row #</th>
-                          <th className="p-2.5">Reason</th>
-                          <th className="p-2.5">Row Data</th>
+                          <th className="p-3 font-bold">Row #</th>
+                          <th className="p-3 font-bold">Reason</th>
+                          <th className="p-3 font-bold">Row Data</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-red-100 bg-white dark:divide-red-950/40 dark:bg-zinc-900">
                         {report.rejectedRows.map((rej, idx) => (
                           <tr key={idx}>
-                            <td className="p-2.5 font-mono font-bold text-red-600">{rej.row}</td>
-                            <td className="p-2.5 font-medium text-red-700 dark:text-red-300">
+                            <td className="p-3 font-mono font-bold text-red-600">{rej.row}</td>
+                            <td className="p-3 font-medium text-red-700 dark:text-red-300">
                               {rej.reason}
                             </td>
-                            <td className="p-2.5 font-mono text-zinc-600 dark:text-zinc-400">
+                            <td className="p-3 font-mono text-slate-600 dark:text-zinc-400">
                               {JSON.stringify(rej.data)}
                             </td>
                           </tr>
@@ -303,7 +307,7 @@ export default function ImportPage() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+                <div className="mt-4 rounded-xl bg-emerald-50 p-3.5 text-sm font-medium text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
                   All {report.totalRows} rows were successfully validated and saved to the database.
                 </div>
               )}
@@ -311,7 +315,7 @@ export default function ImportPage() {
               <div className="mt-5 flex justify-end">
                 <Link
                   href="/products"
-                  className="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 dark:bg-zinc-100 dark:text-zinc-900"
                 >
                   View in Products Catalogue →
                 </Link>
@@ -323,12 +327,12 @@ export default function ImportPage() {
         {/* Right Column: Column Specifications Reference */}
         <div>
           <Card title="CSV Specifications">
-            <div className="space-y-4 text-xs">
+            <div className="space-y-5 text-sm">
               <div>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                <span className="font-bold text-slate-900 dark:text-zinc-100">
                   Expected Columns:
                 </span>
-                <ul className="mt-1 list-disc pl-4 text-zinc-600 dark:text-zinc-400 space-y-0.5">
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-600 dark:text-zinc-400">
                   {TYPE_CONFIG[activeType].columns.map((col, idx) => (
                     <li key={idx} className="font-mono">
                       {col}
@@ -337,11 +341,11 @@ export default function ImportPage() {
                 </ul>
               </div>
 
-              <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <div className="border-t border-slate-100 pt-4 dark:border-zinc-800">
+                <span className="font-bold text-slate-900 dark:text-zinc-100">
                   Validation Rules:
                 </span>
-                <ul className="mt-1 list-disc pl-4 text-zinc-600 dark:text-zinc-400 space-y-1">
+                <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-600 dark:text-zinc-400">
                   <li>
                     <strong>SKU:</strong> Alphanumeric, uppercase, dashes/underscores (max 64
                     chars).
@@ -358,11 +362,11 @@ export default function ImportPage() {
                 </ul>
               </div>
 
-              <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <div className="border-t border-slate-100 pt-4 dark:border-zinc-800">
+                <span className="font-bold text-slate-900 dark:text-zinc-100">
                   Upsert Behavior:
                 </span>
-                <p className="mt-1 text-zinc-500">
+                <p className="mt-1.5 leading-relaxed text-slate-600 dark:text-zinc-400">
                   Importing an existing SKU or Date will automatically update its details rather
                   than creating duplicate entries.
                 </p>
