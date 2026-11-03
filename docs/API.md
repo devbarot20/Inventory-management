@@ -271,3 +271,71 @@ Upload a CSV file (`multipart/form-data`) or provide raw CSV text (`application/
   ]
 }
 ```
+
+---
+
+## Flash Sale Events & Campaigns (E2)
+
+### `GET /api/sales`
+
+List all flash sales ordered by start date (newest first). Includes computed duration in days and live status (`upcoming`, `active`, `completed`).
+
+**200 OK:**
+
+```json
+{
+  "saleEvents": [
+    {
+      "id": "6727...",
+      "name": "Black Friday 2026",
+      "startDate": "2026-11-27T00:00:00.000Z",
+      "endDate": "2026-11-29T00:00:00.000Z",
+      "durationDays": 2,
+      "status": "upcoming",
+      "discountPct": 35,
+      "plannedSpend": 1500,
+      "actualSpend": null,
+      "campaignLabel": "TikTok @creator Campaign",
+      "products": ["TEE-01", "CAP-01"],
+      "productCount": 2,
+      "createdAt": "2026-11-03T07:30:00.000Z"
+    }
+  ]
+}
+```
+
+### `GET /api/sales/:id`
+
+Retrieve details for a single flash sale, including enriched stock availability for all linked SKUs.
+
+### `POST /api/sales`
+
+Create a new flash sale. Requires authentication.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+
+```json
+{
+  "name": "Weekend TikTok Flash Drop",
+  "startDate": "2026-11-14T00:00:00Z",
+  "endDate": "2026-11-15T00:00:00Z",
+  "discountPct": 25,
+  "plannedSpend": 800,
+  "campaignLabel": "TikTok Creator Collaboration",
+  "products": ["TEE-BLK-S", "TEE-BLK-M"]
+}
+```
+
+*Note: `plannedSpend` and `actualSpend` are maintained as strictly separate fields. Forecasts use `plannedSpend` exclusively.*
+
+**201 Created:** Returns `{ "saleEvent": { ... } }`
+
+### `PUT /api/sales/:id`
+
+Update a flash sale or record `actualSpend` post-sale. Requires authentication.
+
+### `DELETE /api/sales/:id`
+
+Delete a flash sale. Requires authentication.

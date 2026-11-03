@@ -12,4 +12,3 @@ router.get('/', productController.getStock);
 router.post('/', authenticate, validate(stockSnapshotCreateSchema), productController.recordStock);
 
 module.exports = router;
-

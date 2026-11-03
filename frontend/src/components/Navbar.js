@@ -67,7 +67,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Health' },
+    { href: '/', label: 'Overview' },
+    { href: '/sales', label: 'Flash Sales' },
     { href: '/products', label: 'Products & Stock' },
     { href: '/import', label: 'CSV Import' },
   ];
