@@ -66,6 +66,18 @@ export default function HealthStatus() {
         {state.data && (
           <>
             <div>
+              <dt className="text-zinc-500">Database</dt>
+              <dd
+                className={
+                  state.data.database === 'connected'
+                    ? 'text-green-700 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }
+              >
+                {state.data.database}
+              </dd>
+            </div>
+            <div>
               <dt className="text-zinc-500">Environment</dt>
               <dd>{state.data.environment}</dd>
             </div>

@@ -12,6 +12,7 @@ describe('GET /api/health', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
+    expect(res.body.database).toBe('disconnected');
     expect(res.body).toHaveProperty('timestamp');
   });
 

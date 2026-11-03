@@ -15,7 +15,7 @@ forecast can be compared with actual sales.
 | --------------- | ----------------------------------------------------------- |
 | Frontend        | Next.js (App Router), Tailwind CSS, Recharts                |
 | Backend         | Node.js + Express.js (REST API, forecasting in JavaScript)  |
-| Database        | MongoDB with Mongoose _(added in Section 2)_                |
+| Database        | MongoDB with Mongoose                                       |
 | Quality         | ESLint + Prettier, Jest + Supertest                         |
 | Version control | Git + GitHub (`main`, `dev`, `feature/*` branches)          |
 
@@ -25,12 +25,13 @@ forecast can be compared with actual sales.
 .
 ├── backend/              Express API
 │   ├── src/
-│   │   ├── config/       Environment config
+│   │   ├── config/       Environment + MongoDB connection
 │   │   ├── controllers/  Request handlers
+│   │   ├── models/       Mongoose models (see docs/DATA_MODELS.md)
 │   │   ├── routes/       Route definitions (mounted under /api)
 │   │   ├── app.js        Express app factory (used by server + tests)
 │   │   └── server.js     HTTP server entry point
-│   └── tests/            Jest + Supertest tests
+│   └── tests/            Jest + Supertest tests (in-memory MongoDB)
 ├── frontend/             Next.js app (App Router, src/ directory)
 │   └── src/
 │       ├── app/          Pages and layouts
@@ -53,7 +54,17 @@ git clone https://github.com/devbarot20/Inventory-management.git
 cd Inventory-management
 ```
 
-### 2. Backend (Express API)
+### 2. Start MongoDB
+
+Local install via Homebrew (macOS):
+
+```bash
+brew services start mongodb-community@7.0   # stop with: brew services stop mongodb-community@7.0
+```
+
+Or use a MongoDB Atlas connection string in `MONGODB_URI`.
+
+### 3. Backend (Express API)
 
 ```bash
 cd backend
@@ -62,7 +73,9 @@ npm install
 npm run dev               # http://localhost:5001/api/health
 ```
 
-### 3. Frontend (Next.js)
+The API connects to MongoDB on startup and exits with a clear message if it cannot.
+
+### 4. Frontend (Next.js)
 
 In a second terminal:
 
@@ -73,7 +86,8 @@ npm install
 npm run dev               # http://localhost:3000
 ```
 
-The home page calls `GET /api/health` and shows whether the API is **Online** or **Offline**.
+The home page calls `GET /api/health` and shows whether the API is **Online** or **Offline**, and
+the database connection state.
 
 ## Environment variables
 
@@ -82,6 +96,7 @@ The home page calls `GET /api/health` and shows whether the API is **Online** or
 | `backend/.env`         | `NODE_ENV`            | `development`                | Runtime environment       |
 | `backend/.env`         | `PORT`                | `5001`                       | API port                  |
 | `backend/.env`         | `CORS_ORIGIN`         | `http://localhost:3000`      | Allowed frontend origin   |
+| `backend/.env`         | `MONGODB_URI`         | `mongodb://127.0.0.1:27017/inventory_forecaster` | MongoDB connection (required in production) |
 | `frontend/.env.local`  | `NEXT_PUBLIC_API_URL` | `http://localhost:5001/api`  | Base URL of the API       |
 
 Secrets live only in `.env` files, which are git-ignored. Only `.env.example` files are committed.
@@ -96,7 +111,7 @@ Secrets live only in `.env` files, which are git-ignored. Only `.env.example` fi
 | ----------- | ----------------------- | ------------------------------- |
 | `backend/`  | `npm run dev`           | Start API with file watching    |
 | `backend/`  | `npm start`             | Start API                       |
-| `backend/`  | `npm test`              | Run Jest tests                  |
+| `backend/`  | `npm test`              | Run Jest tests (uses an in-memory MongoDB) |
 | `backend/`  | `npm run lint`          | ESLint                          |
 | `backend/`  | `npm run format`        | Prettier (write)                |
 | `frontend/` | `npm run dev`           | Start Next.js dev server        |
@@ -114,7 +129,7 @@ Secrets live only in `.env` files, which are git-ignored. Only `.env.example` fi
 ## Roadmap
 
 1. ✅ Repository and project setup
-2. Database and data models
+2. ✅ Database and data models
 3. Authentication and authorization
 4. Product and stock management (E1)
 5. Sale event and campaign plan (E2)
