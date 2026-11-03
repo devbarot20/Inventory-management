@@ -133,9 +133,7 @@ function computeAggregateMetrics(comparisons) {
         : 100;
 
   const biasPct =
-    totalActualUnits > 0
-      ? Number(((totalError / totalActualUnits) * 100).toFixed(2))
-      : 0;
+    totalActualUnits > 0 ? Number(((totalError / totalActualUnits) * 100).toFixed(2)) : 0;
 
   const withinRangePct = Number(((withinRangeCount / evaluatedCount) * 100).toFixed(2));
   const warningAccuracyPct = Number(((warningCorrectCount / evaluatedCount) * 100).toFixed(2));
@@ -169,9 +167,7 @@ async function recordActuals({ saleEventId, actualRecords, actualSpend }) {
 
   // Find latest forecast run
   const latestRun = await ForecastRun.findOne({ saleEvent: saleEventId }).sort({ runAt: -1 });
-  const forecasts = latestRun
-    ? await Forecast.find({ forecastRun: latestRun._id }).lean()
-    : [];
+  const forecasts = latestRun ? await Forecast.find({ forecastRun: latestRun._id }).lean() : [];
 
   const forecastBySku = new Map();
   for (const f of forecasts) {
@@ -264,9 +260,7 @@ async function getComparison(saleEventId) {
   }
 
   const latestRun = await ForecastRun.findOne({ saleEvent: saleEventId }).sort({ runAt: -1 });
-  const forecasts = latestRun
-    ? await Forecast.find({ forecastRun: latestRun._id }).lean()
-    : [];
+  const forecasts = latestRun ? await Forecast.find({ forecastRun: latestRun._id }).lean() : [];
 
   const actuals = await Actual.find({ saleEvent: saleEventId }).lean();
 

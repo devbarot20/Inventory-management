@@ -88,4 +88,3 @@ function evaluateStockoutRisk({
 module.exports = {
   evaluateStockoutRisk,
 };
-

@@ -12,7 +12,10 @@ const actualItemSchema = z.object({
       message: 'Invalid SKU format',
     }),
   actualUnits: z
-    .number({ required_error: 'Actual units is required', invalid_type_error: 'Actual units must be a number' })
+    .number({
+      required_error: 'Actual units is required',
+      invalid_type_error: 'Actual units must be a number',
+    })
     .int('Actual units must be a whole number')
     .min(0, 'Actual units cannot be negative'),
   stockoutOccurred: z.boolean().default(false).optional(),

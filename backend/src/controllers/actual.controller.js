@@ -107,8 +107,16 @@ async function importActualsCsv(req, res, next) {
       }
 
       const actualUnits = Number(rawUnits);
-      if (rawUnits === '' || isNaN(actualUnits) || actualUnits < 0 || !Number.isInteger(actualUnits)) {
-        errors.push({ row: rowNum, reason: `Invalid actualUnits: "${rawUnits}" (must be whole non-negative integer)` });
+      if (
+        rawUnits === '' ||
+        isNaN(actualUnits) ||
+        actualUnits < 0 ||
+        !Number.isInteger(actualUnits)
+      ) {
+        errors.push({
+          row: rowNum,
+          reason: `Invalid actualUnits: "${rawUnits}" (must be whole non-negative integer)`,
+        });
         return;
       }
 

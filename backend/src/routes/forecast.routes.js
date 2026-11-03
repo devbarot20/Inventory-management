@@ -19,4 +19,3 @@ router.get('/run/:id', forecastController.getForecastRun);
 router.get('/runs/:saleEventId', forecastController.listForecastRuns);
 
 module.exports = router;
-
