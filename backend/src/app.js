@@ -16,9 +16,28 @@ const { securityHeaders, apiRateLimiter } = require('./middleware/security');
 function createApp() {
   const app = express();
 
+  // Trust first proxy (required for express-rate-limit on Render / cloud load balancers)
+  app.set('trust proxy', 1);
+
+  const corsOriginSetting =
+    !env.corsOrigin || env.corsOrigin === '*'
+      ? '*'
+      : env.corsOrigin.includes(',')
+        ? env.corsOrigin.split(',').map((o) => o.trim())
+        : env.corsOrigin;
+
   app.use(securityHeaders);
-  app.use(cors({ origin: env.corsOrigin }));
+  app.use(cors({ origin: corsOriginSetting }));
   app.use(express.json({ limit: '1mb' }));
+
+  // Root welcome route for cloud health probes & browser visits
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'Inventory Demand Forecaster API',
+      health: '/api/health',
+    });
+  });
 
   app.use('/api', apiRateLimiter);
   app.use('/api', routes);
