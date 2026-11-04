@@ -22,8 +22,14 @@ const AuthContext = createContext({
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setTokenState] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setTokenState] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return getToken();
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return Boolean(getToken());
+  });
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
 
@@ -58,12 +64,8 @@ export function AuthProvider({ children }) {
   // Fetch current user on mount if token exists
   useEffect(() => {
     const savedToken = getToken();
-    if (!savedToken) {
-      setLoading(false);
-      return;
-    }
+    if (!savedToken) return;
 
-    setTokenState(savedToken);
     let ignore = false;
 
     apiFetch('/auth/me')
@@ -168,3 +170,4 @@ export function useAuth() {
   }
   return context;
 }
+

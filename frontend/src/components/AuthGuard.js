@@ -207,3 +207,4 @@ export default function AuthGuard({ children, requireAdmin = false, moduleName =
   // Permitted!
   return children;
 }
+

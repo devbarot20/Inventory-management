@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
-export default function AuthModal() {
-  const { authModalOpen, authModalMode, closeAuthModal, login, register, loginAsAdmin, loginAsPlanner } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
+function AuthModalDialog({ initialMode }) {
+  const { closeAuthModal, login, register, loginAsAdmin, loginAsPlanner } = useAuth();
+  const [isRegister, setIsRegister] = useState(initialMode === 'register');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,19 +14,6 @@ export default function AuthModal() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [authError, setAuthError] = useState(null);
-
-  useEffect(() => {
-    setIsRegister(authModalMode === 'register');
-    setAuthError(null);
-    setFormData({
-      name: '',
-      email: '',
-      password: '',
-      role: 'user',
-    });
-  }, [authModalOpen, authModalMode]);
-
-  if (!authModalOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -222,4 +209,11 @@ export default function AuthModal() {
       </div>
     </div>
   );
+}
+
+export default function AuthModal() {
+  const { authModalOpen, authModalMode } = useAuth();
+  if (!authModalOpen) return null;
+
+  return <AuthModalDialog key={`${authModalOpen}-${authModalMode}`} initialMode={authModalMode} />;
 }
