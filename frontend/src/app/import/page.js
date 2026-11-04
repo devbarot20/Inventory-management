@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
+import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
 
 const SAMPLES = {
@@ -126,7 +127,8 @@ export default function ImportPage() {
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+    <AuthGuard requireAdmin moduleName="Bulk Data Importer">
+      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
@@ -376,5 +378,6 @@ export default function ImportPage() {
         </div>
       </div>
     </main>
+    </AuthGuard>
   );
 }

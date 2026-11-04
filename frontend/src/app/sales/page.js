@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
+import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
 
 const STATUS_BADGES = {
@@ -176,7 +177,8 @@ export default function SalesPage() {
   });
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+    <AuthGuard moduleName="Flash Sales & Campaigns">
+      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
       {/* Page Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -568,5 +570,6 @@ export default function SalesPage() {
         </div>
       )}
     </main>
+    </AuthGuard>
   );
 }

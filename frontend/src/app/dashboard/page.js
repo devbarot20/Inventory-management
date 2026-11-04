@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import RiskBadge from '@/components/ui/RiskBadge';
 import ForecastChart from '@/components/ui/ForecastChart';
+import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function DashboardPage() {
@@ -171,7 +172,8 @@ export default function DashboardPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
+    <AuthGuard moduleName="Executive Dashboard">
+      <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -413,5 +415,6 @@ export default function DashboardPage() {
         </div>
       )}
     </main>
+    </AuthGuard>
   );
 }

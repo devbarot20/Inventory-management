@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import ActualComparisonChart from '@/components/ui/ActualComparisonChart';
+import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function ActualsComparisonPage() {
@@ -298,7 +299,8 @@ export default function ActualsComparisonPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
+    <AuthGuard moduleName="Actuals & Accuracy Comparison">
+      <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -655,5 +657,6 @@ export default function ActualsComparisonPage() {
         </div>
       )}
     </main>
+    </AuthGuard>
   );
 }

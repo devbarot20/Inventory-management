@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
+import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function ProductsPage() {
@@ -132,7 +133,8 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+    <AuthGuard moduleName="Products & Warehouse Stock">
+      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
       {/* Top Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -458,5 +460,6 @@ export default function ProductsPage() {
         </div>
       )}
     </main>
+    </AuthGuard>
   );
 }
