@@ -19,12 +19,35 @@ export default function Navbar() {
     return 'light';
   });
   const [formData, setFormData] = useState({
-    name: 'Demo Admin',
-    email: 'admin@shop.com',
-    password: 'password123',
-    role: 'admin',
+    name: '',
+    email: '',
+    password: '',
+    role: 'user',
   });
   const [authError, setAuthError] = useState(null);
+
+  const openAuthModal = (forRegister = false) => {
+    setIsRegister(forRegister);
+    setAuthError(null);
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: 'user',
+    });
+    setShowAuthModal(true);
+  };
+
+  const toggleAuthMode = () => {
+    setIsRegister((prev) => !prev);
+    setAuthError(null);
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: 'user',
+    });
+  };
 
   // Synchronize theme state with document root class (Default: Light Mode)
   useEffect(() => {
@@ -426,7 +449,7 @@ export default function Navbar() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setShowAuthModal(true);
+                openAuthModal(false);
               }}
               title="Sign in or Register"
               className="flex w-full items-center gap-3.5 rounded-xl bg-indigo-600 px-3.5 py-3 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-indigo-700"
@@ -490,7 +513,7 @@ export default function Navbar() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base dark:border-zinc-700 dark:bg-zinc-800"
+                    className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                   />
                 </div>
               )}
@@ -503,7 +526,7 @@ export default function Navbar() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base dark:border-zinc-700 dark:bg-zinc-800"
+                  className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
               </div>
               <div>
@@ -515,7 +538,7 @@ export default function Navbar() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base dark:border-zinc-700 dark:bg-zinc-800"
+                  className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                 />
               </div>
 
@@ -527,7 +550,7 @@ export default function Navbar() {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base dark:border-zinc-700 dark:bg-zinc-800"
+                    className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-base text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -546,7 +569,7 @@ export default function Navbar() {
                 {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
                 <button
                   type="button"
-                  onClick={() => setIsRegister(!isRegister)}
+                  onClick={toggleAuthMode}
                   className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
                 >
                   {isRegister ? 'Sign in' : 'Register'}

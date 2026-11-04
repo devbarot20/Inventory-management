@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const cleanUrl = rawApiUrl.trim().replace(/\/+$/, '');
+const API_URL = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 
 const TOKEN_KEY = 'ifc_auth_token';
 
