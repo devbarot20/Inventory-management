@@ -22,40 +22,43 @@ const AuthContext = createContext({
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setTokenState] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    return getToken();
-  });
-  const [loading, setLoading] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return Boolean(getToken());
-  });
+  const [token, setTokenState] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
+  const [theme, setTheme] = useState('light');
 
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.localStorage.getItem('agy_theme') === 'dark' ? 'dark' : 'light';
-    }
-    return 'light';
-  });
-
-  // Apply theme class to document element
+  // Hydrate theme on mount matching stored preference
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      if (theme === 'dark') {
+    try {
+      const savedTheme = window.localStorage.getItem('agy_theme');
+      if (savedTheme === 'dark') {
+        queueMicrotask(() => {
+          setTheme('dark');
+        });
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+    } catch {
+      // Storage access might fail in private browsing
     }
-  }, [theme]);
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      if (typeof window !== 'undefined') {
+      try {
         window.localStorage.setItem('agy_theme', next);
+      } catch {
+        // Storage access might fail in private browsing
+      }
+      if (typeof document !== 'undefined') {
+        if (next === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
       return next;
     });
@@ -63,10 +66,23 @@ export function AuthProvider({ children }) {
 
   // Fetch current user on mount if token exists
   useEffect(() => {
-    const savedToken = getToken();
-    if (!savedToken) return;
-
     let ignore = false;
+    const savedToken = getToken();
+
+    if (!savedToken) {
+      queueMicrotask(() => {
+        if (!ignore) {
+          setLoading(false);
+        }
+      });
+      return;
+    }
+
+    queueMicrotask(() => {
+      if (!ignore) {
+        setTokenState(savedToken);
+      }
+    });
 
     apiFetch('/auth/me')
       .then((res) => {
@@ -82,7 +98,9 @@ export function AuthProvider({ children }) {
         }
       })
       .finally(() => {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       });
 
     return () => {
