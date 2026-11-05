@@ -255,7 +255,7 @@ export default function DashboardPage() {
               disabled={runningForecast || !selectedSaleId}
               className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
             >
-              {runningForecast ? 'Running Forecast Engine…' : '⚡ Run / Re-forecast'}
+              {runningForecast ? 'Running Forecast Engine…' : 'Run Forecast Engine'}
             </button>
           </div>
         </div>
@@ -391,17 +391,21 @@ export default function DashboardPage() {
                 {forecastRun.dataQualityFlags.map((flag, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300"
+                    className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300"
                   >
-                    <span>⚠️</span>
+                    <svg className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                     <span>{flag}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                ✓ No data quality flags triggered. All products had sufficient clean historical
-                sales days without distorting stockout periods.
+              <p className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                No data quality flags triggered. All products had sufficient clean historical sales days without distorting stockout periods.
               </p>
             )}
 
