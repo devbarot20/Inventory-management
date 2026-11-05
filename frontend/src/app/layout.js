@@ -23,10 +23,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
+      <body className="flex min-h-full flex-col bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
         <AuthProvider>
           <Navbar />
-          <div className="flex-1 pl-20">{children}</div>
+          <main className="flex-1 pb-12">{children}</main>
           <AuthModal />
         </AuthProvider>
       </body>
