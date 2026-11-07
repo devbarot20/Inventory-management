@@ -165,3 +165,91 @@ describe('Password reset', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('Email verification', () => {
+  const mailer = require('../src/services/mailer');
+  const env = require('../src/config/env');
+  let app;
+  let emails;
+
+  beforeAll(() => {
+    app = createApp();
+  });
+
+  beforeEach(() => {
+    emails = [];
+    env.emailVerificationEnabled = true;
+    jest.spyOn(mailer, 'sendVerification').mockImplementation(async (to, name, url) => {
+      emails.push({ to, url });
+    });
+    jest.spyOn(mailer, 'sendPasswordReset').mockImplementation(async (to, name, url) => {
+      emails.push({ to, url });
+    });
+  });
+
+  afterEach(() => {
+    env.emailVerificationEnabled = false;
+    jest.restoreAllMocks();
+  });
+
+  const signUp = async (email = 'verify@shop.com') => {
+    const res = await request(app).post('/api/auth/register').send({ name: 'Vera', email, password: 'password123' });
+    return res.body;
+  };
+  const tokenFrom = (url) => new URL(url).searchParams.get('token');
+
+  it('marks new accounts unverified, emails a link and blocks data routes until verified', async () => {
+    const { token, user } = await signUp();
+    expect(user.emailVerified).toBe(false);
+    expect(user).not.toHaveProperty('verifyTokenHash');
+    expect(emails).toHaveLength(1);
+
+    const blocked = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.error.details.code).toBe('EMAIL_NOT_VERIFIED');
+
+    const me = await request(app).get('/api/auth/me').set({ Authorization: `Bearer ${token}` });
+    expect(me.status).toBe(200);
+    expect(me.body.user.emailVerified).toBe(false);
+
+    const verified = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[0].url) });
+    expect(verified.status).toBe(200);
+
+    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    expect(ok.status).toBe(200);
+
+    const reuse = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[0].url) });
+    expect(reuse.status).toBe(400);
+  });
+
+  it('resends a working link and rejects bad tokens', async () => {
+    const { token } = await signUp('resend@shop.com');
+    const resend = await request(app).post('/api/auth/resend-verification').set({ Authorization: `Bearer ${token}` });
+    expect(resend.status).toBe(200);
+    expect(emails).toHaveLength(2);
+
+    const bad = await request(app).post('/api/auth/verify-email').send({ token: 'z'.repeat(64) });
+    expect(bad.status).toBe(400);
+
+    const good = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[1].url) });
+    expect(good.status).toBe(200);
+  });
+
+  it('treats a completed password reset as proof of email ownership', async () => {
+    const { token } = await signUp('forgot@shop.com');
+    await request(app).post('/api/auth/forgot-password').send({ email: 'forgot@shop.com' });
+    const resetMail = emails[emails.length - 1];
+    await request(app).post('/api/auth/reset-password').send({ token: tokenFrom(resetMail.url), password: 'brandnewpass' });
+
+    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    expect(ok.status).toBe(200);
+  });
+
+  it('does not require verification when the feature is off', async () => {
+    env.emailVerificationEnabled = false;
+    const { token, user } = await signUp('off@shop.com');
+    expect(user.emailVerified).toBe(true);
+    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    expect(ok.status).toBe(200);
+  });
+});

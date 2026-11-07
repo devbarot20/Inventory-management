@@ -33,6 +33,11 @@ const env = {
     .replace(/\/+$/, ''),
   // Optional transactional email via Resend (https://resend.com). Without a key, emails are logged.
   resendApiKey: process.env.RESEND_API_KEY || '',
+  // Email verification is only enforced when mail can really be delivered (or explicitly enabled),
+  // so a missing email setup can never lock users out.
+  emailVerificationEnabled:
+    process.env.EMAIL_VERIFICATION === 'true' ||
+    (process.env.EMAIL_VERIFICATION !== 'false' && Boolean(process.env.RESEND_API_KEY)),
   mailFrom: process.env.MAIL_FROM || 'ForecastIQ <onboarding@resend.dev>',
 };
 

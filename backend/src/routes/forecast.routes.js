@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const forecastController = require('../controllers/forecast.controller');
-const { authenticate } = require('../middleware/auth');
+const { authenticateVerified: authenticate } = require('../middleware/auth');
 
 const router = Router();
 

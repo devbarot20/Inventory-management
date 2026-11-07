@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
       default: 'user',
     },
     // SHA-256 hash of the emailed reset token (never the token itself).
+    // Email verification. Legacy accounts have no `emailVerificationRequired` flag and count as verified.
+    emailVerificationRequired: { type: Boolean },
+    emailVerifiedAt: { type: Date },
+    verifyTokenHash: { type: String, select: false },
+    verifyTokenExpires: { type: Date, select: false },
     resetTokenHash: { type: String, select: false },
     resetTokenExpires: { type: Date, select: false },
     plan: {
@@ -53,6 +58,11 @@ const userSchema = new mongoose.Schema(
         delete ret.password;
         delete ret.resetTokenHash;
         delete ret.resetTokenExpires;
+        delete ret.verifyTokenHash;
+        delete ret.verifyTokenExpires;
+        ret.emailVerified = !ret.emailVerificationRequired || Boolean(ret.emailVerifiedAt);
+        delete ret.emailVerificationRequired;
+        delete ret.emailVerifiedAt;
         return ret;
       },
     },
@@ -63,6 +73,10 @@ userSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.virtual('isEmailVerified').get(function isEmailVerified() {
+  return !this.emailVerificationRequired || Boolean(this.emailVerifiedAt);
 });
 
 userSchema.methods.comparePassword = async function comparePassword(candidatePassword) {

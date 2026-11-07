@@ -7,7 +7,7 @@ const {
   saleEventCreateSchema,
   saleEventUpdateSchema,
 } = require('../validators/saleEvent.validator');
-const { authenticate } = require('../middleware/auth');
+const { authenticateVerified: authenticate } = require('../middleware/auth');
 const { enforceLimit } = require('../middleware/plan');
 
 const router = Router();

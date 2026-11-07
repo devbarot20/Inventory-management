@@ -41,7 +41,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   │   └── backtest.service.js   # Time-ordered backtest evaluation engine
 │   │   ├── app.js               # Express app factory (used by server and test runner)
 │   │   └── server.js            # HTTP server entry point (Port 5001)
-│   └── tests/                   # 14 Jest test suites (108 tests, in-memory MongoDB)
+│   └── tests/                   # 14 Jest test suites (112 tests, in-memory MongoDB)
 ├── frontend/
 │   └── src/
 │       ├── app/
@@ -78,6 +78,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 
   Limits are enforced by the API (`403` with `details.code` of `PLAN_LIMIT` or `PLAN_FEATURE`). `GET /api/auth/usage` returns the current plan and usage.
 - **Password reset**: `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Links are valid for 1 hour and single-use. Set `RESEND_API_KEY` (and `MAIL_FROM`, `APP_URL`) to send real emails; without it the link is printed in the server log.
+- **Email verification**: new accounts must confirm their email (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`) before using data routes, which otherwise return `403` with `details.code` `EMAIL_NOT_VERIFIED`. It is enforced automatically when `RESEND_API_KEY` is set (override with `EMAIL_VERIFICATION=true|false`), so a missing email setup never locks users out. Accounts created before the feature, and anyone who completes a password reset, count as verified.
 - **Existing data from before isolation** can be assigned to one account with `node scripts/claimLegacyData.js user@example.com` (run from `backend/`).
 - **Export**: the dashboard's "Export CSV" downloads the SKU restock plan for the selected sale.
 - **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
@@ -347,7 +348,7 @@ MUG-WHT-01,98,false
 ### Backend Tests & Code Quality
 ```bash
 cd backend
-npm test                # Runs 14 test suites (108 tests) in-memory
+npm test                # Runs 14 test suites (112 tests) in-memory
 npm run lint            # ESLint static analysis
 npm run format:check    # Prettier formatting verification
 npm run backtest        # CLI time-ordered backtest evaluation

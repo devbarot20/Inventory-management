@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import VerifyEmailGate from '@/components/VerifyEmailGate';
 
 export default function AuthGuard({ children, moduleName = 'this module' }) {
   const { user, loading, openAuthModal } = useAuth();
@@ -55,6 +56,11 @@ export default function AuthGuard({ children, moduleName = 'this module' }) {
         </div>
       </div>
     );
+  }
+
+  // Signed in, but the email address has not been confirmed yet.
+  if (user.emailVerified === false) {
+    return <VerifyEmailGate />;
   }
 
   return children;

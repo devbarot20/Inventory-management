@@ -14,6 +14,7 @@ const AuthContext = createContext({
   login: async () => {},
   register: async () => {},
   changePlan: async () => {},
+  refreshUser: async () => {},
   logout: () => {},
   openAuthModal: () => {},
   closeAuthModal: () => {},
@@ -142,6 +143,12 @@ export function AuthProvider({ children }) {
     return res.user;
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const res = await apiFetch('/auth/me');
+    setUser(res.user);
+    return res.user;
+  }, []);
+
   const logout = useCallback(() => {
     removeToken();
     setTokenState(null);
@@ -170,6 +177,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         changePlan,
+        refreshUser,
         logout,
         openAuthModal,
         closeAuthModal,

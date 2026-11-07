@@ -42,6 +42,28 @@ async function resetPassword(req, res, next) {
   }
 }
 
+async function verifyEmail(req, res, next) {
+  try {
+    await authService.verifyEmail(req.body.token);
+    res.status(200).json({ message: 'Email verified. Your workspace is unlocked.' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function resendVerification(req, res, next) {
+  try {
+    const result = await authService.resendVerification(req.user);
+    res.status(200).json({
+      message: result.alreadyVerified
+        ? 'Your email is already verified.'
+        : 'Verification email sent. Check your inbox.',
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getMe(req, res) {
   res.status(200).json({
     user: req.user,
@@ -82,6 +104,8 @@ module.exports = {
   login,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
   getMe,
   updatePlan,
   getUsage,

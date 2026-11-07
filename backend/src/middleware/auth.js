@@ -30,6 +30,21 @@ async function authenticate(req, res, next) {
   }
 }
 
+/** Same as authenticate, but also rejects accounts whose email is not verified yet. */
+function authenticateVerified(req, res, next) {
+  authenticate(req, res, (err) => {
+    if (err) return next(err);
+    if (!req.user.isEmailVerified) {
+      return next(
+        ApiError.forbidden('Please verify your email address to use this feature.', {
+          code: 'EMAIL_NOT_VERIFIED',
+        }),
+      );
+    }
+    return next();
+  });
+}
+
 function authorize(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) {
@@ -50,5 +65,6 @@ function authorize(...allowedRoles) {
 
 module.exports = {
   authenticate,
+  authenticateVerified,
   authorize,
 };

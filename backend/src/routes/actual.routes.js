@@ -4,7 +4,7 @@ const { Router } = require('express');
 const actualController = require('../controllers/actual.controller');
 const validate = require('../middleware/validate');
 const { actualsSubmitSchema } = require('../validators/actual.validator');
-const { authenticate } = require('../middleware/auth');
+const { authenticateVerified: authenticate } = require('../middleware/auth');
 
 const router = Router();
 

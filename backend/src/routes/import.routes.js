@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const importController = require('../controllers/import.controller');
-const { authenticate } = require('../middleware/auth');
+const { authenticateVerified: authenticate } = require('../middleware/auth');
 const { requireFeature } = require('../middleware/plan');
 
 const router = Router();

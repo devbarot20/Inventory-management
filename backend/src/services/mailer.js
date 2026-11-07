@@ -39,4 +39,15 @@ async function sendPasswordReset(to, name, resetUrl) {
   });
 }
 
-module.exports = { sendMail, sendPasswordReset };
+async function sendVerification(to, name, verifyUrl) {
+  return sendMail({
+    to,
+    subject: 'Verify your ForecastIQ email',
+    text:
+      `Hi ${name},\n\nWelcome to ForecastIQ! Confirm your email address to unlock your workspace. ` +
+      `The link is valid for 24 hours:\n\n${verifyUrl}\n\n` +
+      'If you did not create this account, you can ignore this email.',
+  });
+}
+
+module.exports = { sendMail, sendPasswordReset, sendVerification };
