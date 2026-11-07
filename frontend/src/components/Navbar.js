@@ -14,27 +14,31 @@ export default function Navbar() {
     openAuthModal,
     theme,
     toggleTheme,
-    loginAsAdmin,
-    loginAsPlanner,
   } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: '/', label: 'Overview' },
+  const appLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/products', label: 'Products & Stock' },
     { href: '/sales', label: 'Flash Sales' },
     { href: '/actuals', label: 'Actuals & MAPE' },
     { href: '/import', label: 'Import', adminOnly: true },
   ];
+  const publicLinks = [
+    { href: '/#how-it-works', label: 'How it works' },
+    { href: '/#features', label: 'Features' },
+    { href: '/#roles', label: 'Roles' },
+    { href: '/#faq', label: 'FAQ' },
+  ];
+  const navLinks = user ? appLinks.filter((l) => !l.adminOnly || user.role === 'admin') : publicLinks;
 
   return (
     <div className="sticky top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <nav className="relative flex h-16 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/75 px-4 shadow-lg shadow-slate-900/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-black/20 sm:px-5">
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -127,62 +131,30 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Quick Switch Role button */}
-              {user.role === 'admin' ? (
-                <button
-                  type="button"
-                  onClick={() => loginAsPlanner()}
-                  title="Switch to Planner View"
-                  className="hidden rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 lg:inline-flex"
-                >
-                  To Planner
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => loginAsAdmin()}
-                  title="Switch to Administrator View"
-                  className="hidden rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-purple-300 lg:inline-flex"
-                >
-                  To Admin
-                </button>
-              )}
-
               {/* Sign Out */}
               <button
                 type="button"
                 onClick={logout}
                 className="rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-red-400"
               >
-                Exit
+                Sign out
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              {/* Quick Demo Login Pills (Desktop) */}
-              <div className="hidden items-center gap-1 sm:flex">
-                <button
-                  type="button"
-                  onClick={() => loginAsAdmin()}
-                  className="rounded-md border border-purple-200 bg-purple-50/80 px-2 py-1 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-300"
-                >
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => loginAsPlanner()}
-                  className="rounded-md border border-blue-200 bg-blue-50/80 px-2 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
-                >
-                  Planner
-                </button>
-              </div>
-
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700"
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal('register')}
+                className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700"
+              >
+                Get Started
               </button>
             </div>
           )}

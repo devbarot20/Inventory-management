@@ -2,12 +2,9 @@
 
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export default function AuthGuard({ children, requireAdmin = false, moduleName = 'this module' }) {
-  const { user, loading, loginAsAdmin, loginAsPlanner, openAuthModal } = useAuth();
-  const [switching, setSwitching] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  const { user, loading, logout, openAuthModal } = useAuth();
 
   if (loading) {
     return (
@@ -24,118 +21,37 @@ export default function AuthGuard({ children, requireAdmin = false, moduleName =
   if (!user) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 sm:py-20">
-        <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-9">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                Authentication Required
-              </span>
-              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-                Sign in to access {moduleName}
-              </h2>
-            </div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-10">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
           </div>
-
-          <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
-            This module requires an authenticated session to read catalogue snapshots and run demand simulations. Select a role below to sign in.
+          <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-50">
+            Sign in to open {moduleName}
+          </h2>
+          <p className="mt-3 text-lg leading-relaxed text-slate-600 dark:text-zinc-400">
+            This area is only available to registered users. Sign in or create an account to continue.
           </p>
-
-          {errorMsg && (
-            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
-              {errorMsg}
-            </div>
-          )}
-
-          {/* Quick Demo Access Cards */}
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              disabled={switching}
-              onClick={async () => {
-                setErrorMsg(null);
-                setSwitching(true);
-                try {
-                  await loginAsAdmin();
-                } catch (e) {
-                  setErrorMsg(e.message || 'Failed to sign in as admin');
-                } finally {
-                  setSwitching(false);
-                }
-              }}
-              className="group flex flex-col items-start rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-left transition hover:border-indigo-500 hover:bg-white hover:shadow-xs disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-800/50 dark:hover:border-indigo-400 dark:hover:bg-zinc-800"
-            >
-              <div className="flex w-full items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/80 dark:text-purple-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
-                  Store Admin
-                </span>
-                <span className="text-xs font-medium text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                  Sign In →
-                </span>
-              </div>
-              <span className="mt-3 text-xs font-mono text-slate-700 dark:text-zinc-300">
-                admin@shop.com
-              </span>
-              <span className="mt-1 text-[11px] text-slate-500 dark:text-zinc-400">
-                Full privileges & CSV import
-              </span>
-            </button>
-
-            <button
-              type="button"
-              disabled={switching}
-              onClick={async () => {
-                setErrorMsg(null);
-                setSwitching(true);
-                try {
-                  await loginAsPlanner();
-                } catch (e) {
-                  setErrorMsg(e.message || 'Failed to sign in as planner');
-                } finally {
-                  setSwitching(false);
-                }
-              }}
-              className="group flex flex-col items-start rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-left transition hover:border-indigo-500 hover:bg-white hover:shadow-xs disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-800/50 dark:hover:border-indigo-400 dark:hover:bg-zinc-800"
-            >
-              <div className="flex w-full items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/80 dark:text-blue-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                  Demand Planner
-                </span>
-                <span className="text-xs font-medium text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                  Sign In →
-                </span>
-              </div>
-              <span className="mt-3 text-xs font-mono text-slate-700 dark:text-zinc-300">
-                manager@shop.com
-              </span>
-              <span className="mt-1 text-[11px] text-slate-500 dark:text-zinc-400">
-                Forecast modeling & analytics
-              </span>
-            </button>
-          </div>
-
-          <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5 dark:border-zinc-800">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <button
               type="button"
               onClick={() => openAuthModal('login')}
-              className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+              className="rounded-xl bg-indigo-600 px-7 py-3 text-base font-bold text-white transition hover:bg-indigo-700"
             >
-              Custom credentials / Register
+              Sign in
             </button>
-
-            <Link
-              href="/"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+            <button
+              type="button"
+              onClick={() => openAuthModal('register')}
+              className="rounded-xl border-2 border-slate-300 px-7 py-3 text-base font-bold text-slate-800 transition hover:border-slate-900 dark:border-zinc-700 dark:text-zinc-100"
             >
-              Back to Overview
-            </Link>
+              Create account
+            </button>
           </div>
+          <Link href="/" className="mt-6 inline-block text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200">
+            Back to home
+          </Link>
         </div>
       </div>
     );
@@ -172,20 +88,13 @@ export default function AuthGuard({ children, requireAdmin = false, moduleName =
           <div className="mt-6 flex items-center gap-3">
             <button
               type="button"
-              disabled={switching}
-              onClick={async () => {
-                setSwitching(true);
-                try {
-                  await loginAsAdmin();
-                } catch (e) {
-                  setErrorMsg(e.message);
-                } finally {
-                  setSwitching(false);
-                }
+              onClick={() => {
+                logout();
+                openAuthModal('login');
               }}
-              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 disabled:opacity-60"
+              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700"
             >
-              Switch to Store Admin
+              Sign in with an admin account
             </button>
 
             <Link

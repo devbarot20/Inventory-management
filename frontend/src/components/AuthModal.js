@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 function AuthModalDialog({ initialMode }) {
-  const { closeAuthModal, login, register, loginAsAdmin, loginAsPlanner } = useAuth();
+  const { closeAuthModal, login, register } = useAuth();
   const [isRegister, setIsRegister] = useState(initialMode === 'register');
   const [formData, setFormData] = useState({
     name: '',
@@ -32,22 +32,6 @@ function AuthModalDialog({ initialMode }) {
     }
   };
 
-  const handleQuickLogin = async (type) => {
-    setAuthError(null);
-    setSubmitting(true);
-    try {
-      if (type === 'admin') {
-        await loginAsAdmin();
-      } else {
-        await loginAsPlanner();
-      }
-    } catch (err) {
-      setAuthError(err.message || 'Demo login failed.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const toggleMode = () => {
     setIsRegister((prev) => !prev);
     setAuthError(null);
@@ -63,7 +47,7 @@ function AuthModalDialog({ initialMode }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
       <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-7">
         {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
               Account Access
@@ -82,47 +66,6 @@ function AuthModalDialog({ initialMode }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-        </div>
-
-        {/* Quick Demo Credentials */}
-        <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-zinc-800 dark:bg-zinc-800/40">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-            Pre-configured Test Accounts
-          </p>
-          <div className="mt-2.5 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => handleQuickLogin('admin')}
-              className="group flex flex-col items-start rounded-lg border border-slate-200 bg-white p-2.5 text-left transition hover:border-purple-400 hover:shadow-xs disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-purple-500"
-            >
-              <div className="flex w-full items-center justify-between">
-                <span className="text-xs font-bold text-purple-700 dark:text-purple-300">Admin</span>
-                <span className="text-[10px] text-slate-400">Full Access</span>
-              </div>
-              <span className="mt-1 font-mono text-[11px] text-slate-600 dark:text-zinc-400">admin@shop.com</span>
-            </button>
-
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => handleQuickLogin('planner')}
-              className="group flex flex-col items-start rounded-lg border border-slate-200 bg-white p-2.5 text-left transition hover:border-blue-400 hover:shadow-xs disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-blue-500"
-            >
-              <div className="flex w-full items-center justify-between">
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Planner</span>
-                <span className="text-[10px] text-slate-400">Analyst</span>
-              </div>
-              <span className="mt-1 font-mono text-[11px] text-slate-600 dark:text-zinc-400">manager@shop.com</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="relative mb-5 flex items-center justify-center">
-          <div className="w-full border-t border-slate-200 dark:border-zinc-800" />
-          <span className="absolute bg-white px-2.5 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:bg-zinc-900 dark:text-zinc-500">
-            or continue with credentials
-          </span>
         </div>
 
         {authError && (

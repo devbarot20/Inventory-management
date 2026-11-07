@@ -35,3 +35,18 @@ body {
     sans-serif;
   line-height: 1.6;
 }
+
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.landing-float { animation: landing-float 5s ease-in-out infinite; }
+.landing-float-slow { animation: landing-float 7s ease-in-out infinite; }
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-float, .landing-float-slow { animation: none; }
+  html { scroll-behavior: auto; }
+}
