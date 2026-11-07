@@ -36,6 +36,9 @@ const userSchema = new mongoose.Schema(
       enum: { values: ROLES, message: 'Role must be one of: ' + ROLES.join(', ') },
       default: 'user',
     },
+    // SHA-256 hash of the emailed reset token (never the token itself).
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpires: { type: Date, select: false },
     plan: {
       type: String,
       enum: { values: PLAN_IDS, message: 'Plan must be one of: ' + PLAN_IDS.join(', ') },
@@ -48,6 +51,8 @@ const userSchema = new mongoose.Schema(
       transform(doc, ret) {
         baseSchemaOptions.toJSON.transform(doc, ret);
         delete ret.password;
+        delete ret.resetTokenHash;
+        delete ret.resetTokenExpires;
         return ret;
       },
     },

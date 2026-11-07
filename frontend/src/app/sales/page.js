@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import AuthGuard from '@/components/AuthGuard';
+import UsageMeter from '@/components/UsageMeter';
 import { apiFetch, getToken } from '@/lib/api';
 
 const STATUS_BADGES = {
@@ -179,6 +180,7 @@ export default function SalesPage() {
   return (
     <AuthGuard moduleName="Flash Sales & Campaigns">
       <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+      <UsageMeter resource="campaigns" refreshKey={sales.length} />
       {/* Page Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

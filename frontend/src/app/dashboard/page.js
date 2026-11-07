@@ -7,6 +7,7 @@ import Table from '@/components/ui/Table';
 import RiskBadge from '@/components/ui/RiskBadge';
 import ForecastChart from '@/components/ui/ForecastChart';
 import AuthGuard from '@/components/AuthGuard';
+import OnboardingChecklist from '@/components/OnboardingChecklist';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function DashboardPage() {
@@ -205,6 +206,8 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      <OnboardingChecklist />
 
       {/* Sale Event Selector Bar */}
       <Card>

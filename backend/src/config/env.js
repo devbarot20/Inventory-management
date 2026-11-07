@@ -26,6 +26,14 @@ const env = {
         })()
       : 'dev-jwt-secret-replace-in-production'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  // Public URL of the frontend, used in password-reset links.
+  appUrl: (process.env.APP_URL || process.env.CORS_ORIGIN || 'http://localhost:3000')
+    .split(',')[0]
+    .trim()
+    .replace(/\/+$/, ''),
+  // Optional transactional email via Resend (https://resend.com). Without a key, emails are logged.
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  mailFrom: process.env.MAIL_FROM || 'ForecastIQ <onboarding@resend.dev>',
 };
 
 module.exports = env;

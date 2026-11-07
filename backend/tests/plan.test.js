@@ -36,6 +36,14 @@ describe('Subscription plans', () => {
     expect(res.body.user.plan).toBe('starter');
   });
 
+  it('reports plan limits and current usage', async () => {
+    await request(app).post('/api/products').set(auth()).send({ sku: 'U-1', name: 'One' });
+    const res = await request(app).get('/api/auth/usage').set(auth());
+    expect(res.status).toBe(200);
+    expect(res.body.plan).toMatchObject({ id: 'starter', maxProducts: 25, maxCampaigns: 3, csvImport: false });
+    expect(res.body.usage).toEqual({ products: 1, campaigns: 0 });
+  });
+
   it('lets a user change plan and rejects unknown plans', async () => {
     const ok = await setPlan('growth');
     expect(ok.status).toBe(200);
@@ -100,5 +108,60 @@ describe('Subscription plans', () => {
       .set(auth())
       .send({ type: 'products', csvText: 'sku,name\nA-1,Alpha' });
     expect(allowed.status).not.toBe(403);
+  });
+});
+
+describe('Password reset', () => {
+  const mailer = require('../src/services/mailer');
+  let app;
+  let sent;
+
+  beforeAll(() => {
+    app = createApp();
+  });
+
+  beforeEach(async () => {
+    sent = null;
+    jest.spyOn(mailer, 'sendPasswordReset').mockImplementation(async (to, name, url) => {
+      sent = { to, url };
+    });
+    await request(app).post('/api/auth/register').send({
+      name: 'Reset User',
+      email: 'reset@shop.com',
+      password: 'oldpassword',
+    });
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('answers identically for unknown emails and sends nothing', async () => {
+    const res = await request(app).post('/api/auth/forgot-password').send({ email: 'nobody@shop.com' });
+    expect(res.status).toBe(200);
+    expect(sent).toBeNull();
+  });
+
+  it('emails a one-time link that sets a new password', async () => {
+    const res = await request(app).post('/api/auth/forgot-password').send({ email: 'reset@shop.com' });
+    expect(res.status).toBe(200);
+    expect(sent.to).toBe('reset@shop.com');
+
+    const token = new URL(sent.url).searchParams.get('token');
+    const reset = await request(app).post('/api/auth/reset-password').send({ token, password: 'newpassword1' });
+    expect(reset.status).toBe(200);
+
+    const oldLogin = await request(app).post('/api/auth/login').send({ email: 'reset@shop.com', password: 'oldpassword' });
+    expect(oldLogin.status).toBe(401);
+    const newLogin = await request(app).post('/api/auth/login').send({ email: 'reset@shop.com', password: 'newpassword1' });
+    expect(newLogin.status).toBe(200);
+
+    const reuse = await request(app).post('/api/auth/reset-password').send({ token, password: 'another-pass' });
+    expect(reuse.status).toBe(400);
+  });
+
+  it('rejects an invalid token', async () => {
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: 'x'.repeat(64), password: 'newpassword1' });
+    expect(res.status).toBe(400);
   });
 });

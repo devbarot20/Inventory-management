@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/lib/api';
 
 function AuthModalDialog({ initialMode }) {
   const { closeAuthModal, login, register } = useAuth();
@@ -14,13 +15,22 @@ function AuthModalDialog({ initialMode }) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [forgot, setForgot] = useState(false);
+  const [notice, setNotice] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError(null);
     setSubmitting(true);
+    setNotice(null);
     try {
-      if (isRegister) {
+      if (forgot) {
+        const res = await apiFetch('/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email: formData.email }),
+        });
+        setNotice(res.message);
+      } else if (isRegister) {
         await register(formData);
       } else {
         await login(formData.email, formData.password);
@@ -33,6 +43,8 @@ function AuthModalDialog({ initialMode }) {
   };
 
   const toggleMode = () => {
+    setForgot(false);
+    setNotice(null);
     setIsRegister((prev) => !prev);
     setAuthError(null);
     setFormData({
@@ -53,7 +65,7 @@ function AuthModalDialog({ initialMode }) {
               Account Access
             </span>
             <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-              {isRegister ? 'Create Account' : 'Sign In'}
+              {forgot ? 'Reset Password' : isRegister ? 'Create Account' : 'Sign In'}
             </h3>
           </div>
           <button
@@ -74,8 +86,14 @@ function AuthModalDialog({ initialMode }) {
           </div>
         )}
 
+        {notice && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
+            {notice}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-3.5">
-          {isRegister && (
+          {isRegister && !forgot && (
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
                 Full Name
@@ -103,6 +121,7 @@ function AuthModalDialog({ initialMode }) {
             />
           </div>
 
+          {!forgot && (
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
               Password
@@ -115,15 +134,45 @@ function AuthModalDialog({ initialMode }) {
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
             />
           </div>
+          )}
+
+          {!forgot && !isRegister && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(true);
+                  setAuthError(null);
+                }}
+                className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={submitting}
             className="mt-1.5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700 disabled:opacity-50"
           >
-            {submitting ? 'Authenticating…' : isRegister ? 'Create Account' : 'Sign In'}
+            {submitting ? 'Please wait…' : forgot ? 'Send reset link' : isRegister ? 'Create Account' : 'Sign In'}
           </button>
 
+          {forgot ? (
+            <div className="pt-2 text-center text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(false);
+                  setNotice(null);
+                }}
+                className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (
           <div className="pt-2 text-center text-xs text-slate-500 dark:text-zinc-400">
             {isRegister ? 'Already have an account?' : "Need an account?"}{' '}
             <button
@@ -134,6 +183,7 @@ function AuthModalDialog({ initialMode }) {
               {isRegister ? 'Sign in' : 'Create account'}
             </button>
           </div>
+          )}
         </form>
       </div>
     </div>

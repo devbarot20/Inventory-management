@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import AuthGuard from '@/components/AuthGuard';
+import UsageMeter from '@/components/UsageMeter';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function ProductsPage() {
@@ -164,6 +165,8 @@ export default function ProductsPage() {
           </button>
         </div>
       </div>
+
+      <UsageMeter resource="products" refreshKey={products.length} />
 
       {/* Search Bar */}
       <div className="mb-6 flex items-center gap-3">
