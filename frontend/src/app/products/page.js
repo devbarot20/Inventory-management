@@ -18,6 +18,7 @@ export default function ProductsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
   const [activeSku, setActiveSku] = useState('');
+  const [editing, setEditing] = useState(null);
   const [stockInput, setStockInput] = useState({
     date: '',
     unitsAvailable: 100,
@@ -111,6 +112,24 @@ export default function ProductsPage() {
       });
 
       setShowStockModal(false);
+      triggerRefresh();
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditProduct = async (e) => {
+    e.preventDefault();
+    setFormError(null);
+    setSubmitting(true);
+    try {
+      await apiFetch(`/products/${editing.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: editing.name.trim() }),
+      });
+      setEditing(null);
       triggerRefresh();
     } catch (err) {
       setFormError(err.message);
@@ -285,6 +304,16 @@ export default function ProductsPage() {
                           </button>
                           <button
                             type="button"
+                            onClick={() => {
+                              setFormError(null);
+                              setEditing({ id: p.id, sku: p.sku, name: p.name });
+                            }}
+                            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDeleteProduct(p.id, p.sku)}
                             className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                           >
@@ -386,6 +415,31 @@ export default function ProductsPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <form onSubmit={handleEditProduct} className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <h3 className="text-lg font-semibold">Edit product</h3>
+            <p className="mt-1 font-mono text-sm text-slate-500">{editing.sku}</p>
+            {formError && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{formError}</p>}
+            <label className="mt-4 block text-sm font-semibold text-slate-700 dark:text-zinc-300">
+              Product name
+              <input
+                required
+                maxLength={200}
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
+              />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditing(null)} className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800">Cancel</button>
+              <button type="submit" disabled={submitting} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60">{submitting ? 'Saving…' : 'Save'}</button>
+            </div>
+          </form>
         </div>
       )}
 

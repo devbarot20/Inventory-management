@@ -93,7 +93,7 @@ export default function ImportPage() {
 
     try {
       if (!getToken()) {
-        throw new Error('Please sign in to import data (click Sign in in the left sidebar).');
+        throw new Error('Please sign in again to import data.');
       }
 
       let data;

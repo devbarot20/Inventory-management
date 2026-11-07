@@ -114,7 +114,7 @@ export default function ActualsComparisonPage() {
 
     try {
       if (!getToken()) {
-        throw new Error('Please sign in (in the left sidebar) to record or import actuals.');
+        throw new Error('Please sign in again to record or import actuals.');
       }
 
       if (modalMode === 'manual') {

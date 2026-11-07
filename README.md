@@ -41,7 +41,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   │   └── backtest.service.js   # Time-ordered backtest evaluation engine
 │   │   ├── app.js               # Express app factory (used by server and test runner)
 │   │   └── server.js            # HTTP server entry point (Port 5001)
-│   └── tests/                   # 12 Jest test suites (95 tests, in-memory MongoDB)
+│   └── tests/                   # 14 Jest test suites (108 tests, in-memory MongoDB)
 ├── frontend/
 │   └── src/
 │       ├── app/
@@ -60,6 +60,27 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   └── actuals.csv
 └── docs/                        # Specifications, schema docs, and architecture reference
 ```
+
+---
+
+---
+
+## Accounts, Plans & Data Privacy
+
+- **Per-user data isolation**: products, stock snapshots, sales history, flash sales, forecasts and actuals are owned by the user who created them. Every read and write is scoped to the signed-in user, and other users' records return `404`. SKUs are unique per user.
+- **Plans** (no payment yet; switch freely on `/pricing`):
+
+  | Plan | Products | Campaigns | CSV import |
+  | :--- | :--- | :--- | :--- |
+  | Starter (default) | 25 | 3 | No |
+  | Growth | 250 | 25 | Yes |
+  | Scale | Unlimited | Unlimited | Yes |
+
+  Limits are enforced by the API (`403` with `details.code` of `PLAN_LIMIT` or `PLAN_FEATURE`). `GET /api/auth/usage` returns the current plan and usage.
+- **Password reset**: `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Links are valid for 1 hour and single-use. Set `RESEND_API_KEY` (and `MAIL_FROM`, `APP_URL`) to send real emails; without it the link is printed in the server log.
+- **Existing data from before isolation** can be assigned to one account with `node scripts/claimLegacyData.js user@example.com` (run from `backend/`).
+- **Export**: the dashboard's "Export CSV" downloads the SKU restock plan for the selected sale.
+- **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
 
 ---
 
@@ -113,8 +134,7 @@ npm run seed
 ```
 
 This instantly creates:
-- Default Admin account: `admin@shop.com` / `password123`
-- Default Staff account: `manager@shop.com` / `password123`
+- Demo accounts `admin@shop.com` and `manager@shop.com` (password `password123`, local development only). All demo data below belongs to `admin@shop.com`, because every record is private to its owner
 - 8 Products across Apparel, Drinkware, and Accessories
 - 90 days of normal sales history with natural variance
 - Current stock snapshots
@@ -327,7 +347,7 @@ MUG-WHT-01,98,false
 ### Backend Tests & Code Quality
 ```bash
 cd backend
-npm test                # Runs 12 test suites (95 tests) in-memory
+npm test                # Runs 14 test suites (108 tests) in-memory
 npm run lint            # ESLint static analysis
 npm run format:check    # Prettier formatting verification
 npm run backtest        # CLI time-ordered backtest evaluation

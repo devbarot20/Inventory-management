@@ -7,6 +7,7 @@ import Table from '@/components/ui/Table';
 import RiskBadge from '@/components/ui/RiskBadge';
 import ForecastChart from '@/components/ui/ForecastChart';
 import AuthGuard from '@/components/AuthGuard';
+import { downloadCsv } from '@/lib/exportCsv';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
 import { apiFetch, getToken } from '@/lib/api';
 
@@ -81,7 +82,7 @@ export default function DashboardPage() {
     try {
       if (!getToken()) {
         throw new Error(
-          'Please sign in to run a forecast (use the Sign in button in the left sidebar).',
+          'Please sign in again to run a forecast.',
         );
       }
 
@@ -104,6 +105,26 @@ export default function DashboardPage() {
   };
 
   const selectedSale = sales.find((s) => s.id === selectedSaleId);
+
+  const handleExport = () => {
+    const sale = sales.find((x) => x.id === selectedSaleId);
+    const safeName = (sale?.name || 'forecast').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    downloadCsv(`${safeName}-restock-plan.csv`, forecasts, [
+      { label: 'SKU', value: (f) => f.sku },
+      { label: 'Status', value: (f) => f.status },
+      { label: 'Low demand', value: (f) => f.low },
+      { label: 'Expected demand', value: (f) => f.expected },
+      { label: 'High demand', value: (f) => f.high },
+      { label: 'Units available', value: (f) => f.unitsAvailable },
+      {
+        label: 'Suggested reorder units',
+        value: (f) =>
+          f.status === 'ok' && f.unitsAvailable !== null ? Math.max(0, Math.ceil(f.high - f.unitsAvailable)) : '',
+      },
+      { label: 'Risk level', value: (f) => f.riskLevel },
+      { label: 'Expected run-out', value: (f) => f.expectedRunOutTime },
+    ]);
+  };
 
   // Compute Risk Metrics
   const highRiskCount = forecasts.filter((f) => f.riskLevel === 'high').length;
@@ -369,6 +390,15 @@ export default function DashboardPage() {
           title="Stockout Risk Analysis & Forecast Details"
           subtitle="Detailed demand scenarios and projected stockout depletion times"
         >
+          <div className="mb-4 flex justify-end">
+            <button
+              type="button"
+              onClick={handleExport}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              Export CSV
+            </button>
+          </div>
           <Table columns={tableColumns} data={forecasts} keyField="sku" />
         </Card>
       )}
