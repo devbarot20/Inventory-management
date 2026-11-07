@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 
 const { baseSchemaOptions } = require('./common');
 
+const { PLAN_IDS, DEFAULT_PLAN } = require('../config/plans');
+
 const ROLES = Object.freeze(['admin', 'user']);
 
 const userSchema = new mongoose.Schema(
@@ -33,6 +35,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: { values: ROLES, message: 'Role must be one of: ' + ROLES.join(', ') },
       default: 'user',
+    },
+    plan: {
+      type: String,
+      enum: { values: PLAN_IDS, message: 'Plan must be one of: ' + PLAN_IDS.join(', ') },
+      default: DEFAULT_PLAN,
     },
   },
   {

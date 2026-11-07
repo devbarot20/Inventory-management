@@ -116,9 +116,13 @@ export default function Navbar() {
                   <span className="max-w-[100px] truncate text-xs font-bold text-slate-900 dark:text-zinc-100">
                     {user.name}
                   </span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                    Member
-                  </span>
+                  <Link
+                    href="/pricing"
+                    title="Change plan"
+                    className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 hover:underline dark:text-indigo-400"
+                  >
+                    {user.plan || 'starter'} plan
+                  </Link>
                 </div>
               </div>
 

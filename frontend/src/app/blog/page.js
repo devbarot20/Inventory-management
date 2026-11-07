@@ -34,7 +34,7 @@ export default function BlogPage() {
       <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
         <div className="grid gap-8 md:grid-cols-2">
           {POSTS.map((p, i) => (
-            <article key={p.title} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+            <article key={p.title} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-8 transition duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex items-center gap-3">
                 <span className={`rounded-full px-3 py-1 text-sm font-bold ${p.color}`}>{p.tag}</span>
                 <span className="text-sm text-slate-500 dark:text-zinc-500">{p.read}</span>

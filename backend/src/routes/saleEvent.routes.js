@@ -8,6 +8,7 @@ const {
   saleEventUpdateSchema,
 } = require('../validators/saleEvent.validator');
 const { authenticate } = require('../middleware/auth');
+const { enforceLimit } = require('../middleware/plan');
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.get('/:id', saleEventController.getSaleEvent);
 router.post(
   '/',
   authenticate,
+  enforceLimit('campaigns'),
   validate(saleEventCreateSchema),
   saleEventController.createSaleEvent,
 );

@@ -28,7 +28,7 @@ export default function AboutPage() {
           <h2 className="text-center text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-50">What we believe</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {VALUES.map((v) => (
-              <div key={v.title} className="rounded-3xl border border-slate-200 bg-white p-9 dark:border-zinc-800 dark:bg-zinc-900">
+              <div key={v.title} className="rounded-3xl border border-slate-200 bg-white p-9 transition duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-zinc-50">{v.title}</h3>
                 <p className="mt-3 text-lg leading-relaxed text-slate-600 dark:text-zinc-400">{v.text}</p>
               </div>
@@ -40,7 +40,7 @@ export default function AboutPage() {
         <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-zinc-50">What it is built with</h2>
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {STACK.map((s) => (
-            <li key={s} className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-lg font-semibold text-slate-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">{s}</li>
+            <li key={s} className="rounded-2xl border border-slate-200 bg-white px-6 py-5 transition duration-300 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md text-lg font-semibold text-slate-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">{s}</li>
           ))}
         </ul>
       </section>

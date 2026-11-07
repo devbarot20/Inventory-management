@@ -26,6 +26,15 @@ async function getMe(req, res) {
   });
 }
 
+async function updatePlan(req, res, next) {
+  try {
+    const user = await authService.changePlan(req.user, req.body.plan);
+    res.status(200).json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function checkAdmin(req, res) {
   res.status(200).json({
     ok: true,
@@ -38,5 +47,6 @@ module.exports = {
   register,
   login,
   getMe,
+  updatePlan,
   checkAdmin,
 };

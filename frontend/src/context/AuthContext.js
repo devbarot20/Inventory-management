@@ -13,6 +13,7 @@ const AuthContext = createContext({
   toggleTheme: () => {},
   login: async () => {},
   register: async () => {},
+  changePlan: async () => {},
   logout: () => {},
   openAuthModal: () => {},
   closeAuthModal: () => {},
@@ -132,6 +133,15 @@ export function AuthProvider({ children }) {
     return res.user;
   }, []);
 
+  const changePlan = useCallback(async (plan) => {
+    const res = await apiFetch('/auth/plan', {
+      method: 'PATCH',
+      body: JSON.stringify({ plan }),
+    });
+    setUser(res.user);
+    return res.user;
+  }, []);
+
   const logout = useCallback(() => {
     removeToken();
     setTokenState(null);
@@ -159,6 +169,7 @@ export function AuthProvider({ children }) {
         toggleTheme,
         login,
         register,
+        changePlan,
         logout,
         openAuthModal,
         closeAuthModal,

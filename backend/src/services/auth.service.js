@@ -44,7 +44,14 @@ async function login({ email, password }) {
   };
 }
 
+async function changePlan(user, plan) {
+  user.plan = plan;
+  await user.save();
+  return user;
+}
+
 module.exports = {
+  changePlan,
   register,
   login,
 };

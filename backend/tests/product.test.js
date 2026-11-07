@@ -24,6 +24,11 @@ describe('Product and Stock Management (E1)', () => {
       password: 'password123',
     });
     token = userRes.body.token;
+    // CSV import is a Growth-plan feature.
+    await request(app)
+      .patch('/api/auth/plan')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ plan: 'growth' });
   });
 
   describe('Product CRUD', () => {

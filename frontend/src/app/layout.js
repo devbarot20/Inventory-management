@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import CursorFollower from '@/components/CursorFollower';
 import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import { AuthProvider } from '@/context/AuthContext';
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
           <main className="flex-1">{children}</main>
           <Footer />
           <AuthModal />
+          <CursorFollower />
         </AuthProvider>
       </body>
     </html>

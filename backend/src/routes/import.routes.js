@@ -3,6 +3,7 @@
 const { Router } = require('express');
 const importController = require('../controllers/import.controller');
 const { authenticate } = require('../middleware/auth');
+const { requireFeature } = require('../middleware/plan');
 
 const router = Router();
 
@@ -10,6 +11,7 @@ const router = Router();
 router.post(
   '/csv',
   authenticate,
+  requireFeature('csvImport', 'CSV bulk import'),
   importController.upload.single('file'),
   importController.importCsv,
 );

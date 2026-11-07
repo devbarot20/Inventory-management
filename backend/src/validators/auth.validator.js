@@ -2,6 +2,7 @@
 
 const { z } = require('zod');
 const { ROLES } = require('../models/User');
+const { PLAN_IDS } = require('../config/plans');
 
 const registerSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
@@ -25,7 +26,12 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const planSchema = z.object({
+  plan: z.enum(PLAN_IDS, { errorMap: () => ({ message: `Plan must be one of: ${PLAN_IDS.join(', ')}` }) }),
+});
+
 module.exports = {
+  planSchema,
   registerSchema,
   loginSchema,
 };

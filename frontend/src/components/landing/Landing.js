@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import WorkspaceTabs from './WorkspaceTabs';
 import {
   HeroArt,
   SpikeIcon,
@@ -153,7 +154,7 @@ export default function Landing() {
               <button
                 type="button"
                 onClick={() => openAuthModal('register')}
-                className="rounded-2xl bg-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700"
+                className="rounded-2xl bg-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-600/25 transition duration-300 hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/40 active:scale-95"
               >
                 Create free account
               </button>
@@ -183,7 +184,7 @@ export default function Landing() {
             ['3 levels', 'of stockout risk'],
             ['1 click', 'to regenerate'],
           ].map(([n, l]) => (
-            <div key={l}>
+            <div key={l} className="transition duration-300 hover:-translate-y-1 hover:scale-105">
               <div className="text-4xl font-extrabold text-slate-900 dark:text-zinc-50 sm:text-5xl">{n}</div>
               <div className="mt-2 text-lg text-slate-500 dark:text-zinc-400">{l}</div>
             </div>
@@ -201,8 +202,8 @@ export default function Landing() {
           />
           <div className="mt-16 grid gap-8 md:grid-cols-3">
             {PROBLEMS.map(({ Icon, title, text }) => (
-              <div key={title} className="rounded-3xl border border-slate-200 bg-white p-9 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <Icon className="h-24 w-24" />
+              <div key={title} className="group rounded-3xl border border-slate-200 bg-white p-9 shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+                <Icon className="h-24 w-24 transition duration-300 group-hover:scale-110 group-hover:-rotate-6" />
                 <h3 className="mt-6 text-2xl font-bold text-slate-900 dark:text-zinc-50">{title}</h3>
                 <p className="mt-3 text-lg leading-relaxed text-slate-600 dark:text-zinc-400">{text}</p>
               </div>
@@ -222,8 +223,8 @@ export default function Landing() {
           <div className="relative mt-20 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div className="absolute left-[12%] right-[12%] top-12 hidden border-t-4 border-dashed border-indigo-200 dark:border-indigo-500/20 lg:block" />
             {STEPS.map(({ Icon, title, text }, i) => (
-              <div key={title} className="relative text-center">
-                <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/25">
+              <div key={title} className="group relative text-center">
+                <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/25 transition duration-300 group-hover:-translate-y-2 group-hover:rotate-6 group-hover:shadow-2xl group-hover:shadow-indigo-600/40">
                   <Icon className="h-12 w-12" />
                   <span className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full border-4 border-white bg-slate-900 text-base font-extrabold text-white dark:border-zinc-950 dark:bg-zinc-100 dark:text-zinc-900">
                     {i + 1}
@@ -258,7 +259,7 @@ export default function Landing() {
                 </ul>
               </div>
               <div className={flip ? 'lg:order-1' : ''}>
-                <Art className="h-auto w-full drop-shadow-xl" />
+                <Art className="h-auto w-full drop-shadow-xl transition duration-500 hover:-translate-y-2 hover:scale-[1.03] hover:drop-shadow-2xl" />
               </div>
             </div>
           </section>
@@ -294,17 +295,17 @@ export default function Landing() {
           </div>
 
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
+            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10 transition duration-300 hover:-translate-y-2 hover:bg-white/10 hover:ring-indigo-400/50">
               <div className="text-base font-semibold text-slate-400">Forecast demand</div>
               <div className="mt-3 text-5xl font-extrabold">{sc.units}</div>
               <div className="mt-1 text-lg text-slate-400">units</div>
             </div>
-            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
+            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10 transition duration-300 hover:-translate-y-2 hover:bg-white/10 hover:ring-indigo-400/50">
               <div className="text-base font-semibold text-slate-400">Stockout risk</div>
               <div className="mt-3 text-5xl font-extrabold text-rose-400">{sc.risk}</div>
               <div className="mt-1 text-lg text-slate-400">across the catalogue</div>
             </div>
-            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
+            <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10 transition duration-300 hover:-translate-y-2 hover:bg-white/10 hover:ring-indigo-400/50">
               <div className="text-base font-semibold text-slate-400">Units to reorder</div>
               <div className="mt-3 text-5xl font-extrabold text-emerald-400">{sc.restock}</div>
               <div className="mt-1 text-lg text-slate-400">recommended</div>
@@ -320,23 +321,9 @@ export default function Landing() {
           <SectionHead
             eyebrow="Your workspace"
             title="Everything you need after you sign in"
-            text="One account opens five connected tools."
+            text="One account opens five connected tools. Hover or tap a tool to preview it."
           />
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              ['Dashboard', 'Live stockout risk, scenario breakdown and restock numbers for the next campaign.'],
-              ['Products & Stock', 'Your SKU catalogue, warehouse stock snapshots and daily sales speed.'],
-              ['Flash Sales', 'Create campaigns, choose discounts and generate forecasts in one click.'],
-              ['Actuals & MAPE', 'Enter real sales and see how close each forecast was.'],
-              ['Import', 'Upload products and sales history in bulk from CSV files.'],
-            ].map(([t, x], i) => (
-              <div key={t} className="rounded-3xl border border-slate-200 bg-slate-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-xl font-extrabold text-white">{i + 1}</div>
-                <h3 className="mt-5 text-2xl font-bold text-slate-900 dark:text-zinc-50">{t}</h3>
-                <p className="mt-2 text-lg leading-relaxed text-slate-600 dark:text-zinc-400">{x}</p>
-              </div>
-            ))}
-          </div>
+          <WorkspaceTabs />
         </div>
       </section>
 
