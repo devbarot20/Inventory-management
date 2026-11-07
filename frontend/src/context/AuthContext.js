@@ -14,8 +14,6 @@ const AuthContext = createContext({
   login: async () => {},
   register: async () => {},
   logout: () => {},
-  loginAsAdmin: async () => {},
-  loginAsPlanner: async () => {},
   openAuthModal: () => {},
   closeAuthModal: () => {},
 });
@@ -140,14 +138,6 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const loginAsAdmin = useCallback(async () => {
-    return login('admin@shop.com', 'password123');
-  }, [login]);
-
-  const loginAsPlanner = useCallback(async () => {
-    return login('manager@shop.com', 'password123');
-  }, [login]);
-
   const openAuthModal = useCallback((mode = 'login') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
@@ -170,8 +160,6 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        loginAsAdmin,
-        loginAsPlanner,
         openAuthModal,
         closeAuthModal,
       }}

@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import { AuthProvider } from '@/context/AuthContext';
 
@@ -26,7 +27,8 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning className="flex min-h-full flex-col bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
         <AuthProvider>
           <Navbar />
-          <main className="flex-1 pb-12">{children}</main>
+          <main className="flex-1">{children}</main>
+          <Footer />
           <AuthModal />
         </AuthProvider>
       </body>

@@ -200,25 +200,6 @@ export function AccuracyArt({ className = '' }) {
   );
 }
 
-export function AdminArt({ className = '' }) {
-  return (
-    <svg className={className} viewBox="0 0 140 140" fill="none" aria-hidden="true">
-      <path d="M70 12l48 18v36c0 30-20 52-48 62-28-10-48-32-48-62V30z" className="fill-purple-100 stroke-purple-600 dark:fill-purple-500/10" strokeWidth="6" strokeLinejoin="round" />
-      <path d="M48 70l16 16 30-32" stroke="#7c3aed" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-export function PlannerArt({ className = '' }) {
-  return (
-    <svg className={className} viewBox="0 0 140 140" fill="none" aria-hidden="true">
-      <rect x="18" y="24" width="104" height="80" rx="14" className="fill-sky-100 stroke-sky-600 dark:fill-sky-500/10" strokeWidth="6" />
-      <path d="M34 84l18-20 14 10 26-30" stroke="#0284c7" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M52 120h36" stroke="#0284c7" strokeWidth="8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export function CtaArt({ className = '' }) {
   return (
     <svg className={className} viewBox="0 0 320 220" fill="none" aria-hidden="true">
@@ -230,3 +211,4 @@ export function CtaArt({ className = '' }) {
     </svg>
   );
 }
+

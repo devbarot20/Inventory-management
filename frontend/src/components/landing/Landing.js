@@ -14,8 +14,6 @@ import {
   ScenarioArt,
   RiskArt,
   AccuracyArt,
-  AdminArt,
-  PlannerArt,
   CtaArt,
 } from './Illustrations';
 
@@ -97,8 +95,8 @@ const SCENARIOS = {
 const FAQS = [
   { q: 'Who is this built for?', a: 'Online sellers and warehouse teams running flash sales or seasonal promotions who need to decide how much stock to hold before the campaign starts.' },
   { q: 'How is the forecast calculated?', a: 'Each SKU’s recent daily sales velocity is combined with the discount you plan and an elasticity estimate. The result is turned into three demand scenarios and compared with available stock and lead time.' },
-  { q: 'What is the difference between Admin and Planner?', a: 'Admins manage data: catalogue, stock snapshots, campaigns and CSV imports. Planners work with the forecasts: dashboard, scenarios and accuracy reports. Each role has its own account.' },
-  { q: 'Do I need an account to see the dashboard?', a: 'Yes. The dashboard and all data pages are only available after you sign in or create an account.' },
+  { q: 'What can I do after signing in?', a: 'Manage products and stock, create flash-sale campaigns, generate forecasts, import data from CSV and review forecast accuracy, all from one workspace.' },
+  { q: 'Do I need an account to see the dashboard?', a: 'Yes. The dashboard and all data pages are only available after you sign in or create an account. Registration is free.' },
   { q: 'How do I know the forecast is accurate?', a: 'Record the real sales after a campaign. The Actuals page shows forecast vs actual and the MAPE error, and backtesting lets you test the engine on past data.' },
 ];
 
@@ -168,7 +166,7 @@ export default function Landing() {
               </button>
             </div>
             <p className="mt-5 text-base text-slate-500 dark:text-zinc-500">
-              Sign in to open your dashboard. Admin and Planner accounts are separate.
+              Create an account or sign in to open your dashboard.
             </p>
           </div>
           <div className="relative mx-auto w-full max-w-xl">
@@ -316,35 +314,28 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ROLES */}
-      <section id="roles" className="scroll-mt-24 bg-white py-24 dark:bg-zinc-950">
+      {/* WORKSPACE */}
+      <section id="workspace" className="scroll-mt-24 bg-white py-24 dark:bg-zinc-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHead
-            eyebrow="Two roles"
-            title="The right tools for the right person"
-            text="Create an account as either role. Each one signs in with its own credentials and sees only what it needs."
+            eyebrow="Your workspace"
+            title="Everything you need after you sign in"
+            text="One account opens five connected tools."
           />
-          <div className="mt-16 grid gap-8 lg:grid-cols-2">
-            <div className="rounded-3xl border-2 border-purple-200 bg-purple-50/60 p-10 dark:border-purple-500/30 dark:bg-purple-500/5">
-              <AdminArt className="h-24 w-24" />
-              <h3 className="mt-6 text-3xl font-extrabold text-slate-900 dark:text-zinc-50">Store Admin</h3>
-              <p className="mt-3 text-lg text-slate-600 dark:text-zinc-400">Owns the data and the campaigns.</p>
-              <ul className="mt-6 space-y-3">
-                {['Manage the product catalogue and stock', 'Create and run flash-sale campaigns', 'Bulk import products and sales from CSV', 'Record actual sales results'].map((t) => (
-                  <li key={t} className="flex gap-3 text-lg text-slate-800 dark:text-zinc-200"><Check />{t}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-3xl border-2 border-sky-200 bg-sky-50/60 p-10 dark:border-sky-500/30 dark:bg-sky-500/5">
-              <PlannerArt className="h-24 w-24" />
-              <h3 className="mt-6 text-3xl font-extrabold text-slate-900 dark:text-zinc-50">Demand Planner</h3>
-              <p className="mt-3 text-lg text-slate-600 dark:text-zinc-400">Reads the forecasts and decides the restock.</p>
-              <ul className="mt-6 space-y-3">
-                {['Executive dashboard with live risk', 'Explore the three demand scenarios', 'Inspect product velocity and stock health', 'Review forecast accuracy (MAPE)'].map((t) => (
-                  <li key={t} className="flex gap-3 text-lg text-slate-800 dark:text-zinc-200"><Check />{t}</li>
-                ))}
-              </ul>
-            </div>
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ['Dashboard', 'Live stockout risk, scenario breakdown and restock numbers for the next campaign.'],
+              ['Products & Stock', 'Your SKU catalogue, warehouse stock snapshots and daily sales speed.'],
+              ['Flash Sales', 'Create campaigns, choose discounts and generate forecasts in one click.'],
+              ['Actuals & MAPE', 'Enter real sales and see how close each forecast was.'],
+              ['Import', 'Upload products and sales history in bulk from CSV files.'],
+            ].map(([t, x], i) => (
+              <div key={t} className="rounded-3xl border border-slate-200 bg-slate-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-xl font-extrabold text-white">{i + 1}</div>
+                <h3 className="mt-5 text-2xl font-bold text-slate-900 dark:text-zinc-50">{t}</h3>
+                <p className="mt-2 text-lg leading-relaxed text-slate-600 dark:text-zinc-400">{x}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -397,22 +388,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="border-t border-slate-200 bg-white py-10 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-base text-slate-500 dark:text-zinc-500 sm:flex-row sm:px-6 lg:px-8">
-          <span className="text-lg font-bold text-slate-900 dark:text-zinc-100">
-            Forecast<span className="text-indigo-600 dark:text-indigo-400">IQ</span>
-          </span>
-          <nav className="flex gap-6">
-            <a href="#how-it-works" className="hover:text-slate-900 dark:hover:text-zinc-200">How it works</a>
-            <a href="#features" className="hover:text-slate-900 dark:hover:text-zinc-200">Features</a>
-            <a href="#roles" className="hover:text-slate-900 dark:hover:text-zinc-200">Roles</a>
-            <a href="#faq" className="hover:text-slate-900 dark:hover:text-zinc-200">FAQ</a>
-          </nav>
-          <span>Inventory demand forecasting for flash sales</span>
-        </div>
-      </footer>
     </div>
   );
 }
+

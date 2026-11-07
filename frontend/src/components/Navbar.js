@@ -23,15 +23,17 @@ export default function Navbar() {
     { href: '/products', label: 'Products & Stock' },
     { href: '/sales', label: 'Flash Sales' },
     { href: '/actuals', label: 'Actuals & MAPE' },
-    { href: '/import', label: 'Import', adminOnly: true },
+    { href: '/import', label: 'Import' },
   ];
   const publicLinks = [
-    { href: '/#how-it-works', label: 'How it works' },
     { href: '/#features', label: 'Features' },
-    { href: '/#roles', label: 'Roles' },
-    { href: '/#faq', label: 'FAQ' },
+    { href: '/#how-it-works', label: 'How it works' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
   ];
-  const navLinks = user ? appLinks.filter((l) => !l.adminOnly || user.role === 'admin') : publicLinks;
+  const navLinks = user ? appLinks : publicLinks;
 
   return (
     <div className="sticky top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -56,31 +58,20 @@ export default function Navbar() {
         </div>
 
         {/* Center: Navigation Links (Desktop) */}
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs dark:bg-zinc-100 dark:text-zinc-900'
                     : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100'
                 }`}
               >
                 {item.label}
-                {item.adminOnly && (
-                  <span
-                    className={`rounded px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider ${
-                      isActive
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300'
-                    }`}
-                  >
-                    Admin
-                  </span>
-                )}
               </Link>
             );
           })}
@@ -116,7 +107,7 @@ export default function Navbar() {
               <div className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-slate-50/80 py-1 pl-2 pr-2.5 dark:border-zinc-800 dark:bg-zinc-900/80">
                 <div
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white ${
-                    user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'
+                    'bg-indigo-600'
                   }`}
                 >
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -126,7 +117,7 @@ export default function Navbar() {
                     {user.name}
                   </span>
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                    {user.role === 'admin' ? 'Admin' : 'Planner'}
+                    Member
                   </span>
                 </div>
               </div>
@@ -163,7 +154,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 md:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
             aria-label="Toggle mobile menu"
           >
             {mobileMenuOpen ? (
@@ -181,7 +172,7 @@ export default function Navbar() {
 
       {/* Mobile Dropdown Panel */}
       {mobileMenuOpen && (
-        <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl md:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
+        <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl lg:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
           {navLinks.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -196,11 +187,6 @@ export default function Navbar() {
                 }`}
               >
                 <span>{item.label}</span>
-                {item.adminOnly && (
-                  <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                    Admin
-                  </span>
-                )}
               </Link>
             );
           })}

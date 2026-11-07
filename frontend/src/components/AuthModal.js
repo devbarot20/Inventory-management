@@ -116,22 +116,6 @@ function AuthModalDialog({ initialMode }) {
             />
           </div>
 
-          {isRegister && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                Assigned Role
-              </label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-              >
-                <option value="user">Demand Planner (User role: View forecasts & analytics)</option>
-                <option value="admin">Store Admin (Full access: Promotions & CSV Importer)</option>
-              </select>
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={submitting}
