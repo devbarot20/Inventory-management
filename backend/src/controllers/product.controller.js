@@ -6,7 +6,7 @@ async function listProducts(req, res, next) {
   try {
     const products = await productService.listProducts({
       search: req.query.search,
-    });
+    }, req.user.id);
     res.status(200).json({ products });
   } catch (err) {
     next(err);
@@ -15,7 +15,7 @@ async function listProducts(req, res, next) {
 
 async function getProduct(req, res, next) {
   try {
-    const product = await productService.getProductById(req.params.id);
+    const product = await productService.getProductById(req.params.id, req.user.id);
     res.status(200).json({ product });
   } catch (err) {
     next(err);
@@ -24,7 +24,7 @@ async function getProduct(req, res, next) {
 
 async function createProduct(req, res, next) {
   try {
-    const product = await productService.createProduct(req.body, req.user?.id);
+    const product = await productService.createProduct(req.body, req.user.id);
     res.status(201).json({ product });
   } catch (err) {
     next(err);
@@ -33,7 +33,7 @@ async function createProduct(req, res, next) {
 
 async function updateProduct(req, res, next) {
   try {
-    const product = await productService.updateProduct(req.params.id, req.body);
+    const product = await productService.updateProduct(req.params.id, req.body, req.user.id);
     res.status(200).json({ product });
   } catch (err) {
     next(err);
@@ -42,7 +42,7 @@ async function updateProduct(req, res, next) {
 
 async function deleteProduct(req, res, next) {
   try {
-    const result = await productService.deleteProduct(req.params.id);
+    const result = await productService.deleteProduct(req.params.id, req.user.id);
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -51,7 +51,7 @@ async function deleteProduct(req, res, next) {
 
 async function recordStock(req, res, next) {
   try {
-    const snapshot = await productService.recordStock(req.body);
+    const snapshot = await productService.recordStock(req.body, req.user.id);
     res.status(201).json({ snapshot });
   } catch (err) {
     next(err);
@@ -60,7 +60,7 @@ async function recordStock(req, res, next) {
 
 async function getStock(req, res, next) {
   try {
-    const snapshots = await productService.getStockSnapshots(req.query.sku);
+    const snapshots = await productService.getStockSnapshots(req.query.sku, req.user.id);
     res.status(200).json({ snapshots });
   } catch (err) {
     next(err);

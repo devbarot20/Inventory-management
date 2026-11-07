@@ -3,7 +3,8 @@
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const comparisonService = require('../services/comparison.service');
-const { Actual } = require('../models');
+const { Actual, SaleEvent } = require('../models');
+const { findOwnedSaleEvent } = require('../utils/ownership');
 const { SKU_PATTERN } = require('../models/common');
 const ApiError = require('../errors/ApiError');
 
@@ -34,6 +35,7 @@ async function recordActualsJson(req, res, next) {
       saleEventId,
       actualRecords: items,
       actualSpend,
+      userId: req.user.id,
     });
 
     res.status(200).json({
@@ -148,6 +150,7 @@ async function importActualsCsv(req, res, next) {
       saleEventId,
       actualRecords: items,
       actualSpend,
+      userId: req.user.id,
     });
 
     res.status(200).json({
@@ -165,7 +168,7 @@ async function importActualsCsv(req, res, next) {
 async function getComparison(req, res, next) {
   try {
     const { saleEventId } = req.params;
-    const result = await comparisonService.getComparison(saleEventId);
+    const result = await comparisonService.getComparison(saleEventId, req.user.id);
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -175,6 +178,7 @@ async function getComparison(req, res, next) {
 async function getActuals(req, res, next) {
   try {
     const { saleEventId } = req.params;
+    await findOwnedSaleEvent(SaleEvent, saleEventId, req.user.id, { lean: true });
     const actuals = await Actual.find({ saleEvent: saleEventId }).lean();
     res.status(200).json({ actuals });
   } catch (err) {

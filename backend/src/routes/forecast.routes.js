@@ -10,12 +10,12 @@ const router = Router();
 router.post('/run/:saleEventId', authenticate, forecastController.runForecast);
 
 // Retrieve latest forecast run for a sale event
-router.get('/latest/:saleEventId', forecastController.getLatestForecast);
+router.get('/latest/:saleEventId', authenticate, forecastController.getLatestForecast);
 
 // Retrieve specific forecast run by run ID
-router.get('/run/:id', forecastController.getForecastRun);
+router.get('/run/:id', authenticate, forecastController.getForecastRun);
 
 // List historical runs for a sale event
-router.get('/runs/:saleEventId', forecastController.listForecastRuns);
+router.get('/runs/:saleEventId', authenticate, forecastController.listForecastRuns);
 
 module.exports = router;

@@ -8,7 +8,7 @@ const { authenticate } = require('../middleware/auth');
 
 const router = Router();
 
-router.get('/', productController.getStock);
+router.get('/', authenticate, productController.getStock);
 router.post('/', authenticate, validate(stockSnapshotCreateSchema), productController.recordStock);
 
 module.exports = router;

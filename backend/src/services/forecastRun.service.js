@@ -1,16 +1,16 @@
 'use strict';
 
+const mongoose = require('mongoose');
 const { SaleEvent, SalesHistory, StockSnapshot, ForecastRun, Forecast } = require('../models');
 const ApiError = require('../errors/ApiError');
+const { toOwnerId, findOwnedSaleEvent } = require('../utils/ownership');
 const { forecastProductDemand } = require('./forecast');
 const { evaluateStockoutRisk } = require('./forecast/stockoutRisk');
 const { getDurationInDays } = require('./forecast/similarSales');
 
 async function executeForecastRun(saleEventId, userId, customConfig = {}) {
-  const saleEvent = await SaleEvent.findById(saleEventId);
-  if (!saleEvent) {
-    throw ApiError.notFound('Sale event not found');
-  }
+  const owner = toOwnerId(userId);
+  const saleEvent = await findOwnedSaleEvent(SaleEvent, saleEventId, owner);
 
   if (!saleEvent.products || saleEvent.products.length === 0) {
     throw ApiError.badRequest(
@@ -23,13 +23,14 @@ async function executeForecastRun(saleEventId, userId, customConfig = {}) {
 
   // 1. Load historical sales and snapshots for linked SKUs
   const [salesHistory, stockSnapshots, pastSales] = await Promise.all([
-    SalesHistory.find({ sku: { $in: skus } })
+    SalesHistory.find({ createdBy: owner, sku: { $in: skus } })
       .sort({ date: 1 })
       .lean(),
-    StockSnapshot.find({ sku: { $in: skus } })
+    StockSnapshot.find({ createdBy: owner, sku: { $in: skus } })
       .sort({ date: 1 })
       .lean(),
     SaleEvent.find({
+      createdBy: owner,
       _id: { $ne: saleEvent._id },
       endDate: { $lt: saleEvent.startDate },
     })
@@ -169,7 +170,8 @@ async function executeForecastRun(saleEventId, userId, customConfig = {}) {
   };
 }
 
-async function getLatestForecastRun(saleEventId) {
+async function getLatestForecastRun(saleEventId, userId) {
+  await findOwnedSaleEvent(SaleEvent, saleEventId, userId, { lean: true });
   const run = await ForecastRun.findOne({ saleEvent: saleEventId, status: 'completed' })
     .sort({ createdAt: -1 })
     .lean();
@@ -192,8 +194,11 @@ async function getLatestForecastRun(saleEventId) {
   };
 }
 
-async function getForecastRunById(runId) {
-  const run = await ForecastRun.findById(runId).lean();
+async function getForecastRunById(runId, userId) {
+  const owner = toOwnerId(userId);
+  const run = mongoose.isValidObjectId(runId)
+    ? await ForecastRun.findOne({ _id: runId, createdBy: owner }).lean()
+    : null;
   if (!run) {
     throw ApiError.notFound('Forecast run not found');
   }
@@ -212,7 +217,8 @@ async function getForecastRunById(runId) {
   };
 }
 
-async function listForecastRuns(saleEventId) {
+async function listForecastRuns(saleEventId, userId) {
+  await findOwnedSaleEvent(SaleEvent, saleEventId, userId, { lean: true });
   const runs = await ForecastRun.find({ saleEvent: saleEventId }).sort({ createdAt: -1 }).lean();
 
   return runs.map((r) => ({

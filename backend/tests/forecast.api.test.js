@@ -97,26 +97,27 @@ describe('Forecast API Endpoint (E3, E4)', () => {
       password: 'password123',
     });
     token = userRes.body.token;
+    const createdBy = userRes.body.user.id;
 
     // Create products
     await Product.create([
-      { sku: 'TEE-HIGH-STOCK', name: 'Abundant Tee' },
-      { sku: 'TEE-LOW-STOCK', name: 'Scarce Tee' },
+      { sku: 'TEE-HIGH-STOCK', name: 'Abundant Tee', createdBy },
+      { sku: 'TEE-LOW-STOCK', name: 'Scarce Tee', createdBy },
     ]);
 
     // Seed 14 days of historical sales (10 units/day)
     for (let i = 1; i <= 14; i++) {
       const dayStr = i < 10 ? `0${i}` : `${i}`;
       await SalesHistory.create([
-        { sku: 'TEE-HIGH-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10 },
-        { sku: 'TEE-LOW-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10 },
+        { sku: 'TEE-HIGH-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10, createdBy },
+        { sku: 'TEE-LOW-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10, createdBy },
       ]);
     }
 
     // Seed stock snapshots: 200 units for TEE-HIGH-STOCK, 15 units for TEE-LOW-STOCK
     await StockSnapshot.create([
-      { sku: 'TEE-HIGH-STOCK', date: '2026-11-15T00:00:00.000Z', unitsAvailable: 200 },
-      { sku: 'TEE-LOW-STOCK', date: '2026-11-15T00:00:00.000Z', unitsAvailable: 15 },
+      { sku: 'TEE-HIGH-STOCK', date: '2026-11-15T00:00:00.000Z', unitsAvailable: 200, createdBy },
+      { sku: 'TEE-LOW-STOCK', date: '2026-11-15T00:00:00.000Z', unitsAvailable: 15, createdBy },
     ]);
 
     // Create a 2-day flash sale for Nov 20-22
@@ -184,7 +185,9 @@ describe('Forecast API Endpoint (E3, E4)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({});
 
-    const latestRes = await request(app).get(`/api/forecast/latest/${saleEventId}`);
+    const latestRes = await request(app)
+      .get(`/api/forecast/latest/${saleEventId}`)
+      .set('Authorization', `Bearer ${token}`);
     expect(latestRes.status).toBe(200);
     expect(latestRes.body.forecastRun).toBeTruthy();
     expect(latestRes.body.forecasts.length).toBe(2);

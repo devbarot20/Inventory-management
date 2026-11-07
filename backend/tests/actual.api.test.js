@@ -212,7 +212,9 @@ describe('Forecast vs Actuals Comparison API (E6)', () => {
           items: [{ sku: 'TSHIRT-BLK-M', actualUnits: 90, stockoutOccurred: true }],
         });
 
-      const res = await request(app).get(`/api/actuals/comparison/${saleEvent._id}`);
+      const res = await request(app)
+        .get(`/api/actuals/comparison/${saleEvent._id}`)
+        .set('Authorization', authHeader);
 
       expect(res.status).toBe(200);
       expect(res.body.saleEvent).toBeDefined();
@@ -224,7 +226,9 @@ describe('Forecast vs Actuals Comparison API (E6)', () => {
 
     it('returns 404 for nonexistent sale event', async () => {
       const fakeId = new mongoose.Types.ObjectId();
-      const res = await request(app).get(`/api/actuals/comparison/${fakeId}`);
+      const res = await request(app)
+        .get(`/api/actuals/comparison/${fakeId}`)
+        .set('Authorization', authHeader);
       expect(res.status).toBe(404);
     });
   });

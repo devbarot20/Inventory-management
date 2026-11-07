@@ -86,7 +86,7 @@ describe('Product and Stock Management (E1)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({ sku: 'CAP-RED', date: '2026-11-01', unitsAvailable: 150 });
 
-      const res = await request(app).get('/api/products');
+      const res = await request(app).get('/api/products').set('Authorization', `Bearer ${token}`);
       expect(res.status).toBe(200);
       expect(res.body.products.length).toBe(1);
       expect(res.body.products[0]).toMatchObject({

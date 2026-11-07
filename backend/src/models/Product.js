@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
   baseSchemaOptions,
 );
 
-productSchema.index({ sku: 1 }, { unique: true });
+// SKUs are unique per owner, so different users can use the same SKU codes.
+productSchema.index({ createdBy: 1, sku: 1 }, { unique: true });
 
 module.exports = mongoose.model('Product', productSchema);

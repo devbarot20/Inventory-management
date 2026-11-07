@@ -12,8 +12,8 @@ const { enforceLimit } = require('../middleware/plan');
 
 const router = Router();
 
-router.get('/', saleEventController.listSaleEvents);
-router.get('/:id', saleEventController.getSaleEvent);
+router.get('/', authenticate, saleEventController.listSaleEvents);
+router.get('/:id', authenticate, saleEventController.getSaleEvent);
 
 // Protected mutations
 router.post(

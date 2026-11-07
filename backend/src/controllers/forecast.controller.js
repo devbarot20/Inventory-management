@@ -6,7 +6,7 @@ async function runForecast(req, res, next) {
   try {
     const result = await forecastRunService.executeForecastRun(
       req.params.saleEventId,
-      req.user?.id,
+      req.user.id,
       req.body.config || {},
     );
     res.status(201).json(result);
@@ -17,7 +17,7 @@ async function runForecast(req, res, next) {
 
 async function getLatestForecast(req, res, next) {
   try {
-    const result = await forecastRunService.getLatestForecastRun(req.params.saleEventId);
+    const result = await forecastRunService.getLatestForecastRun(req.params.saleEventId, req.user.id);
     if (!result) {
       return res.status(200).json({ forecastRun: null, forecasts: [] });
     }
@@ -29,7 +29,7 @@ async function getLatestForecast(req, res, next) {
 
 async function getForecastRun(req, res, next) {
   try {
-    const result = await forecastRunService.getForecastRunById(req.params.id);
+    const result = await forecastRunService.getForecastRunById(req.params.id, req.user.id);
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -38,7 +38,7 @@ async function getForecastRun(req, res, next) {
 
 async function listForecastRuns(req, res, next) {
   try {
-    const runs = await forecastRunService.listForecastRuns(req.params.saleEventId);
+    const runs = await forecastRunService.listForecastRuns(req.params.saleEventId, req.user.id);
     res.status(200).json({ runs });
   } catch (err) {
     next(err);

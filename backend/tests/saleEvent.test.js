@@ -140,7 +140,7 @@ describe('Sale Event and Campaign Planning (E2)', () => {
     });
 
     it('lists sales and includes duration and status', async () => {
-      const res = await request(app).get('/api/sales');
+      const res = await request(app).get('/api/sales').set('Authorization', `Bearer ${token}`);
       expect(res.status).toBe(200);
       expect(res.body.saleEvents.length).toBe(1);
       expect(res.body.saleEvents[0]).toMatchObject({

@@ -4,7 +4,7 @@ const saleEventService = require('../services/saleEvent.service');
 
 async function listSaleEvents(req, res, next) {
   try {
-    const saleEvents = await saleEventService.listSaleEvents();
+    const saleEvents = await saleEventService.listSaleEvents(req.user.id);
     res.status(200).json({ saleEvents });
   } catch (err) {
     next(err);
@@ -13,7 +13,7 @@ async function listSaleEvents(req, res, next) {
 
 async function getSaleEvent(req, res, next) {
   try {
-    const saleEvent = await saleEventService.getSaleEventById(req.params.id);
+    const saleEvent = await saleEventService.getSaleEventById(req.params.id, req.user.id);
     res.status(200).json({ saleEvent });
   } catch (err) {
     next(err);
@@ -22,7 +22,7 @@ async function getSaleEvent(req, res, next) {
 
 async function createSaleEvent(req, res, next) {
   try {
-    const saleEvent = await saleEventService.createSaleEvent(req.body, req.user?.id);
+    const saleEvent = await saleEventService.createSaleEvent(req.body, req.user.id);
     res.status(201).json({ saleEvent });
   } catch (err) {
     next(err);
@@ -31,7 +31,7 @@ async function createSaleEvent(req, res, next) {
 
 async function updateSaleEvent(req, res, next) {
   try {
-    const saleEvent = await saleEventService.updateSaleEvent(req.params.id, req.body);
+    const saleEvent = await saleEventService.updateSaleEvent(req.params.id, req.body, req.user.id);
     res.status(200).json({ saleEvent });
   } catch (err) {
     next(err);
@@ -40,7 +40,7 @@ async function updateSaleEvent(req, res, next) {
 
 async function deleteSaleEvent(req, res, next) {
   try {
-    const result = await saleEventService.deleteSaleEvent(req.params.id);
+    const result = await saleEventService.deleteSaleEvent(req.params.id, req.user.id);
     res.status(200).json(result);
   } catch (err) {
     next(err);

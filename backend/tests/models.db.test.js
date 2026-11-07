@@ -18,7 +18,7 @@ describe('indexes', () => {
     for (const Model of [SalesHistory, StockSnapshot]) {
       const indexes = await Model.collection.indexes();
       const keys = indexes.map((i) => JSON.stringify(i.key));
-      expect(keys).toContain(JSON.stringify({ sku: 1, date: 1 }));
+      expect(keys).toContain(JSON.stringify({ createdBy: 1, sku: 1, date: 1 }));
       expect(keys).toContain(JSON.stringify({ date: 1 }));
     }
   });

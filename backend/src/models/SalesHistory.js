@@ -23,12 +23,13 @@ const salesHistorySchema = new mongoose.Schema(
     unitsSold: unitsField('Units sold'),
     price: moneyField('Price'),
     discountPct: discountPctField,
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   baseSchemaOptions,
 );
 
 // One record per SKU per day; also serves "history for a SKU ordered by date" queries.
-salesHistorySchema.index({ sku: 1, date: 1 }, { unique: true });
+salesHistorySchema.index({ createdBy: 1, sku: 1, date: 1 }, { unique: true });
 salesHistorySchema.index({ date: 1 });
 
 module.exports = mongoose.model('SalesHistory', salesHistorySchema, 'saleshistory');

@@ -8,9 +8,9 @@ const { authenticate } = require('../middleware/auth');
 
 const router = Router();
 
-// Public read comparisons
-router.get('/comparison/:saleEventId', actualController.getComparison);
-router.get('/:saleEventId', actualController.getActuals);
+// Read comparisons (owner only)
+router.get('/comparison/:saleEventId', authenticate, actualController.getComparison);
+router.get('/:saleEventId', authenticate, actualController.getActuals);
 
 // Protected writes
 router.post(

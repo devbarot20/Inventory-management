@@ -2,6 +2,7 @@
 
 const { SaleEvent, ForecastRun, Forecast, Actual } = require('../models');
 const ApiError = require('../errors/ApiError');
+const { findOwnedSaleEvent } = require('../utils/ownership');
 
 /**
  * Pure evaluation for a single SKU comparing forecast vs actual sales.
@@ -159,11 +160,8 @@ function computeAggregateMetrics(comparisons) {
  * Record actuals for a sale event, compute error metrics against the latest forecast run,
  * and save to the Actual collection.
  */
-async function recordActuals({ saleEventId, actualRecords, actualSpend }) {
-  const saleEvent = await SaleEvent.findById(saleEventId);
-  if (!saleEvent) {
-    throw ApiError.notFound('Flash sale event not found');
-  }
+async function recordActuals({ saleEventId, actualRecords, actualSpend, userId }) {
+  const saleEvent = await findOwnedSaleEvent(SaleEvent, saleEventId, userId);
 
   // Find latest forecast run
   const latestRun = await ForecastRun.findOne({ saleEvent: saleEventId }).sort({ runAt: -1 });
@@ -253,11 +251,8 @@ async function recordActuals({ saleEventId, actualRecords, actualSpend }) {
 /**
  * Get forecast vs actual comparison data for a given sale event.
  */
-async function getComparison(saleEventId) {
-  const saleEvent = await SaleEvent.findById(saleEventId);
-  if (!saleEvent) {
-    throw ApiError.notFound('Flash sale event not found');
-  }
+async function getComparison(saleEventId, userId) {
+  const saleEvent = await findOwnedSaleEvent(SaleEvent, saleEventId, userId);
 
   const latestRun = await ForecastRun.findOne({ saleEvent: saleEventId }).sort({ runAt: -1 });
   const forecasts = latestRun ? await Forecast.find({ forecastRun: latestRun._id }).lean() : [];

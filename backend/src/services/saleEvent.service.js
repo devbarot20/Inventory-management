@@ -2,6 +2,7 @@
 
 const { SaleEvent, Product, StockSnapshot } = require('../models');
 const ApiError = require('../errors/ApiError');
+const { toOwnerId, findOwnedSaleEvent } = require('../utils/ownership');
 
 function computeSaleStatus(startDate, endDate) {
   const now = new Date();
@@ -20,8 +21,8 @@ function calculateDurationDays(startDate, endDate) {
   return Math.max(1, Math.round(diff * 10) / 10);
 }
 
-async function listSaleEvents() {
-  const events = await SaleEvent.find().sort({ startDate: -1 }).lean();
+async function listSaleEvents(userId) {
+  const events = await SaleEvent.find({ createdBy: toOwnerId(userId) }).sort({ startDate: -1 }).lean();
 
   return events.map((event) => {
     const durationDays = calculateDurationDays(event.startDate, event.endDate);
@@ -46,22 +47,20 @@ async function listSaleEvents() {
   });
 }
 
-async function getSaleEventById(id) {
-  const event = await SaleEvent.findById(id).lean();
-  if (!event) {
-    throw ApiError.notFound('Sale event not found');
-  }
+async function getSaleEventById(id, userId) {
+  const owner = toOwnerId(userId);
+  const event = await findOwnedSaleEvent(SaleEvent, id, owner, { lean: true });
 
   const durationDays = calculateDurationDays(event.startDate, event.endDate);
   const status = computeSaleStatus(event.startDate, event.endDate);
 
   // Fetch detailed info for linked products
-  const products = await Product.find({ sku: { $in: event.products } }).lean();
+  const products = await Product.find({ createdBy: owner, sku: { $in: event.products } }).lean();
   const skus = event.products;
 
   // Latest stock snapshot for each linked SKU
   const latestSnapshots = await StockSnapshot.aggregate([
-    { $match: { sku: { $in: skus } } },
+    { $match: { createdBy: owner, sku: { $in: skus } } },
     { $sort: { date: -1 } },
     {
       $group: {
@@ -117,17 +116,14 @@ async function createSaleEvent(data, userId) {
     actualSpend: data.actualSpend ?? null,
     campaignLabel: data.campaignLabel || '',
     products: data.products || [],
-    createdBy: userId || null,
+    createdBy: toOwnerId(userId),
   });
 
-  return getSaleEventById(event.id);
+  return getSaleEventById(event.id, userId);
 }
 
-async function updateSaleEvent(id, data) {
-  const event = await SaleEvent.findById(id);
-  if (!event) {
-    throw ApiError.notFound('Sale event not found');
-  }
+async function updateSaleEvent(id, data, userId) {
+  const event = await findOwnedSaleEvent(SaleEvent, id, userId);
 
   if (data.name !== undefined) event.name = data.name;
   if (data.startDate !== undefined) event.startDate = new Date(data.startDate);
@@ -140,14 +136,12 @@ async function updateSaleEvent(id, data) {
 
   await event.save();
 
-  return getSaleEventById(event.id);
+  return getSaleEventById(event.id, userId);
 }
 
-async function deleteSaleEvent(id) {
-  const event = await SaleEvent.findByIdAndDelete(id);
-  if (!event) {
-    throw ApiError.notFound('Sale event not found');
-  }
+async function deleteSaleEvent(id, userId) {
+  const event = await findOwnedSaleEvent(SaleEvent, id, userId);
+  await event.deleteOne();
   return { message: 'Sale event deleted successfully', id: event.id, name: event.name };
 }
 

@@ -4,6 +4,7 @@ const { parse } = require('csv-parse/sync');
 const { Product, SalesHistory, StockSnapshot } = require('../models');
 const { SKU_PATTERN, toUtcDay } = require('../models/common');
 const ApiError = require('../errors/ApiError');
+const { toOwnerId } = require('../utils/ownership');
 
 const VALID_IMPORT_TYPES = Object.freeze(['products', 'sales_history', 'stock_snapshots']);
 
@@ -193,16 +194,17 @@ async function processCsvImport(csvContent, type, userId) {
     }
   }
 
+  const owner = toOwnerId(userId);
   let insertedOrUpdatedCount = 0;
 
   if (validRows.length > 0) {
     if (type === 'products') {
       const operations = validRows.map((p) => ({
         updateOne: {
-          filter: { sku: p.sku },
+          filter: { sku: p.sku, createdBy: owner },
           update: {
             $set: { name: p.name },
-            $setOnInsert: { sku: p.sku, createdBy: userId || null },
+            $setOnInsert: { sku: p.sku },
           },
           upsert: true,
         },
@@ -214,8 +216,8 @@ async function processCsvImport(csvContent, type, userId) {
       const uniqueSkus = [...new Set(validRows.map((r) => r.sku))];
       const productOps = uniqueSkus.map((sku) => ({
         updateOne: {
-          filter: { sku },
-          update: { $setOnInsert: { sku, name: sku, createdBy: userId || null } },
+          filter: { sku, createdBy: owner },
+          update: { $setOnInsert: { sku, name: sku } },
           upsert: true,
         },
       }));
@@ -223,7 +225,7 @@ async function processCsvImport(csvContent, type, userId) {
 
       const salesOps = validRows.map((s) => ({
         updateOne: {
-          filter: { sku: s.sku, date: s.date },
+          filter: { sku: s.sku, date: s.date, createdBy: owner },
           update: {
             $set: {
               unitsSold: s.unitsSold,
@@ -241,8 +243,8 @@ async function processCsvImport(csvContent, type, userId) {
       const uniqueSkus = [...new Set(validRows.map((r) => r.sku))];
       const productOps = uniqueSkus.map((sku) => ({
         updateOne: {
-          filter: { sku },
-          update: { $setOnInsert: { sku, name: sku, createdBy: userId || null } },
+          filter: { sku, createdBy: owner },
+          update: { $setOnInsert: { sku, name: sku } },
           upsert: true,
         },
       }));
@@ -250,7 +252,7 @@ async function processCsvImport(csvContent, type, userId) {
 
       const stockOps = validRows.map((st) => ({
         updateOne: {
-          filter: { sku: st.sku, date: st.date },
+          filter: { sku: st.sku, date: st.date, createdBy: owner },
           update: {
             $set: {
               unitsAvailable: st.unitsAvailable,

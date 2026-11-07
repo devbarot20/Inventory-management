@@ -10,8 +10,8 @@ const { enforceLimit } = require('../middleware/plan');
 const router = Router();
 
 // Products list and details
-router.get('/', productController.listProducts);
-router.get('/:id', productController.getProduct);
+router.get('/', authenticate, productController.listProducts);
+router.get('/:id', authenticate, productController.getProduct);
 
 // Protected mutation endpoints
 router.post('/', authenticate, enforceLimit('products'), validate(productCreateSchema), productController.createProduct);
