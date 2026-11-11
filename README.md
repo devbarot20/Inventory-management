@@ -85,7 +85,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 - **One-click demo store seeder**: `POST /api/demo/seed` instantly loads 5 curated products, 30 days of sales history, current stock levels, an upcoming flash sale with forecasts and risk warnings, and a past flash sale with recorded actuals. Easily cleared with `POST /api/demo/clear`.
 - **Forecasting visualisations**: Interactive toggle between Grouped Bar chart and Shaded Confidence Band (Low to High demand range, expected demand line, available stock).
 - **Actuals lifecycle management**: Clear all recorded actuals or delete specific SKU entries (`DELETE /api/actuals/:saleEventId` and `DELETE /api/actuals/:saleEventId/:sku`) with automatic metric re-computation.
-- **Export**: the dashboard's "Export CSV" downloads the SKU restock plan for the selected sale.
+- **Supplier PO & Executive Reports**: Printable Purchase Order Restock Advice sheet (`window.print` with print-optimized CSS) detailing recommended reorder volumes and authorization lines, plus instant CSV exports for both the SKU Restock Plan and historical Forecast vs Actuals Accuracy Audits.
 - **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
 
 ---

@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import ActualComparisonChart from '@/components/ui/ActualComparisonChart';
 import AuthGuard from '@/components/AuthGuard';
+import { downloadCsv } from '@/lib/exportCsv';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function ActualsComparisonPage() {
@@ -212,6 +213,37 @@ export default function ActualsComparisonPage() {
   const summary = comparisonData?.summary;
   const comparisons = comparisonData?.comparisons || [];
 
+  // 7. Export Accuracy Audit CSV
+  const handleExportAudit = () => {
+    if (!comparisonData || !selectedSale) return;
+    const safeName = (selectedSale.name || 'actuals').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    downloadCsv(`${safeName}-accuracy-audit.csv`, comparisons, [
+      { label: 'SKU', value: (r) => r.sku },
+      {
+        label: 'Actual Units Sold',
+        value: (r) => (r.actualUnits !== null && r.actualUnits !== undefined ? r.actualUnits : ''),
+      },
+      { label: 'Forecast Low', value: (r) => r.low ?? '' },
+      { label: 'Forecast Expected', value: (r) => r.expected ?? '' },
+      { label: 'Forecast High', value: (r) => r.high ?? '' },
+      {
+        label: 'Forecast Error',
+        value: (r) => (r.error !== null && r.error !== undefined ? r.error : ''),
+      },
+      { label: 'Absolute Error', value: (r) => r.absoluteError ?? '' },
+      { label: 'Within Range', value: (r) => (r.withinRange ? 'Yes' : 'No') },
+      {
+        label: 'Stockout Warning Accurate',
+        value: (r) => (r.warningCorrect ? 'Yes' : 'No'),
+      },
+      { label: 'Stockout Occurred', value: (r) => (r.stockoutOccurred ? 'Yes' : 'No') },
+      { label: 'Units Left Over', value: (r) => r.unitsLeftOver ?? 0 },
+      { label: 'Units Short', value: (r) => r.unitsShort ?? 0 },
+      { label: 'Planned Ad Spend ($)', value: () => selectedSale.plannedSpend ?? '' },
+      { label: 'Actual Ad Spend ($)', value: () => selectedSale.actualSpend ?? '' },
+    ]);
+  };
+
   const tableColumns = [
     {
       header: 'SKU',
@@ -391,14 +423,23 @@ export default function ActualsComparisonPage() {
             + Record / Import Actuals
           </button>
           {hasRecordedActuals && (
-            <button
-              type="button"
-              onClick={handleClearAll}
-              disabled={clearingAll || !selectedSaleId}
-              className="rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/60 dark:bg-zinc-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
-            >
-              {clearingAll ? 'Clearing…' : 'Clear All Actuals'}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleExportAudit}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+              >
+                📊 Export Accuracy Audit (CSV)
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                disabled={clearingAll || !selectedSaleId}
+                className="rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/60 dark:bg-zinc-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              >
+                {clearingAll ? 'Clearing…' : 'Clear All Actuals'}
+              </button>
+            </>
           )}
           <Link
             href="/dashboard"

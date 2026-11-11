@@ -9,9 +9,12 @@ import ForecastChart from '@/components/ui/ForecastChart';
 import AuthGuard from '@/components/AuthGuard';
 import { downloadCsv } from '@/lib/exportCsv';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
+import SupplierRestockSheetModal from '@/components/SupplierRestockSheetModal';
+import { useAuth } from '@/context/AuthContext';
 import { apiFetch, getToken } from '@/lib/api';
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [sales, setSales] = useState([]);
   const [selectedSaleId, setSelectedSaleId] = useState('');
   const [forecastRun, setForecastRun] = useState(null);
@@ -23,6 +26,7 @@ export default function DashboardPage() {
   const [enableSpendOption, setEnableSpendOption] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [demoToast, setDemoToast] = useState(null);
+  const [showPoModal, setShowPoModal] = useState(false);
 
   // 1. Load flash sales on mount
   useEffect(() => {
@@ -487,7 +491,14 @@ export default function DashboardPage() {
           title="Stockout Risk Analysis & Forecast Details"
           subtitle="Detailed demand scenarios and projected stockout depletion times"
         >
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex flex-wrap items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={() => setShowPoModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 transition hover:-translate-y-0.5 hover:bg-indigo-100 hover:shadow-sm active:scale-95 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+            >
+              📄 Supplier PO Sheet (PDF / Print)
+            </button>
             <button
               type="button"
               onClick={handleExport}
@@ -548,6 +559,15 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
+
+      {/* Supplier Purchase Order Sheet Modal */}
+      <SupplierRestockSheetModal
+        isOpen={showPoModal}
+        onClose={() => setShowPoModal(false)}
+        sale={selectedSale}
+        forecasts={forecasts}
+        user={user}
+      />
     </main>
     </AuthGuard>
   );
