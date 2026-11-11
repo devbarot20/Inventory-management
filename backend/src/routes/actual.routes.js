@@ -27,4 +27,7 @@ router.post(
   actualController.importActualsCsv,
 );
 
+router.delete('/:saleEventId/:sku', authenticate, actualController.deleteActualSku);
+router.delete('/:saleEventId', authenticate, actualController.clearActuals);
+
 module.exports = router;

@@ -6,6 +6,9 @@ const { authenticateVerified: authenticate } = require('../middleware/auth');
 
 const router = Router();
 
+// Active stockout risk alerts across user's sale events
+router.get('/alerts', authenticate, forecastController.getAlerts);
+
 // Execute forecast run for a sale event
 router.post('/run/:saleEventId', authenticate, forecastController.runForecast);
 

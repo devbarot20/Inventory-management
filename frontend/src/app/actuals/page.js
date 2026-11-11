@@ -23,6 +23,8 @@ export default function ActualsComparisonPage() {
   const [csvText, setCsvText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [deletingSku, setDeletingSku] = useState(null);
+  const [clearingAll, setClearingAll] = useState(false);
 
   // 1. Load flash sales on mount
   useEffect(() => {
@@ -164,6 +166,48 @@ export default function ActualsComparisonPage() {
     }
   };
 
+  // 5. Delete actual for a single SKU
+  const handleDeleteSku = async (sku) => {
+    if (!window.confirm(`Are you sure you want to delete recorded actuals for SKU ${sku}?`)) {
+      return;
+    }
+    setDeletingSku(sku);
+    setError(null);
+    try {
+      const res = await apiFetch(`/actuals/${selectedSaleId}/${encodeURIComponent(sku)}`, {
+        method: 'DELETE',
+      });
+      setComparisonData(res);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingSku(null);
+    }
+  };
+
+  // 6. Clear all recorded actuals for this sale event
+  const handleClearAll = async () => {
+    if (
+      !window.confirm(
+        'Are you sure you want to delete ALL recorded actuals for this flash sale? This action cannot be undone.',
+      )
+    ) {
+      return;
+    }
+    setClearingAll(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/actuals/${selectedSaleId}`, {
+        method: 'DELETE',
+      });
+      setComparisonData(res);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setClearingAll(false);
+    }
+  };
+
   const selectedSale = sales.find((s) => s.id === selectedSaleId);
   const summary = comparisonData?.summary;
   const comparisons = comparisonData?.comparisons || [];
@@ -299,7 +343,29 @@ export default function ActualsComparisonPage() {
         );
       },
     },
+    {
+      header: 'Actions',
+      render: (row) => {
+        const hasActual = row.actualUnits !== null && row.actualUnits !== undefined;
+        if (!hasActual) return <span className="text-xs text-slate-400 italic">No actual</span>;
+        return (
+          <button
+            type="button"
+            onClick={() => handleDeleteSku(row.sku)}
+            disabled={deletingSku === row.sku}
+            className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60"
+            title={`Delete recorded actual for SKU ${row.sku}`}
+          >
+            {deletingSku === row.sku ? 'Deleting…' : 'Delete'}
+          </button>
+        );
+      },
+    },
   ];
+
+  const hasRecordedActuals = comparisons.some(
+    (c) => c.actualUnits !== null && c.actualUnits !== undefined,
+  );
 
   return (
     <AuthGuard moduleName="Actuals & Accuracy Comparison">
@@ -324,6 +390,16 @@ export default function ActualsComparisonPage() {
           >
             + Record / Import Actuals
           </button>
+          {hasRecordedActuals && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={clearingAll || !selectedSaleId}
+              className="rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/60 dark:bg-zinc-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            >
+              {clearingAll ? 'Clearing…' : 'Clear All Actuals'}
+            </button>
+          )}
           <Link
             href="/dashboard"
             className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"

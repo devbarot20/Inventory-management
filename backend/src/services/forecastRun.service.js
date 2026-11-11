@@ -1,12 +1,13 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const { SaleEvent, SalesHistory, StockSnapshot, ForecastRun, Forecast } = require('../models');
+const { User, SaleEvent, SalesHistory, StockSnapshot, ForecastRun, Forecast } = require('../models');
 const ApiError = require('../errors/ApiError');
 const { toOwnerId, findOwnedSaleEvent } = require('../utils/ownership');
 const { forecastProductDemand } = require('./forecast');
 const { evaluateStockoutRisk } = require('./forecast/stockoutRisk');
 const { getDurationInDays } = require('./forecast/similarSales');
+const mailer = require('./mailer');
 
 async function executeForecastRun(saleEventId, userId, customConfig = {}) {
   const owner = toOwnerId(userId);
@@ -164,6 +165,19 @@ async function executeForecastRun(saleEventId, userId, customConfig = {}) {
 
   const savedForecasts = await Forecast.insertMany(forecastDocs);
 
+  // 4. Send stockout alert email if any SKU is high risk
+  const highRiskItems = perSkuResults.filter((r) => r.riskLevel === 'high');
+  if (highRiskItems.length > 0) {
+    try {
+      const user = await User.findById(owner).lean();
+      if (user?.email) {
+        await mailer.sendStockoutAlert(user.email, user.name, saleEvent.name, highRiskItems);
+      }
+    } catch (err) {
+      console.error(`Stockout alert email failed: ${err.message}`);
+    }
+  }
+
   return {
     forecastRun: forecastRun.toJSON(),
     forecasts: savedForecasts.map((f) => f.toJSON()),
@@ -230,9 +244,60 @@ async function listForecastRuns(saleEventId, userId) {
   }));
 }
 
+/**
+ * Returns active stockout risk alerts (high & medium risk SKUs) across the user's sale events.
+ */
+async function listStockoutAlerts(userId) {
+  const owner = toOwnerId(userId);
+  const events = await SaleEvent.find({ createdBy: owner }).sort({ startDate: -1 }).lean();
+  if (events.length === 0) return [];
+
+  const alerts = [];
+  for (const event of events) {
+    // eslint-disable-next-line no-await-in-loop
+    const latestRun = await ForecastRun.findOne({ saleEvent: event._id, status: 'completed' })
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!latestRun) continue;
+
+    // eslint-disable-next-line no-await-in-loop
+    const risky = await Forecast.find({
+      forecastRun: latestRun._id,
+      riskLevel: { $in: ['high', 'medium'] },
+    })
+      .sort({ riskLevel: 1, sku: 1 })
+      .lean();
+
+    for (const f of risky) {
+      const reorderUnits =
+        f.unitsAvailable !== null && f.unitsAvailable !== undefined && f.high !== null
+          ? Math.max(0, Math.ceil(f.high - f.unitsAvailable))
+          : null;
+      alerts.push({
+        id: `${event._id.toString()}:${f.sku}`,
+        saleEventId: event._id.toString(),
+        saleName: event.name,
+        startDate: event.startDate,
+        sku: f.sku,
+        riskLevel: f.riskLevel,
+        unitsAvailable: f.unitsAvailable,
+        expected: f.expected,
+        high: f.high,
+        reorderUnits,
+        expectedRunOutTime: f.expectedRunOutTime,
+      });
+    }
+  }
+
+  // Sort high risk first
+  alerts.sort((a, b) => (a.riskLevel === 'high' ? -1 : 1) - (b.riskLevel === 'high' ? -1 : 1));
+  return alerts;
+}
+
 module.exports = {
   executeForecastRun,
   getLatestForecastRun,
   getForecastRunById,
   listForecastRuns,
+  listStockoutAlerts,
 };

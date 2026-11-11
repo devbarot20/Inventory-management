@@ -45,9 +45,19 @@ async function listForecastRuns(req, res, next) {
   }
 }
 
+async function getAlerts(req, res, next) {
+  try {
+    const alerts = await forecastRunService.listStockoutAlerts(req.user.id);
+    res.status(200).json({ alerts, totalAlerts: alerts.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   runForecast,
   getLatestForecast,
   getForecastRun,
   listForecastRuns,
+  getAlerts,
 };

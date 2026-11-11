@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/lib/api';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,6 +18,36 @@ export default function Navbar() {
   } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [alerts, setAlerts] = useState([]);
+  const alertsRef = useRef(null);
+
+  useEffect(() => {
+    if (!user || user.emailVerified === false) {
+      queueMicrotask(() => setAlerts([]));
+      return undefined;
+    }
+    let ignore = false;
+    apiFetch('/forecast/alerts')
+      .then((res) => {
+        if (!ignore) setAlerts(res.alerts || []);
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, [user, pathname]);
+
+  useEffect(() => {
+    if (!alertsOpen) return undefined;
+    const onDocClick = (e) => {
+      if (alertsRef.current && !alertsRef.current.contains(e.target)) {
+        setAlertsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [alertsOpen]);
 
   const appLinks = [
     { href: '/dashboard', label: 'Dashboard' },
@@ -34,6 +65,7 @@ export default function Navbar() {
     { href: '/contact', label: 'Contact' },
   ];
   const navLinks = user ? appLinks : publicLinks;
+  const highCount = alerts.filter((a) => a.riskLevel === 'high').length;
 
   return (
     <div className="sticky top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -77,8 +109,93 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Right: Theme & User Controls */}
+        {/* Right: Theme, Alerts & User Controls */}
         <div className="flex items-center gap-2">
+          {/* Stockout Alerts Bell (Signed-in users) */}
+          {user && (
+            <div ref={alertsRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setAlertsOpen((o) => !o)}
+                className="relative rounded-lg border border-slate-200/80 p-1.5 text-slate-500 hover:bg-slate-100 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                title="Stockout risk alerts"
+                aria-label="Stockout risk alerts"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {alerts.length > 0 && (
+                  <span
+                    className={`absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-extrabold text-white ${
+                      highCount > 0 ? 'bg-rose-600' : 'bg-amber-500'
+                    }`}
+                  >
+                    {alerts.length}
+                  </span>
+                )}
+              </button>
+
+              {alertsOpen && (
+                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:w-96">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800">
+                    <span className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                      Stockout Risk Alerts
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      {alerts.length} active
+                    </span>
+                  </div>
+
+                  {alerts.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-slate-500 dark:text-zinc-400">
+                      No high or medium stockout alerts across your campaigns.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto dark:divide-zinc-800">
+                      {alerts.slice(0, 8).map((a) => (
+                        <li key={a.id} className="py-2.5 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
+                              {a.sku}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                a.riskLevel === 'high'
+                                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                              }`}
+                            >
+                              {a.riskLevel} risk
+                            </span>
+                          </div>
+                          <div className="mt-1 text-slate-600 dark:text-zinc-400">
+                            {a.saleName} • Stock: <strong>{a.unitsAvailable ?? '—'}</strong> vs High:{' '}
+                            <strong>{a.high}</strong>
+                            {a.reorderUnits > 0 ? ` (+${a.reorderUnits} reorder)` : ''}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="mt-3 border-t border-slate-100 pt-2.5 text-right dark:border-zinc-800">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setAlertsOpen(false)}
+                      className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+                    >
+                      Open Dashboard →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Theme Switcher */}
           <button
             type="button"
@@ -105,11 +222,7 @@ export default function Navbar() {
             <div className="flex items-center gap-1.5">
               {/* User Chip */}
               <div className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-slate-50/80 py-1 pl-2 pr-2.5 dark:border-zinc-800 dark:bg-zinc-900/80">
-                <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white ${
-                    'bg-indigo-600'
-                  }`}
-                >
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-600 text-[11px] font-bold text-white">
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="hidden flex-col sm:flex">
@@ -194,6 +307,18 @@ export default function Navbar() {
               </Link>
             );
           })}
+          {user && (
+            <div className="mt-1 flex items-center justify-between border-t border-slate-200/80 px-3 pt-2.5 text-xs dark:border-zinc-800">
+              <span className="font-semibold text-slate-700 dark:text-zinc-300">{user.name}</span>
+              <Link
+                href="/pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-bold uppercase text-indigo-600 dark:text-indigo-400"
+              >
+                {user.plan || 'starter'} plan →
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

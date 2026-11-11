@@ -332,9 +332,36 @@ async function getComparison(saleEventId, userId) {
   };
 }
 
+/**
+ * Deletes a single SKU's recorded actual for a sale event and returns the refreshed comparison.
+ */
+async function deleteActualSku(saleEventId, sku, userId) {
+  const saleEvent = await findOwnedSaleEvent(SaleEvent, saleEventId, userId);
+  const normalizedSku = (sku || '').trim().toUpperCase();
+  const deleted = await Actual.findOneAndDelete({
+    saleEvent: saleEvent._id,
+    sku: normalizedSku,
+  });
+  if (!deleted) {
+    throw ApiError.notFound(`No recorded actual found for SKU "${normalizedSku}"`);
+  }
+  return getComparison(saleEventId, userId);
+}
+
+/**
+ * Clears all recorded actuals for a sale event and returns the refreshed comparison.
+ */
+async function clearActuals(saleEventId, userId) {
+  const saleEvent = await findOwnedSaleEvent(SaleEvent, saleEventId, userId);
+  await Actual.deleteMany({ saleEvent: saleEvent._id });
+  return getComparison(saleEventId, userId);
+}
+
 module.exports = {
   evaluateSkuComparison,
   computeAggregateMetrics,
   recordActuals,
   getComparison,
+  deleteActualSku,
+  clearActuals,
 };

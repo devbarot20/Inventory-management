@@ -232,4 +232,73 @@ describe('Forecast vs Actuals Comparison API (E6)', () => {
       expect(res.status).toBe(404);
     });
   });
+
+  describe('DELETE /api/actuals/:saleEventId/:sku', () => {
+    it('deletes a single SKU actual record and returns updated comparison', async () => {
+      // Record actuals for 2 SKUs
+      await request(app)
+        .post(`/api/actuals/${saleEvent._id}`)
+        .set('Authorization', authHeader)
+        .send({
+          items: [
+            { sku: 'TSHIRT-BLK-M', actualUnits: 90, stockoutOccurred: true },
+            { sku: 'MUG-WHT-01', actualUnits: 45, stockoutOccurred: false },
+          ],
+        });
+
+      // Verify 2 actuals in DB
+      let actualsCount = await Actual.countDocuments({ saleEvent: saleEvent._id });
+      expect(actualsCount).toBe(2);
+
+      // Delete TSHIRT-BLK-M
+      const res = await request(app)
+        .delete(`/api/actuals/${saleEvent._id}/TSHIRT-BLK-M`)
+        .set('Authorization', authHeader);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('TSHIRT-BLK-M');
+      expect(res.body.comparisons).toBeDefined();
+
+      actualsCount = await Actual.countDocuments({ saleEvent: saleEvent._id });
+      expect(actualsCount).toBe(1);
+
+      const remainingActual = await Actual.findOne({ saleEvent: saleEvent._id });
+      expect(remainingActual.sku).toBe('MUG-WHT-01');
+    });
+
+    it('returns 404 if SKU actual does not exist', async () => {
+      const res = await request(app)
+        .delete(`/api/actuals/${saleEvent._id}/NON-EXISTENT-SKU`)
+        .set('Authorization', authHeader);
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('DELETE /api/actuals/:saleEventId', () => {
+    it('clears all actual records for the specified sale event', async () => {
+      await request(app)
+        .post(`/api/actuals/${saleEvent._id}`)
+        .set('Authorization', authHeader)
+        .send({
+          items: [
+            { sku: 'TSHIRT-BLK-M', actualUnits: 90, stockoutOccurred: true },
+            { sku: 'MUG-WHT-01', actualUnits: 45, stockoutOccurred: false },
+          ],
+        });
+
+      let actualsCount = await Actual.countDocuments({ saleEvent: saleEvent._id });
+      expect(actualsCount).toBe(2);
+
+      const res = await request(app)
+        .delete(`/api/actuals/${saleEvent._id}`)
+        .set('Authorization', authHeader);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('cleared');
+
+      actualsCount = await Actual.countDocuments({ saleEvent: saleEvent._id });
+      expect(actualsCount).toBe(0);
+    });
+  });
 });

@@ -192,4 +192,24 @@ describe('Forecast API Endpoint (E3, E4)', () => {
     expect(latestRes.body.forecastRun).toBeTruthy();
     expect(latestRes.body.forecasts.length).toBe(2);
   });
+
+  it('aggregates stockout alerts across user campaigns via GET /api/forecast/alerts', async () => {
+    // Run forecast to produce high risk item (TEE-LOW-STOCK)
+    await request(app)
+      .post(`/api/forecast/run/${saleEventId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+
+    const alertsRes = await request(app)
+      .get('/api/forecast/alerts')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(alertsRes.status).toBe(200);
+    expect(alertsRes.body.alerts).toBeDefined();
+    expect(alertsRes.body.totalAlerts).toBeGreaterThanOrEqual(1);
+    const lowStockAlert = alertsRes.body.alerts.find((a) => a.sku === 'TEE-LOW-STOCK');
+    expect(lowStockAlert).toBeDefined();
+    expect(lowStockAlert.riskLevel).toBe('high');
+    expect(lowStockAlert.saleName).toBe('Nov Flash Drop');
+  });
 });

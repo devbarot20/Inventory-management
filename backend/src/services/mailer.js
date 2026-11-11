@@ -50,4 +50,20 @@ async function sendVerification(to, name, verifyUrl) {
   });
 }
 
-module.exports = { sendMail, sendPasswordReset, sendVerification };
+async function sendStockoutAlert(to, name, saleName, highRiskItems) {
+  const lines = highRiskItems
+    .map(
+      (f) =>
+        `- ${f.sku}: ${f.unitsAvailable ?? 0} available vs ${f.expected} expected (high: ${f.high})`,
+    )
+    .join('\n');
+  return sendMail({
+    to,
+    subject: `Stockout alert: ${highRiskItems.length} high-risk SKU(s) for ${saleName}`,
+    text:
+      `Hi ${name},\n\nYour forecast for "${saleName}" flagged ${highRiskItems.length} high-risk SKU(s):\n\n` +
+      `${lines}\n\nReview your restock plan at ${env.appUrl}/dashboard`,
+  });
+}
+
+module.exports = { sendMail, sendPasswordReset, sendVerification, sendStockoutAlert };

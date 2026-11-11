@@ -186,10 +186,38 @@ async function getActuals(req, res, next) {
   }
 }
 
+async function deleteActualSku(req, res, next) {
+  try {
+    const { saleEventId, sku } = req.params;
+    const result = await comparisonService.deleteActualSku(saleEventId, sku, req.user.id);
+    res.status(200).json({
+      message: `Actual for SKU ${sku.toUpperCase()} deleted`,
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function clearActuals(req, res, next) {
+  try {
+    const { saleEventId } = req.params;
+    const result = await comparisonService.clearActuals(saleEventId, req.user.id);
+    res.status(200).json({
+      message: 'All recorded actuals cleared for this sale event',
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   upload,
   recordActualsJson,
   importActualsCsv,
   getComparison,
   getActuals,
+  deleteActualSku,
+  clearActuals,
 };
