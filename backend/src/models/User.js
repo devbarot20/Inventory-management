@@ -49,6 +49,8 @@ const userSchema = new mongoose.Schema(
       enum: { values: PLAN_IDS, message: 'Plan must be one of: ' + PLAN_IDS.join(', ') },
       default: DEFAULT_PLAN,
     },
+    stripeCustomerId: { type: String },
+    stripeSubscriptionId: { type: String },
     notificationPreferences: {
       emailStockoutAlerts: {
         type: Boolean,

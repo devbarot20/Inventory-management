@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import PageHero from '@/components/PageHero';
 import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/lib/api';
 
 const PLANS = [
   {
@@ -46,8 +47,27 @@ export default function PricingPage() {
     }
     setBusy(plan.id);
     try {
-      await changePlan(plan.id);
-      setMessage({ type: 'ok', text: `You are now on the ${plan.name} plan.` });
+      if (plan.id === 'starter') {
+        await changePlan('starter');
+        setMessage({ type: 'ok', text: `You are now on the Starter plan.` });
+        return;
+      }
+
+      const res = await apiFetch('/billing/create-checkout-session', {
+        method: 'POST',
+        body: JSON.stringify({
+          planKey: plan.id,
+          successUrl: `${window.location.origin}/settings?payment=success&plan=${plan.id}`,
+          cancelUrl: `${window.location.origin}/pricing`,
+        }),
+      });
+
+      if (res.url) {
+        window.location.assign(res.url);
+      } else {
+        await changePlan(plan.id);
+        setMessage({ type: 'ok', text: `You are now on the ${plan.name} plan.` });
+      }
     } catch (e) {
       setMessage({ type: 'error', text: e.message || 'Could not change plan.' });
     } finally {

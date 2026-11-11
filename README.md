@@ -41,7 +41,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   │   └── backtest.service.js   # Time-ordered backtest evaluation engine
 │   │   ├── app.js               # Express app factory (used by server and test runner)
 │   │   └── server.js            # HTTP server entry point (Port 5001)
-│   └── tests/                   # 15 Jest test suites (122 tests, in-memory MongoDB)
+│   └── tests/                   # 16 Jest test suites (129 tests, in-memory MongoDB)
 ├── frontend/
 │   └── src/
 │       ├── app/
@@ -68,15 +68,12 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 ## Accounts, Plans & Data Privacy
 
 - **Per-user data isolation**: products, stock snapshots, sales history, flash sales, forecasts and actuals are owned by the user who created them. Every read and write is scoped to the signed-in user, and other users' records return `404`. SKUs are unique per user.
-- **Plans** (no payment yet; switch freely on `/pricing`):
-
-  | Plan | Products | Campaigns | CSV import |
-  | :--- | :--- | :--- | :--- |
-  | Starter (default) | 25 | 3 | No |
-  | Growth | 250 | 25 | Yes |
-  | Scale | Unlimited | Unlimited | Yes |
-
-  Limits are enforced by the API (`403` with `details.code` of `PLAN_LIMIT` or `PLAN_FEATURE`). `GET /api/auth/usage` returns the current plan and usage.
+- **Plans & Stripe Checkout**:
+  - **Starter** ($0): 25 products, 3 campaigns, manual entry.
+  - **Growth** ($29/mo): 250 products, 25 campaigns, bulk CSV imports.
+  - **Scale** ($79/mo): Unlimited products and campaigns, priority forecasting, bulk CSV imports.
+  - Supported via `POST /api/billing/create-checkout-session` and `POST /api/billing/create-portal-session`. If `STRIPE_SECRET_KEY` is configured in `.env`, generates live/test Stripe Checkout sessions with webhook updates (`POST /api/billing/webhook`); without Stripe keys, runs in a frictionless simulated upgrade mode for instant testing.
+  - Limits are enforced by the API (`403` with `details.code` of `PLAN_LIMIT` or `PLAN_FEATURE`). `GET /api/auth/usage` returns the current plan and usage.
 - **Password reset**: `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Links are valid for 1 hour and single-use. Set `RESEND_API_KEY` (and `MAIL_FROM`, `APP_URL`) to send real emails; without it the link is printed in the server log.
 - **Email verification**: new accounts must confirm their email (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`) before using data routes, which otherwise return `403` with `details.code` `EMAIL_NOT_VERIFIED`. It is enforced automatically when `RESEND_API_KEY` is set (override with `EMAIL_VERIFICATION=true|false`), so a missing email setup never locks users out. Accounts created before the feature, and anyone who completes a password reset, count as verified.
 - **Existing data from before isolation** can be assigned to one account with `node scripts/claimLegacyData.js user@example.com` (run from `backend/`).

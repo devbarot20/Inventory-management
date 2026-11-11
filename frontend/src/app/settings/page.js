@@ -33,10 +33,26 @@ export default function SettingsPage() {
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [changingPlan, setChangingPlan] = useState(false);
   const [planMsg, setPlanMsg] = useState(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(null);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   // Demo Data State
   const [clearingDemo, setClearingDemo] = useState(false);
   const [demoMsg, setDemoMsg] = useState(null);
+
+  // Detect payment success from redirect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment') === 'success') {
+        const planParam = params.get('plan');
+        queueMicrotask(() => {
+          setPaymentSuccess(planParam ? planParam.toUpperCase() : 'new');
+        });
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, []);
 
   // Sync profile values when user loads
   useEffect(() => {
@@ -143,23 +159,65 @@ export default function SettingsPage() {
     }
   };
 
-  // Handle Instant Plan Change
+  // Handle Plan Upgrade via Stripe Checkout / Simulation
   const handleSwitchPlan = async (planKey) => {
     setChangingPlan(true);
     setPlanMsg(null);
     try {
-      await apiFetch('/auth/plan', {
-        method: 'PATCH',
-        body: JSON.stringify({ plan: planKey }),
+      if (planKey === 'starter') {
+        await apiFetch('/billing/create-checkout-session', {
+          method: 'POST',
+          body: JSON.stringify({ planKey: 'starter' }),
+        });
+        await refreshUser();
+        await loadUsage();
+        setPlanMsg('Switched to the Starter plan.');
+        setTimeout(() => setPlanMsg(null), 4000);
+        return;
+      }
+
+      const res = await apiFetch('/billing/create-checkout-session', {
+        method: 'POST',
+        body: JSON.stringify({
+          planKey,
+          successUrl: `${window.location.origin}/settings?payment=success&plan=${planKey}`,
+          cancelUrl: `${window.location.origin}/settings`,
+        }),
       });
-      await refreshUser();
-      await loadUsage();
-      setPlanMsg(`Switched to the ${planKey.toUpperCase()} plan.`);
-      setTimeout(() => setPlanMsg(null), 4000);
+
+      if (res.url && !res.simulated) {
+        window.location.assign(res.url);
+      } else {
+        await refreshUser();
+        await loadUsage();
+        setPlanMsg(`🎉 Upgraded to the ${planKey.toUpperCase()} plan.`);
+        setTimeout(() => setPlanMsg(null), 4000);
+      }
     } catch (err) {
       setPlanMsg(`Could not switch plan: ${err.message}`);
     } finally {
       setChangingPlan(false);
+    }
+  };
+
+  // Open Stripe Customer Portal
+  const handleOpenPortal = async () => {
+    setOpeningPortal(true);
+    try {
+      const res = await apiFetch('/billing/create-portal-session', {
+        method: 'POST',
+        body: JSON.stringify({ returnUrl: window.location.href }),
+      });
+      if (res.url && !res.simulated) {
+        window.location.assign(res.url);
+      } else {
+        setPlanMsg('Billing portal available in live Stripe mode. Currently in self-serve demo mode.');
+        setTimeout(() => setPlanMsg(null), 5000);
+      }
+    } catch (err) {
+      setPlanMsg(`Portal error: ${err.message}`);
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -216,6 +274,25 @@ export default function SettingsPage() {
             </Link>
           </div>
         </div>
+
+        {paymentSuccess && (
+          <div className="flex items-center justify-between rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-4 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎉</span>
+              <div>
+                <span className="text-sm font-bold">Subscription Payment Completed!</span>
+                <p className="text-xs">Your account has been upgraded to the {paymentSuccess} plan.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPaymentSuccess(null)}
+              className="text-xs font-bold underline hover:opacity-80"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* 1. Profile & Preferences */}
@@ -424,6 +501,15 @@ export default function SettingsPage() {
                     }`}
                   >
                     Scale ($79)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenPortal}
+                    disabled={openingPortal}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    title="Manage credit cards, billing & invoices"
+                  >
+                    {openingPortal ? 'Opening…' : '💳 Customer Portal'}
                   </button>
                 </div>
               </div>

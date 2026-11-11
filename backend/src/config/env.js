@@ -39,6 +39,9 @@ const env = {
     process.env.EMAIL_VERIFICATION === 'true' ||
     (process.env.EMAIL_VERIFICATION !== 'false' && Boolean(process.env.RESEND_API_KEY)),
   mailFrom: process.env.MAIL_FROM || 'ForecastIQ <onboarding@resend.dev>',
+  // Optional Stripe billing keys. If unset, the app runs in simulated billing mode.
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
 };
 
 module.exports = env;

@@ -11,6 +11,7 @@ const saleEventRoutes = require('./saleEvent.routes');
 const forecastRoutes = require('./forecast.routes');
 const actualRoutes = require('./actual.routes');
 const demoRoutes = require('./demo.routes');
+const billingRoutes = require('./billing.routes');
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use('/sales', saleEventRoutes);
 router.use('/forecast', forecastRoutes);
 router.use('/actuals', actualRoutes);
 router.use('/demo', demoRoutes);
+router.use('/billing', billingRoutes);
 
 module.exports = router;

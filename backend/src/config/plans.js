@@ -8,18 +8,21 @@
 const PLANS = Object.freeze({
   starter: Object.freeze({
     name: 'Starter',
+    priceUsd: 0,
     maxProducts: 25,
     maxCampaigns: 3,
     csvImport: false,
   }),
   growth: Object.freeze({
     name: 'Growth',
+    priceUsd: 29,
     maxProducts: 250,
     maxCampaigns: 25,
     csvImport: true,
   }),
   scale: Object.freeze({
     name: 'Scale',
+    priceUsd: 79,
     maxProducts: Infinity,
     maxCampaigns: Infinity,
     csvImport: true,
