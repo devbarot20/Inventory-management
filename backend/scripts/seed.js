@@ -67,7 +67,9 @@ async function seed() {
     { sku: 'TOTE-NAT-01', name: 'Organic Cotton Canvas Tote Bag' },
   ];
 
-  const createdProducts = await Product.insertMany(productsData.map((d) => ({ ...d, createdBy: adminUser._id })));
+  const createdProducts = await Product.insertMany(
+    productsData.map((d) => ({ ...d, createdBy: adminUser._id })),
+  );
   console.log(`✓ Inserted ${createdProducts.length} products`);
 
   // 3. Seed 90 Days of Sales History (2026-08-01 to 2026-10-31)
@@ -156,7 +158,9 @@ async function seed() {
     });
   }
 
-  await StockSnapshot.insertMany(stockSnapshotDocs.map((d) => ({ ...d, createdBy: adminUser._id })));
+  await StockSnapshot.insertMany(
+    stockSnapshotDocs.map((d) => ({ ...d, createdBy: adminUser._id })),
+  );
   console.log(`✓ Inserted ${stockSnapshotDocs.length} current inventory stock snapshots`);
 
   // 4. Seed Past Flash Sales with Actuals

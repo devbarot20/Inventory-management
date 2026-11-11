@@ -40,7 +40,12 @@ describe('Subscription plans', () => {
     await request(app).post('/api/products').set(auth()).send({ sku: 'U-1', name: 'One' });
     const res = await request(app).get('/api/auth/usage').set(auth());
     expect(res.status).toBe(200);
-    expect(res.body.plan).toMatchObject({ id: 'starter', maxProducts: 25, maxCampaigns: 3, csvImport: false });
+    expect(res.body.plan).toMatchObject({
+      id: 'starter',
+      maxProducts: 25,
+      maxCampaigns: 3,
+      csvImport: false,
+    });
     expect(res.body.usage).toEqual({ products: 1, campaigns: 0 });
   });
 
@@ -85,7 +90,6 @@ describe('Subscription plans', () => {
       products: ['TEE-01'],
     });
     for (let i = 0; i < 3; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
       const ok = await request(app).post('/api/sales').set(auth()).send(payload(i));
       expect(ok.status).toBe(201);
     }
@@ -135,26 +139,38 @@ describe('Password reset', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('answers identically for unknown emails and sends nothing', async () => {
-    const res = await request(app).post('/api/auth/forgot-password').send({ email: 'nobody@shop.com' });
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'nobody@shop.com' });
     expect(res.status).toBe(200);
     expect(sent).toBeNull();
   });
 
   it('emails a one-time link that sets a new password', async () => {
-    const res = await request(app).post('/api/auth/forgot-password').send({ email: 'reset@shop.com' });
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'reset@shop.com' });
     expect(res.status).toBe(200);
     expect(sent.to).toBe('reset@shop.com');
 
     const token = new URL(sent.url).searchParams.get('token');
-    const reset = await request(app).post('/api/auth/reset-password').send({ token, password: 'newpassword1' });
+    const reset = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token, password: 'newpassword1' });
     expect(reset.status).toBe(200);
 
-    const oldLogin = await request(app).post('/api/auth/login').send({ email: 'reset@shop.com', password: 'oldpassword' });
+    const oldLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'reset@shop.com', password: 'oldpassword' });
     expect(oldLogin.status).toBe(401);
-    const newLogin = await request(app).post('/api/auth/login').send({ email: 'reset@shop.com', password: 'newpassword1' });
+    const newLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'reset@shop.com', password: 'newpassword1' });
     expect(newLogin.status).toBe(200);
 
-    const reuse = await request(app).post('/api/auth/reset-password').send({ token, password: 'another-pass' });
+    const reuse = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token, password: 'another-pass' });
     expect(reuse.status).toBe(400);
   });
 
@@ -193,7 +209,9 @@ describe('Email verification', () => {
   });
 
   const signUp = async (email = 'verify@shop.com') => {
-    const res = await request(app).post('/api/auth/register').send({ name: 'Vera', email, password: 'password123' });
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ name: 'Vera', email, password: 'password123' });
     return res.body;
   };
   const tokenFrom = (url) => new URL(url).searchParams.get('token');
@@ -204,34 +222,50 @@ describe('Email verification', () => {
     expect(user).not.toHaveProperty('verifyTokenHash');
     expect(emails).toHaveLength(1);
 
-    const blocked = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    const blocked = await request(app)
+      .get('/api/products')
+      .set({ Authorization: `Bearer ${token}` });
     expect(blocked.status).toBe(403);
     expect(blocked.body.error.details.code).toBe('EMAIL_NOT_VERIFIED');
 
-    const me = await request(app).get('/api/auth/me').set({ Authorization: `Bearer ${token}` });
+    const me = await request(app)
+      .get('/api/auth/me')
+      .set({ Authorization: `Bearer ${token}` });
     expect(me.status).toBe(200);
     expect(me.body.user.emailVerified).toBe(false);
 
-    const verified = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[0].url) });
+    const verified = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ token: tokenFrom(emails[0].url) });
     expect(verified.status).toBe(200);
 
-    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    const ok = await request(app)
+      .get('/api/products')
+      .set({ Authorization: `Bearer ${token}` });
     expect(ok.status).toBe(200);
 
-    const reuse = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[0].url) });
+    const reuse = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ token: tokenFrom(emails[0].url) });
     expect(reuse.status).toBe(400);
   });
 
   it('resends a working link and rejects bad tokens', async () => {
     const { token } = await signUp('resend@shop.com');
-    const resend = await request(app).post('/api/auth/resend-verification').set({ Authorization: `Bearer ${token}` });
+    const resend = await request(app)
+      .post('/api/auth/resend-verification')
+      .set({ Authorization: `Bearer ${token}` });
     expect(resend.status).toBe(200);
     expect(emails).toHaveLength(2);
 
-    const bad = await request(app).post('/api/auth/verify-email').send({ token: 'z'.repeat(64) });
+    const bad = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ token: 'z'.repeat(64) });
     expect(bad.status).toBe(400);
 
-    const good = await request(app).post('/api/auth/verify-email').send({ token: tokenFrom(emails[1].url) });
+    const good = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ token: tokenFrom(emails[1].url) });
     expect(good.status).toBe(200);
   });
 
@@ -239,9 +273,13 @@ describe('Email verification', () => {
     const { token } = await signUp('forgot@shop.com');
     await request(app).post('/api/auth/forgot-password').send({ email: 'forgot@shop.com' });
     const resetMail = emails[emails.length - 1];
-    await request(app).post('/api/auth/reset-password').send({ token: tokenFrom(resetMail.url), password: 'brandnewpass' });
+    await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: tokenFrom(resetMail.url), password: 'brandnewpass' });
 
-    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    const ok = await request(app)
+      .get('/api/products')
+      .set({ Authorization: `Bearer ${token}` });
     expect(ok.status).toBe(200);
   });
 
@@ -249,7 +287,9 @@ describe('Email verification', () => {
     env.emailVerificationEnabled = false;
     const { token, user } = await signUp('off@shop.com');
     expect(user.emailVerified).toBe(true);
-    const ok = await request(app).get('/api/products').set({ Authorization: `Bearer ${token}` });
+    const ok = await request(app)
+      .get('/api/products')
+      .set({ Authorization: `Bearer ${token}` });
     expect(ok.status).toBe(200);
   });
 });

@@ -109,7 +109,12 @@ describe('Forecast API Endpoint (E3, E4)', () => {
     for (let i = 1; i <= 14; i++) {
       const dayStr = i < 10 ? `0${i}` : `${i}`;
       await SalesHistory.create([
-        { sku: 'TEE-HIGH-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10, createdBy },
+        {
+          sku: 'TEE-HIGH-STOCK',
+          date: `2026-11-${dayStr}T00:00:00.000Z`,
+          unitsSold: 10,
+          createdBy,
+        },
         { sku: 'TEE-LOW-STOCK', date: `2026-11-${dayStr}T00:00:00.000Z`, unitsSold: 10, createdBy },
       ]);
     }

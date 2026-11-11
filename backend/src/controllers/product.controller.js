@@ -4,9 +4,13 @@ const productService = require('../services/product.service');
 
 async function listProducts(req, res, next) {
   try {
-    const products = await productService.listProducts({
-      search: req.query.search,
-    }, req.user.id);
+    const products = await productService.listProducts(
+      {
+        search: req.query.search,
+        category: req.query.category,
+      },
+      req.user.id,
+    );
     res.status(200).json({ products });
   } catch (err) {
     next(err);
@@ -49,6 +53,15 @@ async function deleteProduct(req, res, next) {
   }
 }
 
+async function generateVariantMatrix(req, res, next) {
+  try {
+    const result = await productService.generateVariantMatrix(req.body, req.user.id);
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function recordStock(req, res, next) {
   try {
     const snapshot = await productService.recordStock(req.body, req.user.id);
@@ -73,6 +86,7 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  generateVariantMatrix,
   recordStock,
   getStock,
 };

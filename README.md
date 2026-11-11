@@ -82,6 +82,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 - **One-click demo store seeder**: `POST /api/demo/seed` instantly loads 5 curated products, 30 days of sales history, current stock levels, an upcoming flash sale with forecasts and risk warnings, and a past flash sale with recorded actuals. Easily cleared with `POST /api/demo/clear`.
 - **Forecasting visualisations**: Interactive toggle between Grouped Bar chart and Shaded Confidence Band (Low to High demand range, expected demand line, available stock).
 - **Actuals lifecycle management**: Clear all recorded actuals or delete specific SKU entries (`DELETE /api/actuals/:saleEventId` and `DELETE /api/actuals/:saleEventId/:sku`) with automatic metric re-computation.
+- **Multi-variant retail catalogue & SKU matrix generator**: Supports category categorization (`Apparel`, `Accessories`, `Drinkware`, `Footwear`, `General`), multi-attribute variants (`size`, `color`, `parentGroup`, `price`, `costPrice`), and a single-click matrix batch generator (`POST /api/products/variants/matrix`) producing comprehensive combinations of sizes and colors with default stock snapshots.
 - **Supplier PO & Executive Reports**: Printable Purchase Order Restock Advice sheet (`window.print` with print-optimized CSS) detailing recommended reorder volumes and authorization lines, plus instant CSV exports for both the SKU Restock Plan and historical Forecast vs Actuals Accuracy Audits.
 - **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
 
@@ -330,8 +331,13 @@ MUG-WHT-01,98,false
 | `POST` | `/api/auth/register` | Rate-limited | Register new user account |
 | `POST` | `/api/auth/login` | Rate-limited | Login and receive signed JWT |
 | `GET` | `/api/auth/me` | JWT | Get current authenticated user details |
-| `GET` | `/api/products` | Public | List catalogue products with current stock |
+| `GET` | `/api/products` | Public | List catalogue products with current stock & category filter |
 | `POST` | `/api/products` | JWT | Create a new catalog product |
+| `POST` | `/api/products/variants/matrix` | JWT | Batch generate multi-variant SKUs (Size × Color matrix) |
+| `GET` | `/api/billing/config` | Public | Get Stripe publishable credentials and pricing tiers |
+| `POST` | `/api/billing/create-checkout-session` | JWT | Initiate Stripe Checkout session for plan upgrades |
+| `POST` | `/api/billing/create-portal-session` | JWT | Open Stripe Customer Billing Portal |
+| `POST` | `/api/billing/webhook` | Stripe signature | Webhook for automated subscription provisioning |
 | `GET` | `/api/stock` | Public | Get stock snapshots history |
 | `POST` | `/api/stock` | JWT | Record a stock snapshot |
 | `POST` | `/api/import/csv` | JWT | Bulk CSV import (products, sales, or snapshots) |
@@ -350,7 +356,7 @@ MUG-WHT-01,98,false
 ### Backend Tests & Code Quality
 ```bash
 cd backend
-npm test                # Runs 14 test suites (112 tests) in-memory
+npm test                # Runs 16 test suites (131 tests) in-memory
 npm run lint            # ESLint static analysis
 npm run format:check    # Prettier formatting verification
 npm run backtest        # CLI time-ordered backtest evaluation
@@ -371,7 +377,6 @@ To maintain a lean, robust, and transparent MVP, the following are deliberately 
 - **No live TikTok Ads or Shopify API sync**: Eliminates external sync fragility, credential exposure, and network flakiness. All data ingestion is file- and REST-driven.
 - **No black-box Deep Learning / AI models**: Predictions use explainable statistical baselines and uplift ratios with traceable assumptions.
 - **No automated purchase order generation**: Warnings assist human inventory planners; they do not automatically execute financial transactions.
-- **No billing or payment processing**: Clean operational focus on forecasting and inventory analytics.
 
 ---
 
@@ -389,3 +394,7 @@ To maintain a lean, robust, and transparent MVP, the following are deliberately 
 10. [x] **Section 10**: Time-ordered backtesting script (E7: Temporal isolation, naive baseline benchmark)
 11. [x] **Section 11**: Security hardening and API testing (Helmet, rate limiting, error auditing)
 12. [x] **Section 12**: Documentation, sample data, and release polish
+13. [x] **Section 13**: Profile & Account Settings Hub (`/settings`, password changes, email alerts)
+14. [x] **Section 14**: Supplier Reorder & PDF / Executive Restock Reports (A4 Purchase Order sheet, Audit CSV exports)
+15. [x] **Section 15**: Stripe Checkout integration & Customer Billing Portal (`/billing`, `@stripe/stripe-node`, webhooks)
+16. [x] **Section 16**: Multi-Variant SKUs, Size & Color Matrix Generator, and Category Catalog Filtering (`/products`)

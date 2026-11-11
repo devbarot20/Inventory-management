@@ -17,7 +17,10 @@ async function runForecast(req, res, next) {
 
 async function getLatestForecast(req, res, next) {
   try {
-    const result = await forecastRunService.getLatestForecastRun(req.params.saleEventId, req.user.id);
+    const result = await forecastRunService.getLatestForecastRun(
+      req.params.saleEventId,
+      req.user.id,
+    );
     if (!result) {
       return res.status(200).json({ forecastRun: null, forecasts: [] });
     }

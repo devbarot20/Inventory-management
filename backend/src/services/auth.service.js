@@ -19,7 +19,11 @@ async function sendVerificationEmail(user) {
   await user.save();
 
   try {
-    await mailer.sendVerification(user.email, user.name, `${env.appUrl}/verify-email?token=${token}`);
+    await mailer.sendVerification(
+      user.email,
+      user.name,
+      `${env.appUrl}/verify-email?token=${token}`,
+    );
   } catch (err) {
     console.error(`Verification email failed: ${err.message}`);
   }
@@ -37,7 +41,9 @@ async function verifyEmail(token) {
     verifyTokenExpires: { $gt: new Date() },
   }).select('+verifyTokenHash +verifyTokenExpires');
   if (!user) {
-    throw ApiError.badRequest('This verification link is invalid or has expired. Request a new one.');
+    throw ApiError.badRequest(
+      'This verification link is invalid or has expired. Request a new one.',
+    );
   }
   user.emailVerifiedAt = new Date();
   user.verifyTokenHash = undefined;

@@ -9,7 +9,14 @@
 require('dotenv').config();
 const env = require('../src/config/env');
 const { connectDB, disconnectDB } = require('../src/config/db');
-const { User, Product, SaleEvent, StockSnapshot, SalesHistory, ForecastRun } = require('../src/models');
+const {
+  User,
+  Product,
+  SaleEvent,
+  StockSnapshot,
+  SalesHistory,
+  ForecastRun,
+} = require('../src/models');
 
 async function main() {
   const email = (process.argv[2] || '').toLowerCase();
@@ -27,7 +34,6 @@ async function main() {
     ['sales history', SalesHistory],
     ['forecast runs', ForecastRun],
   ]) {
-    // eslint-disable-next-line no-await-in-loop
     const res = await Model.updateMany(orphan, { $set: { createdBy: user._id } });
     console.log(`${name}: ${res.modifiedCount} claimed`);
   }

@@ -13,6 +13,35 @@ const productSchema = new mongoose.Schema(
       trim: true,
       maxlength: [200, 'Product name cannot exceed 200 characters'],
     },
+    category: {
+      type: String,
+      trim: true,
+      default: 'General',
+      maxlength: [100, 'Category cannot exceed 100 characters'],
+    },
+    parentGroup: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Parent group cannot exceed 100 characters'],
+    },
+    size: {
+      type: String,
+      trim: true,
+      maxlength: [30, 'Size cannot exceed 30 characters'],
+    },
+    color: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Color cannot exceed 50 characters'],
+    },
+    price: {
+      type: Number,
+      min: [0, 'Price cannot be negative'],
+    },
+    costPrice: {
+      type: Number,
+      min: [0, 'Cost price cannot be negative'],
+    },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   baseSchemaOptions,

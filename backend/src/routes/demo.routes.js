@@ -13,4 +13,3 @@ router.post('/seed', authenticate, demoController.seedDemo);
 router.post('/clear', authenticate, demoController.clearDemo);
 
 module.exports = router;
-

@@ -2,7 +2,14 @@
 
 const request = require('supertest');
 const createApp = require('../src/app');
-const { Product, SaleEvent, Forecast, Actual, SalesHistory, StockSnapshot } = require('../src/models');
+const {
+  Product,
+  SaleEvent,
+  Forecast,
+  Actual,
+  SalesHistory,
+  StockSnapshot,
+} = require('../src/models');
 const { startTestDB, clearTestDB, stopTestDB } = require('./helpers/db');
 
 beforeAll(startTestDB);
@@ -29,9 +36,7 @@ describe('Demo Store Seeder API', () => {
   });
 
   it('loads a complete demo store with products, history, forecasts and actuals', async () => {
-    const res = await request(app)
-      .post('/api/demo/seed')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).post('/api/demo/seed').set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.productsCount).toBe(5);
@@ -68,13 +73,9 @@ describe('Demo Store Seeder API', () => {
   });
 
   it('is idempotent on repeated calls', async () => {
-    await request(app)
-      .post('/api/demo/seed')
-      .set('Authorization', `Bearer ${token}`);
+    await request(app).post('/api/demo/seed').set('Authorization', `Bearer ${token}`);
 
-    const res2 = await request(app)
-      .post('/api/demo/seed')
-      .set('Authorization', `Bearer ${token}`);
+    const res2 = await request(app).post('/api/demo/seed').set('Authorization', `Bearer ${token}`);
 
     expect(res2.status).toBe(200);
     const products = await Product.find({ createdBy: userId });
@@ -83,9 +84,7 @@ describe('Demo Store Seeder API', () => {
 
   it('clears demo data cleanly via POST /api/demo/clear', async () => {
     // Seed first
-    await request(app)
-      .post('/api/demo/seed')
-      .set('Authorization', `Bearer ${token}`);
+    await request(app).post('/api/demo/seed').set('Authorization', `Bearer ${token}`);
 
     const clearRes = await request(app)
       .post('/api/demo/clear')
@@ -100,4 +99,3 @@ describe('Demo Store Seeder API', () => {
     expect(sales.length).toBe(0);
   });
 });
-

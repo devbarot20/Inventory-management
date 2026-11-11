@@ -116,9 +116,7 @@ describe('Stripe Billing & Subscription API', () => {
         },
       };
 
-      const res = await request(app)
-        .post('/api/billing/webhook')
-        .send(webhookPayload);
+      const res = await request(app).post('/api/billing/webhook').send(webhookPayload);
 
       expect(res.status).toBe(200);
       expect(res.body.received).toBe(true);
@@ -145,9 +143,7 @@ describe('Stripe Billing & Subscription API', () => {
         },
       };
 
-      const res = await request(app)
-        .post('/api/billing/webhook')
-        .send(cancelPayload);
+      const res = await request(app).post('/api/billing/webhook').send(cancelPayload);
 
       expect(res.status).toBe(200);
       expect(res.body.received).toBe(true);

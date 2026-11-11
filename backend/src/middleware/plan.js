@@ -40,10 +40,13 @@ function requireFeature(feature, label) {
     const plan = getPlan(req.user.plan);
     if (!plan[feature]) {
       return next(
-        ApiError.forbidden(`${label} is not included in the ${plan.name} plan. Upgrade to use it.`, {
-          code: 'PLAN_FEATURE',
-          feature,
-        }),
+        ApiError.forbidden(
+          `${label} is not included in the ${plan.name} plan. Upgrade to use it.`,
+          {
+            code: 'PLAN_FEATURE',
+            feature,
+          },
+        ),
       );
     }
     return next();

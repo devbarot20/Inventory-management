@@ -18,6 +18,13 @@ const productCreateSchema = z.object({
     .trim()
     .min(1, 'Product name is required')
     .max(200, 'Product name cannot exceed 200 characters'),
+  category: z.string().trim().max(100).optional(),
+  parentGroup: z.string().trim().max(100).optional(),
+  size: z.string().trim().max(30).optional(),
+  color: z.string().trim().max(50).optional(),
+  price: z.number().min(0).optional(),
+  costPrice: z.number().min(0).optional(),
+  initialStock: z.number().int().min(0).optional(),
 });
 
 const productUpdateSchema = z.object({
@@ -37,6 +44,31 @@ const productUpdateSchema = z.object({
       message: 'SKU may contain only letters, numbers, hyphens, and underscores',
     })
     .optional(),
+  category: z.string().trim().max(100).optional(),
+  parentGroup: z.string().trim().max(100).optional(),
+  size: z.string().trim().max(30).optional(),
+  color: z.string().trim().max(50).optional(),
+  price: z.number().min(0).optional(),
+  costPrice: z.number().min(0).optional(),
+});
+
+const variantMatrixSchema = z.object({
+  baseName: z.string().trim().min(1, 'Base product name is required').max(150),
+  baseSkuPrefix: z
+    .string()
+    .trim()
+    .min(1, 'Base SKU prefix is required')
+    .max(30)
+    .transform((val) => val.toUpperCase())
+    .refine((val) => SKU_PATTERN.test(val), {
+      message: 'Base SKU prefix may contain only letters, numbers, hyphens, and underscores',
+    }),
+  category: z.string().trim().max(100).optional(),
+  sizes: z.array(z.string().trim().min(1)).min(1, 'At least one size is required'),
+  colors: z.array(z.string().trim().min(1)).min(1, 'At least one color is required'),
+  price: z.number().min(0).optional(),
+  costPrice: z.number().min(0).optional(),
+  initialStock: z.number().int().min(0).optional(),
 });
 
 const stockSnapshotCreateSchema = z.object({
@@ -57,5 +89,6 @@ const stockSnapshotCreateSchema = z.object({
 module.exports = {
   productCreateSchema,
   productUpdateSchema,
+  variantMatrixSchema,
   stockSnapshotCreateSchema,
 };

@@ -1,7 +1,14 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const { User, SaleEvent, SalesHistory, StockSnapshot, ForecastRun, Forecast } = require('../models');
+const {
+  User,
+  SaleEvent,
+  SalesHistory,
+  StockSnapshot,
+  ForecastRun,
+  Forecast,
+} = require('../models');
 const ApiError = require('../errors/ApiError');
 const { toOwnerId, findOwnedSaleEvent } = require('../utils/ownership');
 const { forecastProductDemand } = require('./forecast');
@@ -254,13 +261,11 @@ async function listStockoutAlerts(userId) {
 
   const alerts = [];
   for (const event of events) {
-    // eslint-disable-next-line no-await-in-loop
     const latestRun = await ForecastRun.findOne({ saleEvent: event._id, status: 'completed' })
       .sort({ createdAt: -1 })
       .lean();
     if (!latestRun) continue;
 
-    // eslint-disable-next-line no-await-in-loop
     const risky = await Forecast.find({
       forecastRun: latestRun._id,
       riskLevel: { $in: ['high', 'medium'] },

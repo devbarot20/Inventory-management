@@ -85,10 +85,7 @@ async function loadDemoData(userId) {
     });
   }
 
-  await Promise.all([
-    SalesHistory.insertMany(historyDocs),
-    StockSnapshot.insertMany(snapshotDocs),
-  ]);
+  await Promise.all([SalesHistory.insertMany(historyDocs), StockSnapshot.insertMany(snapshotDocs)]);
 
   // 5. Create or Refresh Past Flash Sale with Recorded Actuals
   const pastStartDate = new Date(now.getTime() - 14 * 86400000);
@@ -209,4 +206,3 @@ module.exports = {
   DEMO_PRODUCTS,
   DEMO_SKUS,
 };
-

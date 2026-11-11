@@ -27,7 +27,9 @@ const loginSchema = z.object({
 });
 
 const planSchema = z.object({
-  plan: z.enum(PLAN_IDS, { errorMap: () => ({ message: `Plan must be one of: ${PLAN_IDS.join(', ')}` }) }),
+  plan: z.enum(PLAN_IDS, {
+    errorMap: () => ({ message: `Plan must be one of: ${PLAN_IDS.join(', ')}` }),
+  }),
 });
 
 const forgotPasswordSchema = z.object({
@@ -47,7 +49,12 @@ const verifyEmailSchema = z.object({
 });
 
 const updateProfileSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters').optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Name is required')
+    .max(100, 'Name cannot exceed 100 characters')
+    .optional(),
   notificationPreferences: z
     .object({
       emailStockoutAlerts: z.boolean().optional(),

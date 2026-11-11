@@ -1,7 +1,6 @@
 'use strict';
 
 const { SaleEvent, Product, StockSnapshot } = require('../models');
-const ApiError = require('../errors/ApiError');
 const { toOwnerId, findOwnedSaleEvent } = require('../utils/ownership');
 
 function computeSaleStatus(startDate, endDate) {
@@ -22,7 +21,9 @@ function calculateDurationDays(startDate, endDate) {
 }
 
 async function listSaleEvents(userId) {
-  const events = await SaleEvent.find({ createdBy: toOwnerId(userId) }).sort({ startDate: -1 }).lean();
+  const events = await SaleEvent.find({ createdBy: toOwnerId(userId) })
+    .sort({ startDate: -1 })
+    .lean();
 
   return events.map((event) => {
     const durationDays = calculateDurationDays(event.startDate, event.endDate);

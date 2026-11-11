@@ -213,4 +213,61 @@ TEE-001,2026-10-03,-10`;
       expect(snapshots.length).toBe(2);
     });
   });
+
+  describe('Multi-Variant SKU & Matrix Generator (Phase 4)', () => {
+    it('generates an entire Size x Color variant matrix with stock snapshots', async () => {
+      const res = await request(app)
+        .post('/api/products/variants/matrix')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          baseName: 'Essential Hoodie',
+          baseSkuPrefix: 'HD-ESS',
+          category: 'Apparel',
+          sizes: ['S', 'M'],
+          colors: ['Black', 'Olive'],
+          price: 55,
+          initialStock: 40,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.count).toBe(4);
+      expect(res.body.parentGroup).toBe('Essential Hoodie');
+
+      // Verify SKUs in DB
+      const variants = await Product.find({ parentGroup: 'Essential Hoodie' });
+      expect(variants.length).toBe(4);
+
+      const skus = variants.map((v) => v.sku);
+      expect(skus).toContain('HD-ESS-BLA-S');
+      expect(skus).toContain('HD-ESS-BLA-M');
+      expect(skus).toContain('HD-ESS-OLI-S');
+      expect(skus).toContain('HD-ESS-OLI-M');
+
+      // Verify stock snapshots created for each variant
+      const snapshots = await StockSnapshot.find({ sku: { $in: skus } });
+      expect(snapshots.length).toBe(4);
+      expect(snapshots[0].unitsAvailable).toBe(40);
+    });
+
+    it('filters products by category via GET /api/products?category=Drinkware', async () => {
+      await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ sku: 'CUP-CER-01', name: 'Ceramic Cup', category: 'Drinkware' });
+
+      await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ sku: 'TEE-SUM-01', name: 'Summer Tee', category: 'Apparel' });
+
+      const res = await request(app)
+        .get('/api/products?category=Drinkware')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.products.length).toBe(1);
+      expect(res.body.products[0].sku).toBe('CUP-CER-01');
+      expect(res.body.products[0].category).toBe('Drinkware');
+    });
+  });
 });
