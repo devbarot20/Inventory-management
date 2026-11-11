@@ -10,6 +10,7 @@ const importRoutes = require('./import.routes');
 const saleEventRoutes = require('./saleEvent.routes');
 const forecastRoutes = require('./forecast.routes');
 const actualRoutes = require('./actual.routes');
+const demoRoutes = require('./demo.routes');
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/import', importRoutes);
 router.use('/sales', saleEventRoutes);
 router.use('/forecast', forecastRoutes);
 router.use('/actuals', actualRoutes);
+router.use('/demo', demoRoutes);
 
 module.exports = router;

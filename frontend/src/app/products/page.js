@@ -227,12 +227,29 @@ export default function ProductsPage() {
         ) : products.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-zinc-500">No products found.</p>
-            <div className="mt-4 flex justify-center gap-3">
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
               <button
+                type="button"
                 onClick={() => setShowAddModal(true)}
                 className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
               >
                 Create your first product
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    await apiFetch('/demo/seed', { method: 'POST' });
+                    triggerRefresh();
+                  } catch (err) {
+                    setError(err.message);
+                    setLoading(false);
+                  }
+                }}
+                className="rounded-md border border-indigo-300 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:bg-zinc-900 dark:text-indigo-400"
+              >
+                ✨ Load Sample Products
               </button>
               <Link
                 href="/import"

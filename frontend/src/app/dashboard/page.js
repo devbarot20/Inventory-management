@@ -21,6 +21,8 @@ export default function DashboardPage() {
   const [runningForecast, setRunningForecast] = useState(false);
   const [error, setError] = useState(null);
   const [enableSpendOption, setEnableSpendOption] = useState(false);
+  const [seedingDemo, setSeedingDemo] = useState(false);
+  const [demoToast, setDemoToast] = useState(null);
 
   // 1. Load flash sales on mount
   useEffect(() => {
@@ -74,7 +76,54 @@ export default function DashboardPage() {
     };
   }, [selectedSaleId]);
 
-  // 3. Trigger new forecast execution
+  // 3. Refresh sales helper
+  const refreshAll = async (targetSaleId = null) => {
+    setLoadingSales(true);
+    try {
+      const data = await apiFetch('/sales');
+      const list = data.saleEvents || [];
+      setSales(list);
+      const nextId = targetSaleId || (list.length > 0 ? list[0].id : '');
+      setSelectedSaleId(nextId);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingSales(false);
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    setSeedingDemo(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/demo/seed', { method: 'POST' });
+      setDemoToast('✨ Sample demo store loaded (5 products, history & 2 flash campaigns)');
+      await refreshAll(res.upcomingSaleId);
+      setTimeout(() => setDemoToast(null), 5000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSeedingDemo(false);
+    }
+  };
+
+  const handleClearDemo = async () => {
+    if (!window.confirm('Are you sure you want to remove the sample demo store data?')) return;
+    setSeedingDemo(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/demo/clear', { method: 'POST' });
+      setDemoToast(res.message || 'Demo data removed');
+      await refreshAll();
+      setTimeout(() => setDemoToast(null), 4000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSeedingDemo(false);
+    }
+  };
+
+  // 4. Trigger new forecast execution
   const handleRunForecast = async () => {
     if (!selectedSaleId) return;
     setRunningForecast(true);
@@ -193,6 +242,8 @@ export default function DashboardPage() {
     },
   ];
 
+  const hasDemoData = sales.some((s) => s.campaignLabel?.startsWith('Demo-'));
+
   return (
     <AuthGuard moduleName="Executive Dashboard">
       <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
@@ -207,6 +258,26 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {hasDemoData ? (
+            <button
+              type="button"
+              onClick={handleClearDemo}
+              disabled={seedingDemo}
+              className="rounded-xl border border-rose-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/60 dark:bg-zinc-900 dark:text-rose-400"
+              title="Remove sample demo store data"
+            >
+              Clear Demo Data
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSeedDemo}
+              disabled={seedingDemo}
+              className="rounded-xl border border-indigo-300 bg-white px-3.5 py-2.5 text-sm font-bold text-indigo-700 shadow-xs hover:bg-indigo-50 disabled:opacity-50 dark:border-indigo-800 dark:bg-zinc-900 dark:text-indigo-400"
+            >
+              {seedingDemo ? 'Loading…' : '✨ Load Demo Store'}
+            </button>
+          )}
           <Link
             href="/actuals"
             className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
@@ -228,7 +299,20 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <OnboardingChecklist />
+      {demoToast && (
+        <div className="flex items-center justify-between rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3.5 text-sm font-semibold text-indigo-900 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-200">
+          <span>{demoToast}</span>
+          <button
+            type="button"
+            onClick={() => setDemoToast(null)}
+            className="text-xs text-indigo-600 underline hover:text-indigo-800 dark:text-indigo-400"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      <OnboardingChecklist onDemoLoaded={() => refreshAll()} />
 
       {/* Sale Event Selector Bar */}
       <Card>
@@ -240,11 +324,24 @@ export default function DashboardPage() {
             {loadingSales ? (
               <span className="text-base text-slate-500">Loading flash sales…</span>
             ) : sales.length === 0 ? (
-              <div className="text-base text-slate-600">
-                No flash sales planned yet.{' '}
-                <Link href="/sales" className="font-semibold text-indigo-600 underline">
-                  Create a flash sale
-                </Link>
+              <div className="flex flex-col gap-3 py-2 text-base text-slate-600 dark:text-zinc-400">
+                <p>
+                  No flash sales planned yet.{' '}
+                  <Link href="/sales" className="font-semibold text-indigo-600 underline dark:text-indigo-400">
+                    Create a flash sale
+                  </Link>{' '}
+                  or explore immediately with sample data:
+                </p>
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSeedDemo}
+                    disabled={seedingDemo}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {seedingDemo ? 'Loading Demo Store…' : '✨ Load Sample Demo Store Data'}
+                  </button>
+                </div>
               </div>
             ) : (
               <select
