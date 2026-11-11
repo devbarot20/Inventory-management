@@ -41,7 +41,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   │   └── backtest.service.js   # Time-ordered backtest evaluation engine
 │   │   ├── app.js               # Express app factory (used by server and test runner)
 │   │   └── server.js            # HTTP server entry point (Port 5001)
-│   └── tests/                   # 15 Jest test suites (119 tests, in-memory MongoDB)
+│   └── tests/                   # 15 Jest test suites (122 tests, in-memory MongoDB)
 ├── frontend/
 │   └── src/
 │       ├── app/
@@ -80,6 +80,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 - **Password reset**: `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Links are valid for 1 hour and single-use. Set `RESEND_API_KEY` (and `MAIL_FROM`, `APP_URL`) to send real emails; without it the link is printed in the server log.
 - **Email verification**: new accounts must confirm their email (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`) before using data routes, which otherwise return `403` with `details.code` `EMAIL_NOT_VERIFIED`. It is enforced automatically when `RESEND_API_KEY` is set (override with `EMAIL_VERIFICATION=true|false`), so a missing email setup never locks users out. Accounts created before the feature, and anyone who completes a password reset, count as verified.
 - **Existing data from before isolation** can be assigned to one account with `node scripts/claimLegacyData.js user@example.com` (run from `backend/`).
+- **Account settings & profile management**: Dedicated `/settings` portal with profile name updates, email verification status, secure in-app password changes (`POST /api/auth/change-password`), notification preference switches (opt in/out of stockout alert emails), and live plan quota progress bars.
 - **Stockout risk alerts & notifications**: Live bell indicator in the Navbar (`GET /api/forecast/alerts`) lists active stockout hazards across all campaigns with quick navigation. Automated email alerts via Resend/mailer notify when a forecast run reveals high-risk items.
 - **One-click demo store seeder**: `POST /api/demo/seed` instantly loads 5 curated products, 30 days of sales history, current stock levels, an upcoming flash sale with forecasts and risk warnings, and a past flash sale with recorded actuals. Easily cleared with `POST /api/demo/clear`.
 - **Forecasting visualisations**: Interactive toggle between Grouped Bar chart and Shaded Confidence Band (Low to High demand range, expected demand line, available stock).

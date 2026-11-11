@@ -100,3 +100,4 @@ describe('Demo Store Seeder API', () => {
     expect(sales.length).toBe(0);
   });
 });
+

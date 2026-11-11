@@ -91,6 +91,28 @@ async function updatePlan(req, res, next) {
   }
 }
 
+async function updateProfile(req, res, next) {
+  try {
+    const user = await authService.updateProfile(req.user._id, req.body);
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const result = await authService.changePassword(req.user._id, currentPassword, newPassword);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function checkAdmin(req, res) {
   res.status(200).json({
     ok: true,
@@ -107,6 +129,8 @@ module.exports = {
   verifyEmail,
   resendVerification,
   getMe,
+  updateProfile,
+  changePassword,
   updatePlan,
   getUsage,
   checkAdmin,

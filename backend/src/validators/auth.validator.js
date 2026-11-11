@@ -46,8 +46,27 @@ const verifyEmailSchema = z.object({
   token: z.string().min(20, 'Verification token is invalid'),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters').optional(),
+  notificationPreferences: z
+    .object({
+      emailStockoutAlerts: z.boolean().optional(),
+    })
+    .optional(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z
+    .string()
+    .min(6, 'New password must be at least 6 characters long')
+    .max(128, 'New password cannot exceed 128 characters'),
+});
+
 module.exports = {
   verifyEmailSchema,
+  updateProfileSchema,
+  changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   planSchema,

@@ -170,7 +170,7 @@ async function executeForecastRun(saleEventId, userId, customConfig = {}) {
   if (highRiskItems.length > 0) {
     try {
       const user = await User.findById(owner).lean();
-      if (user?.email) {
+      if (user?.email && user.notificationPreferences?.emailStockoutAlerts !== false) {
         await mailer.sendStockoutAlert(user.email, user.name, saleEvent.name, highRiskItems);
       }
     } catch (err) {

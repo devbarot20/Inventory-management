@@ -97,6 +97,44 @@ async function changePlan(user, plan) {
   return user;
 }
 
+async function updateProfile(userId, { name, notificationPreferences }) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  if (name !== undefined) {
+    user.name = name.trim();
+  }
+
+  if (notificationPreferences !== undefined) {
+    user.notificationPreferences = {
+      ...(user.notificationPreferences || {}),
+      ...notificationPreferences,
+    };
+  }
+
+  await user.save();
+  return user;
+}
+
+async function changePassword(userId, currentPassword, newPassword) {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return { message: 'Password changed successfully' };
+}
+
 /** Always resolves the same way so the endpoint cannot be used to discover which emails are registered. */
 async function requestPasswordReset(email) {
   const user = await User.findOne({ email });
@@ -139,6 +177,8 @@ module.exports = {
   requestPasswordReset,
   resetPassword,
   changePlan,
+  updateProfile,
+  changePassword,
   register,
   login,
 };

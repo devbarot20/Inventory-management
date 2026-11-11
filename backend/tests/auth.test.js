@@ -208,4 +208,81 @@ describe('Auth API and Authorization', () => {
       expect(res.body.error.message).toMatch(/Access denied/i);
     });
   });
+
+  describe('User Profile & Password Management (Phase 1)', () => {
+    let token;
+    let userId;
+
+    beforeEach(async () => {
+      const res = await request(app).post('/api/auth/register').send({
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+      });
+      token = res.body.token;
+      userId = res.body.user.id;
+    });
+
+    it('updates user display name and notification preferences via PUT /api/auth/profile', async () => {
+      const updateRes = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          name: 'Johnathan Doe',
+          notificationPreferences: {
+            emailStockoutAlerts: false,
+          },
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.user.name).toBe('Johnathan Doe');
+      expect(updateRes.body.user.notificationPreferences.emailStockoutAlerts).toBe(false);
+
+      // Verify in DB
+      const userInDb = await User.findById(userId);
+      expect(userInDb.name).toBe('Johnathan Doe');
+      expect(userInDb.notificationPreferences.emailStockoutAlerts).toBe(false);
+    });
+
+    it('successfully changes password with valid current password', async () => {
+      const changeRes = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          currentPassword: 'password123',
+          newPassword: 'newsecurepassword99',
+        });
+
+      expect(changeRes.status).toBe(200);
+      expect(changeRes.body.message).toMatch(/Password changed successfully/i);
+
+      // Verify login with new password succeeds
+      const loginRes = await request(app).post('/api/auth/login').send({
+        email: 'john@example.com',
+        password: 'newsecurepassword99',
+      });
+      expect(loginRes.status).toBe(200);
+      expect(loginRes.body.token).toBeDefined();
+
+      // Verify old password no longer works
+      const oldLoginRes = await request(app).post('/api/auth/login').send({
+        email: 'john@example.com',
+        password: 'password123',
+      });
+      expect(oldLoginRes.status).toBe(401);
+    });
+
+    it('rejects password change if current password does not match', async () => {
+      const changeRes = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          currentPassword: 'wrongpassword',
+          newPassword: 'newsecurepassword99',
+        });
+
+      expect(changeRes.status).toBe(400);
+      expect(changeRes.body.error.message).toMatch(/Current password is incorrect/i);
+    });
+  });
 });
