@@ -7,12 +7,14 @@ import AuthGuard from '@/components/AuthGuard';
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
+import { CURRENCIES } from '@/lib/currency';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
 
   // Profile Form State
   const [name, setName] = useState(user?.name || '');
+  const [currency, setCurrency] = useState(user?.currency || 'USD');
   const [emailAlerts, setEmailAlerts] = useState(
     user?.notificationPreferences?.emailStockoutAlerts !== false,
   );
@@ -59,6 +61,7 @@ export default function SettingsPage() {
     if (user) {
       queueMicrotask(() => {
         setName(user.name || '');
+        setCurrency(user.currency || 'USD');
         setEmailAlerts(user.notificationPreferences?.emailStockoutAlerts !== false);
       });
     }
@@ -106,13 +109,14 @@ export default function SettingsPage() {
         method: 'PUT',
         body: JSON.stringify({
           name,
+          currency,
           notificationPreferences: {
             emailStockoutAlerts: emailAlerts,
           },
         }),
       });
       await refreshUser();
-      setProfileMsg('Profile and notification preferences saved.');
+      setProfileMsg('Profile, currency, and notification preferences saved.');
       setTimeout(() => setProfileMsg(null), 4000);
     } catch (err) {
       setProfileError(err.message);
@@ -338,6 +342,26 @@ export default function SettingsPage() {
                     </span>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+                  Preferred Store Currency
+                </label>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">
+                  Controls the currency symbol and formatting applied to inventory values, campaign budgets, and supplier orders.
+                </p>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:border-indigo-500 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-800/40">

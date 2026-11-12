@@ -6,11 +6,14 @@ import Card from '@/components/ui/Card';
 import AuthGuard from '@/components/AuthGuard';
 import UsageMeter from '@/components/UsageMeter';
 import { apiFetch, getToken } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { formatCurrency } from '@/lib/currency';
 
 const PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'OneSize'];
 const CATEGORIES = ['All', 'Apparel', 'Accessories', 'Drinkware', 'Footwear', 'General'];
 
 export default function ProductsPage() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -448,7 +451,7 @@ export default function ProductsPage() {
                         </td>
                         <td className="py-4 font-mono text-sm text-slate-700 dark:text-zinc-300">
                           {p.price !== undefined && p.price !== null
-                            ? `$${Number(p.price).toFixed(2)}`
+                            ? formatCurrency(p.price, user?.currency)
                             : '—'}
                         </td>
                         <td className="py-4">

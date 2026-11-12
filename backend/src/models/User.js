@@ -57,6 +57,11 @@ const userSchema = new mongoose.Schema(
         default: true,
       },
     },
+    currency: {
+      type: String,
+      enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY'],
+      default: 'USD',
+    },
   },
   {
     ...baseSchemaOptions,

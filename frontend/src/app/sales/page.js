@@ -6,6 +6,8 @@ import Card from '@/components/ui/Card';
 import AuthGuard from '@/components/AuthGuard';
 import UsageMeter from '@/components/UsageMeter';
 import { apiFetch, getToken } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { formatCurrency } from '@/lib/currency';
 
 const STATUS_BADGES = {
   upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
@@ -14,6 +16,7 @@ const STATUS_BADGES = {
 };
 
 export default function SalesPage() {
+  const { user } = useAuth();
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -297,11 +300,11 @@ export default function SalesPage() {
                   <div>
                     <span className="text-slate-500">Planned Ad Spend:</span>
                     <div className="mt-0.5 text-base font-bold text-slate-900 dark:text-zinc-100">
-                      ${sale.plannedSpend.toLocaleString()}
+                      {formatCurrency(sale.plannedSpend, user?.currency)}
                     </div>
                     <span className="text-xs text-slate-500">
                       {sale.actualSpend !== null && sale.actualSpend !== undefined
-                        ? `Actual: $${sale.actualSpend.toLocaleString()}`
+                        ? `Actual: ${formatCurrency(sale.actualSpend, user?.currency)}`
                         : 'Actual: Pending'}
                     </span>
                   </div>

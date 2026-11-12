@@ -12,6 +12,7 @@ import OnboardingChecklist from '@/components/OnboardingChecklist';
 import SupplierRestockSheetModal from '@/components/SupplierRestockSheetModal';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch, getToken } from '@/lib/api';
+import { formatCurrency } from '@/lib/currency';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -355,8 +356,8 @@ export default function DashboardPage() {
               >
                 {sales.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.startDate ? s.startDate.slice(0, 10) : ''} • {s.discountPct}% OFF •
-                    ${s.plannedSpend.toLocaleString()} spend)
+                    {s.name} ({s.startDate ? s.startDate.slice(0, 10) : ''} • {s.discountPct}% OFF •{' '}
+                    {formatCurrency(s.plannedSpend, user?.currency)} spend)
                   </option>
                 ))}
               </select>
@@ -403,7 +404,7 @@ export default function DashboardPage() {
             <div>
               <span className="text-slate-500 dark:text-zinc-400">Planned TikTok Spend</span>
               <div className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
-                ${selectedSale.plannedSpend.toLocaleString()}
+                {formatCurrency(selectedSale.plannedSpend, user?.currency)}
               </div>
             </div>
             <div>

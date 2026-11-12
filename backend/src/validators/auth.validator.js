@@ -55,6 +55,7 @@ const updateProfileSchema = z.object({
     .min(1, 'Name is required')
     .max(100, 'Name cannot exceed 100 characters')
     .optional(),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY']).optional(),
   notificationPreferences: z
     .object({
       emailStockoutAlerts: z.boolean().optional(),

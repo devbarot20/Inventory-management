@@ -244,6 +244,28 @@ describe('Auth API and Authorization', () => {
       expect(userInDb.notificationPreferences.emailStockoutAlerts).toBe(false);
     });
 
+    it('updates preferred currency via PUT /api/auth/profile', async () => {
+      const updateRes = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currency: 'EUR' });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.user.currency).toBe('EUR');
+
+      const userInDb = await User.findById(userId);
+      expect(userInDb.currency).toBe('EUR');
+    });
+
+    it('rejects invalid currency code', async () => {
+      const badRes = await request(app)
+        .put('/api/auth/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currency: 'XYZ' });
+
+      expect(badRes.status).toBe(400);
+    });
+
     it('successfully changes password with valid current password', async () => {
       const changeRes = await request(app)
         .post('/api/auth/change-password')

@@ -8,8 +8,11 @@ import ActualComparisonChart from '@/components/ui/ActualComparisonChart';
 import AuthGuard from '@/components/AuthGuard';
 import { downloadCsv } from '@/lib/exportCsv';
 import { apiFetch, getToken } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { formatCurrency } from '@/lib/currency';
 
 export default function ActualsComparisonPage() {
+  const { user } = useAuth();
   const [sales, setSales] = useState([]);
   const [selectedSaleId, setSelectedSaleId] = useState('');
   const [comparisonData, setComparisonData] = useState(null);
@@ -474,10 +477,10 @@ export default function ActualsComparisonPage() {
               >
                 {sales.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.startDate ? s.startDate.slice(0, 10) : ''} • {s.discountPct}% OFF •
-                    Actual Spend: $
+                    {s.name} ({s.startDate ? s.startDate.slice(0, 10) : ''} • {s.discountPct}% OFF •{' '}
+                    Actual Spend:{' '}
                     {s.actualSpend !== null && s.actualSpend !== undefined
-                      ? s.actualSpend.toLocaleString()
+                      ? formatCurrency(s.actualSpend, user?.currency)
                       : 'Not recorded'}
                     )
                   </option>
@@ -491,14 +494,14 @@ export default function ActualsComparisonPage() {
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/60">
                 <span className="text-slate-500 dark:text-zinc-400">Planned Ad Spend:</span>
                 <span className="ml-2 font-mono text-base font-bold text-slate-900 dark:text-white">
-                  ${selectedSale.plannedSpend.toLocaleString()}
+                  {formatCurrency(selectedSale.plannedSpend, user?.currency)}
                 </span>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/60">
                 <span className="text-slate-500 dark:text-zinc-400">Actual Ad Spend:</span>
                 <span className="ml-2 font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
                   {selectedSale.actualSpend !== null && selectedSale.actualSpend !== undefined
-                    ? `$${selectedSale.actualSpend.toLocaleString()}`
+                    ? formatCurrency(selectedSale.actualSpend, user?.currency)
                     : 'Not entered'}
                 </span>
               </div>

@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { downloadCsv } from '@/lib/exportCsv';
+import { formatCurrency, getCurrencySymbol } from '@/lib/currency';
 
 export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forecasts, user }) {
   const poId = useId().replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
@@ -59,6 +60,9 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
   const totalCost = restockItems.reduce((sum, item) => sum + (item.lineCost || 0), 0);
   const hasCosts = restockItems.some((i) => i.lineCost != null);
 
+  const userCurrency = user?.currency || 'USD';
+  const currSymbol = getCurrencySymbol(userCurrency);
+
   const poNumber = `PO-${sale.startDate ? sale.startDate.slice(0, 10).replace(/-/g, '') : today}-${poId || '001'}`;
 
   const handlePrint = () => {
@@ -84,11 +88,11 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
       { label: 'Safety Buffer %', value: () => `${bufferPct}%` },
       { label: 'Reorder Quantity', value: (i) => i.needed },
       {
-        label: 'Unit Wholesale Cost ($)',
+        label: `Unit Wholesale Cost (${userCurrency})`,
         value: (i) => (i.unitCost != null ? Number(i.unitCost).toFixed(2) : ''),
       },
       {
-        label: 'Line Total ($)',
+        label: `Line Total (${userCurrency})`,
         value: (i) => (i.lineCost != null ? Number(i.lineCost).toFixed(2) : ''),
       },
     ];
@@ -250,8 +254,8 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                   <th className="py-2.5">Peak Demand</th>
                   <th className="py-2.5">Risk Level</th>
                   <th className="py-2.5 text-right">Reorder Qty</th>
-                  <th className="py-2.5 text-right">Unit Cost</th>
-                  <th className="py-2.5 text-right">Line Total</th>
+                  <th className="py-2.5 text-right">Unit Cost ({currSymbol})</th>
+                  <th className="py-2.5 text-right">Line Total ({currSymbol})</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -292,10 +296,10 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                       />
                     </td>
                     <td className="py-3 text-right font-mono text-slate-600 dark:text-zinc-300">
-                      {item.unitCost != null ? `$${item.unitCost.toFixed(2)}` : '—'}
+                      {item.unitCost != null ? formatCurrency(item.unitCost, userCurrency) : '—'}
                     </td>
                     <td className="py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
-                      {item.lineCost != null ? `$${item.lineCost.toFixed(2)}` : '—'}
+                      {item.lineCost != null ? formatCurrency(item.lineCost, userCurrency) : '—'}
                     </td>
                   </tr>
                 ))}
@@ -310,7 +314,7 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                   </td>
                   <td className="py-3 text-right text-xs uppercase">Est. Total:</td>
                   <td className="py-3 text-right font-mono text-base font-black text-slate-900 dark:text-white">
-                    {hasCosts ? `$${totalCost.toFixed(2)}` : '—'}
+                    {hasCosts ? formatCurrency(totalCost, userCurrency) : '—'}
                   </td>
                 </tr>
               </tfoot>

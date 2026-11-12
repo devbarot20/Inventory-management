@@ -103,7 +103,7 @@ async function changePlan(user, plan) {
   return user;
 }
 
-async function updateProfile(userId, { name, notificationPreferences }) {
+async function updateProfile(userId, { name, notificationPreferences, currency }) {
   const user = await User.findById(userId);
   if (!user) {
     throw ApiError.notFound('User not found');
@@ -111,6 +111,10 @@ async function updateProfile(userId, { name, notificationPreferences }) {
 
   if (name !== undefined) {
     user.name = name.trim();
+  }
+
+  if (currency !== undefined) {
+    user.currency = currency;
   }
 
   if (notificationPreferences !== undefined) {
