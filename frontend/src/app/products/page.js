@@ -216,7 +216,14 @@ export default function ProductsPage() {
     try {
       await apiFetch(`/products/${editing.id}`, {
         method: 'PUT',
-        body: JSON.stringify({ name: editing.name.trim() }),
+        body: JSON.stringify({
+          name: editing.name.trim(),
+          category: editing.category || 'General',
+          price: editing.price !== '' ? Number(editing.price) : undefined,
+          costPrice: editing.costPrice !== '' ? Number(editing.costPrice) : undefined,
+          size: editing.size ? editing.size.trim() : undefined,
+          color: editing.color ? editing.color.trim() : undefined,
+        }),
       });
       setEditing(null);
       triggerRefresh();
@@ -487,7 +494,22 @@ export default function ProductsPage() {
                               type="button"
                               onClick={() => {
                                 setFormError(null);
-                                setEditing({ id: p.id, sku: p.sku, name: p.name });
+                                setEditing({
+                                  id: p.id,
+                                  sku: p.sku,
+                                  name: p.name,
+                                  category: p.category || 'General',
+                                  price:
+                                    p.price !== undefined && p.price !== null
+                                      ? String(p.price)
+                                      : '',
+                                  costPrice:
+                                    p.costPrice !== undefined && p.costPrice !== null
+                                      ? String(p.costPrice)
+                                      : '',
+                                  size: p.size || '',
+                                  color: p.color || '',
+                                });
                               }}
                               className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                             >
@@ -904,25 +926,110 @@ export default function ProductsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <form
               onSubmit={handleEditProduct}
-              className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+              className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <h3 className="text-lg font-semibold">Edit product</h3>
-              <p className="mt-1 font-mono text-sm text-slate-500">{editing.sku}</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Product</h3>
+              <p className="mt-1 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                {editing.sku}
+              </p>
               {formError && (
                 <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">
                   {formError}
                 </p>
               )}
-              <label className="mt-4 block text-sm font-semibold text-slate-700 dark:text-zinc-300">
-                Product name
-                <input
-                  required
-                  maxLength={200}
-                  value={editing.name}
-                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-                />
-              </label>
+
+              <div className="mt-4 space-y-3 text-sm">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                    Product name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    maxLength={200}
+                    value={editing.name}
+                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Category
+                    </label>
+                    <select
+                      value={editing.category}
+                      onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    >
+                      <option value="Apparel">Apparel</option>
+                      <option value="Accessories">Accessories</option>
+                      <option value="Drinkware">Drinkware</option>
+                      <option value="Footwear">Footwear</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Retail Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="e.g. 29.99"
+                      value={editing.price}
+                      onChange={(e) => setEditing({ ...editing, price: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                    Unit Cost ($, wholesale — used for PO totals)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="e.g. 12.50"
+                    value={editing.costPrice}
+                    onChange={(e) => setEditing({ ...editing, costPrice: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Variant Size
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. M"
+                      value={editing.size}
+                      onChange={(e) => setEditing({ ...editing, size: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Variant Color
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Black"
+                      value={editing.color}
+                      onChange={(e) => setEditing({ ...editing, color: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-5 flex justify-end gap-2">
                 <button
                   type="button"

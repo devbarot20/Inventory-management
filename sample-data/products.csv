@@ -1,10 +1,9 @@
-sku,name
-TSHIRT-BLK-S,Classic Black T-Shirt (Small)
-TSHIRT-BLK-M,Classic Black T-Shirt (Medium)
-TSHIRT-BLK-L,Classic Black T-Shirt (Large)
-HOODIE-GRY-M,Premium Fleece Hoodie (Medium)
-HOODIE-GRY-L,Premium Fleece Hoodie (Large)
-MUG-WHT-01,Ceramic Coffee Mug (12oz)
-CAP-NVY-01,Embroidered Vintage Cap (Navy)
-TOTE-NAT-01,Organic Cotton Canvas Tote Bag
-
+sku,name,category,size,color,price,costPrice
+TSHIRT-BLK-S,Classic Black T-Shirt (Small),Apparel,S,Black,28.00,11.50
+TSHIRT-BLK-M,Classic Black T-Shirt (Medium),Apparel,M,Black,28.00,11.50
+TSHIRT-BLK-L,Classic Black T-Shirt (Large),Apparel,L,Black,28.00,11.50
+HOODIE-GRY-M,Premium Fleece Hoodie (Medium),Apparel,M,Grey,58.00,24.00
+HOODIE-GRY-L,Premium Fleece Hoodie (Large),Apparel,L,Grey,58.00,24.00
+MUG-WHT-01,Ceramic Coffee Mug (12oz),Drinkware,OneSize,White,16.00,4.80
+CAP-NVY-01,Embroidered Vintage Cap (Navy),Accessories,OneSize,Navy,24.00,8.50
+TOTE-NAT-01,Organic Cotton Canvas Tote Bag,Accessories,OneSize,Natural,22.00,7.20

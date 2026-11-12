@@ -14,11 +14,51 @@ const { executeForecastRun } = require('./forecastRun.service');
 const { recordActuals } = require('./comparison.service');
 
 const DEMO_PRODUCTS = [
-  { sku: 'TSHIRT-BLK-M', name: 'Classic Black T-Shirt (Medium)' },
-  { sku: 'HOODIE-GRY-L', name: 'Premium Fleece Hoodie (Large)' },
-  { sku: 'CAP-NVY-01', name: 'Embroidered Vintage Cap (Navy)' },
-  { sku: 'MUG-WHT-01', name: 'Ceramic Coffee Mug (12oz)' },
-  { sku: 'TOTE-NAT-01', name: 'Organic Cotton Canvas Tote Bag' },
+  {
+    sku: 'TSHIRT-BLK-M',
+    name: 'Classic Black T-Shirt (Medium)',
+    category: 'Apparel',
+    size: 'M',
+    color: 'Black',
+    price: 28,
+    costPrice: 11.5,
+  },
+  {
+    sku: 'HOODIE-GRY-L',
+    name: 'Premium Fleece Hoodie (Large)',
+    category: 'Apparel',
+    size: 'L',
+    color: 'Grey',
+    price: 58,
+    costPrice: 24.0,
+  },
+  {
+    sku: 'CAP-NVY-01',
+    name: 'Embroidered Vintage Cap (Navy)',
+    category: 'Accessories',
+    size: 'OneSize',
+    color: 'Navy',
+    price: 24,
+    costPrice: 8.5,
+  },
+  {
+    sku: 'MUG-WHT-01',
+    name: 'Ceramic Coffee Mug (12oz)',
+    category: 'Drinkware',
+    size: 'OneSize',
+    color: 'White',
+    price: 16,
+    costPrice: 4.8,
+  },
+  {
+    sku: 'TOTE-NAT-01',
+    name: 'Organic Cotton Canvas Tote Bag',
+    category: 'Accessories',
+    size: 'OneSize',
+    color: 'Natural',
+    price: 22,
+    costPrice: 7.2,
+  },
 ];
 
 const DEMO_SKUS = DEMO_PRODUCTS.map((p) => p.sku);
@@ -42,7 +82,15 @@ async function loadDemoData(userId) {
   for (const prod of DEMO_PRODUCTS) {
     await Product.findOneAndUpdate(
       { createdBy: owner, sku: prod.sku },
-      { name: prod.name, createdBy: owner },
+      {
+        name: prod.name,
+        category: prod.category,
+        size: prod.size,
+        color: prod.color,
+        price: prod.price,
+        costPrice: prod.costPrice,
+        createdBy: owner,
+      },
       { upsert: true, returnDocument: 'after', runValidators: true },
     );
   }

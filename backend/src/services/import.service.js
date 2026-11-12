@@ -11,6 +11,11 @@ const VALID_IMPORT_TYPES = Object.freeze(['products', 'sales_history', 'stock_sn
 function validateProductRow(row) {
   const sku = (row.sku || row.SKU || '').trim().toUpperCase();
   const name = (row.name || row.Name || row.product_name || row.productName || '').trim();
+  const category = (row.category || row.Category || '').trim();
+  const rawPrice = (row.price || row.Price || '').trim();
+  const rawCostPrice = (row.costPrice || row.cost_price || row.CostPrice || row.cost || '').trim();
+  const size = (row.size || row.Size || '').trim();
+  const color = (row.color || row.Color || '').trim();
 
   if (!sku) {
     return { valid: false, reason: 'Missing SKU' };
@@ -25,11 +30,32 @@ function validateProductRow(row) {
     return { valid: false, reason: 'Missing product name' };
   }
 
+  let price;
+  if (rawPrice !== '') {
+    price = Number(rawPrice);
+    if (Number.isNaN(price) || price < 0) {
+      return { valid: false, reason: `Invalid price: "${rawPrice}" (cannot be negative)` };
+    }
+  }
+
+  let costPrice;
+  if (rawCostPrice !== '') {
+    costPrice = Number(rawCostPrice);
+    if (Number.isNaN(costPrice) || costPrice < 0) {
+      return { valid: false, reason: `Invalid costPrice: "${rawCostPrice}" (cannot be negative)` };
+    }
+  }
+
   return {
     valid: true,
     data: {
       sku,
       name,
+      category: category || undefined,
+      price,
+      costPrice,
+      size: size || undefined,
+      color: color || undefined,
     },
   };
 }
@@ -199,16 +225,25 @@ async function processCsvImport(csvContent, type, userId) {
 
   if (validRows.length > 0) {
     if (type === 'products') {
-      const operations = validRows.map((p) => ({
-        updateOne: {
-          filter: { sku: p.sku, createdBy: owner },
-          update: {
-            $set: { name: p.name },
-            $setOnInsert: { sku: p.sku },
+      const operations = validRows.map((p) => {
+        const updateDoc = { name: p.name };
+        if (p.category !== undefined) updateDoc.category = p.category;
+        if (p.price !== undefined) updateDoc.price = p.price;
+        if (p.costPrice !== undefined) updateDoc.costPrice = p.costPrice;
+        if (p.size !== undefined) updateDoc.size = p.size;
+        if (p.color !== undefined) updateDoc.color = p.color;
+
+        return {
+          updateOne: {
+            filter: { sku: p.sku, createdBy: owner },
+            update: {
+              $set: updateDoc,
+              $setOnInsert: { sku: p.sku },
+            },
+            upsert: true,
           },
-          upsert: true,
-        },
-      }));
+        };
+      });
       const writeResult = await Product.bulkWrite(operations, { ordered: false });
       insertedOrUpdatedCount = (writeResult.upsertedCount || 0) + (writeResult.modifiedCount || 0);
     } else if (type === 'sales_history') {
