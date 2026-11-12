@@ -83,6 +83,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 - **Forecasting visualisations**: Interactive toggle between Grouped Bar chart and Shaded Confidence Band (Low to High demand range, expected demand line, available stock).
 - **Actuals lifecycle management**: Clear all recorded actuals or delete specific SKU entries (`DELETE /api/actuals/:saleEventId` and `DELETE /api/actuals/:saleEventId/:sku`) with automatic metric re-computation.
 - **Multi-variant retail catalogue & SKU matrix generator**: Supports category categorization (`Apparel`, `Accessories`, `Drinkware`, `Footwear`, `General`), multi-attribute variants (`size`, `color`, `parentGroup`, `price`, `costPrice`), and a single-click matrix batch generator (`POST /api/products/variants/matrix`) producing comprehensive combinations of sizes and colors with default stock snapshots.
+- **Auto-drafted purchase orders**: The PO sheet auto-fills reorder quantities from forecast deficits (peak demand minus stock) plus a configurable safety buffer, with at-risk-only filtering, editable quantities, and estimated cost totals from product `costPrice`.
 - **Supplier PO & Executive Reports**: Printable Purchase Order Restock Advice sheet (`window.print` with print-optimized CSS) detailing recommended reorder volumes and authorization lines, plus instant CSV exports for both the SKU Restock Plan and historical Forecast vs Actuals Accuracy Audits.
 - **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
 

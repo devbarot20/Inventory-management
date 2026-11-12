@@ -1,28 +1,62 @@
-'use strict';
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { apiFetch } from '@/lib/api';
 
 export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forecasts, user }) {
   const poId = useId().replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
   const today = new Date().toISOString().slice(0, 10);
 
+  const [onlyAtRisk, setOnlyAtRisk] = useState(true);
+  const [bufferPct, setBufferPct] = useState(10);
+  const [overrides, setOverrides] = useState({});
+  const [costs, setCosts] = useState({});
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    let ignore = false;
+    apiFetch('/products')
+      .then((data) => {
+        if (ignore) return;
+        const map = {};
+        (data.products || []).forEach((p) => {
+          if (p.costPrice != null) map[p.sku] = Number(p.costPrice);
+        });
+        setCosts(map);
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen]);
+
   if (!isOpen || !sale) return null;
 
+  const buffer = Math.max(0, Number(bufferPct) || 0) / 100;
   const restockItems = (forecasts || [])
     .filter((f) => f.status === 'ok')
     .map((f) => {
       const stock = f.unitsAvailable ?? 0;
-      const needed = Math.max(0, Math.ceil(f.high - stock));
+      const deficit = Math.max(0, Math.ceil(f.high - stock));
+      const suggested = deficit > 0 ? Math.ceil(deficit * (1 + buffer)) : 0;
+      const needed =
+        overrides[f.sku] !== undefined ? Math.max(0, Number(overrides[f.sku]) || 0) : suggested;
+      const unitCost = costs[f.sku];
       return {
         ...f,
         stock,
+        suggested,
         needed,
+        unitCost,
+        lineCost: unitCost != null ? unitCost * needed : null,
       };
     })
+    .filter((i) => !onlyAtRisk || i.riskLevel === 'high' || i.riskLevel === 'medium' || i.needed > 0)
     .sort((a, b) => (b.riskLevel === 'high' ? 1 : 0) - (a.riskLevel === 'high' ? 1 : 0));
 
   const totalRestockUnits = restockItems.reduce((sum, item) => sum + item.needed, 0);
+  const totalCost = restockItems.reduce((sum, item) => sum + (item.lineCost || 0), 0);
+  const hasCosts = restockItems.some((i) => i.lineCost != null);
 
   const handlePrint = () => {
     window.print();
@@ -61,6 +95,37 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
               Close
             </button>
           </div>
+        </div>
+
+        {/* Auto-Draft Controls (screen only) */}
+        <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 bg-indigo-50/50 px-6 py-3 text-xs print:hidden dark:border-zinc-800 dark:bg-indigo-950/20">
+          <span className="font-bold text-indigo-700 dark:text-indigo-300">⚡ Auto-Drafted from forecast</span>
+          <label className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+            Safety buffer %
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={bufferPct}
+              onChange={(e) => {
+                setBufferPct(e.target.value);
+                setOverrides({});
+              }}
+              className="w-16 rounded border border-slate-300 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800"
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+            <input type="checkbox" checked={onlyAtRisk} onChange={(e) => setOnlyAtRisk(e.target.checked)} />
+            At-risk SKUs only
+          </label>
+          <button
+            type="button"
+            onClick={() => setOverrides({})}
+            className="rounded border border-slate-300 px-2 py-1 font-semibold hover:bg-white dark:border-zinc-700"
+          >
+            Reset quantities
+          </button>
+          <span className="text-slate-500">Edit any quantity in the table to adjust.</span>
         </div>
 
         {/* Formal Printable Document Content */}
@@ -140,7 +205,9 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                   <th className="py-2.5">Exp Demand</th>
                   <th className="py-2.5">Peak Demand</th>
                   <th className="py-2.5">Risk Level</th>
-                  <th className="py-2.5 text-right">Reorder Advice</th>
+                  <th className="py-2.5 text-right">Reorder Qty</th>
+                  <th className="py-2.5 text-right">Unit Cost</th>
+                  <th className="py-2.5 text-right">Line Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -172,13 +239,19 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                       </span>
                     </td>
                     <td className="py-3 text-right font-mono font-bold">
-                      {item.needed > 0 ? (
-                        <span className="text-indigo-600 dark:text-indigo-400">
-                          +{item.needed.toLocaleString()} units
-                        </span>
-                      ) : (
-                        <span className="text-emerald-600">Stock Adequate (0)</span>
-                      )}
+                      <input
+                        type="number"
+                        min="0"
+                        value={item.needed}
+                        onChange={(e) => setOverrides({ ...overrides, [item.sku]: e.target.value })}
+                        className="w-20 rounded border border-slate-300 px-1.5 py-0.5 text-right text-indigo-600 print:border-0 dark:border-zinc-700 dark:bg-zinc-800 dark:text-indigo-400"
+                      />
+                    </td>
+                    <td className="py-3 text-right font-mono text-slate-600 dark:text-zinc-300">
+                      {item.unitCost != null ? `$${item.unitCost.toFixed(2)}` : '—'}
+                    </td>
+                    <td className="py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                      {item.lineCost != null ? `$${item.lineCost.toFixed(2)}` : '—'}
                     </td>
                   </tr>
                 ))}
@@ -189,7 +262,11 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                     Total Reorder Volume Required:
                   </td>
                   <td className="py-3 text-right font-mono text-base font-black text-indigo-600 dark:text-indigo-400">
-                    +{totalRestockUnits.toLocaleString()} units
+                    +{totalRestockUnits.toLocaleString()}
+                  </td>
+                  <td className="py-3 text-right text-xs uppercase">Est. Total:</td>
+                  <td className="py-3 text-right font-mono text-base font-black text-slate-900 dark:text-white">
+                    {hasCosts ? `$${totalCost.toFixed(2)}` : '—'}
                   </td>
                 </tr>
               </tfoot>
