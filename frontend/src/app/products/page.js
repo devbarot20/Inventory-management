@@ -35,6 +35,7 @@ export default function ProductsPage() {
     size: '',
     color: '',
     price: '',
+    costPrice: '',
     initialStock: '',
   });
   const [matrixForm, setMatrixForm] = useState({
@@ -44,6 +45,7 @@ export default function ProductsPage() {
     sizes: ['S', 'M', 'L', 'XL'],
     colors: 'Black, White, Navy',
     price: '28',
+    costPrice: '',
     initialStock: '40',
   });
   const [formError, setFormError] = useState(null);
@@ -101,6 +103,7 @@ export default function ProductsPage() {
           size: productForm.size ? productForm.size.trim() : undefined,
           color: productForm.color ? productForm.color.trim() : undefined,
           price: productForm.price ? Number(productForm.price) : undefined,
+          costPrice: productForm.costPrice ? Number(productForm.costPrice) : undefined,
         }),
       });
 
@@ -124,6 +127,7 @@ export default function ProductsPage() {
         size: '',
         color: '',
         price: '',
+        costPrice: '',
         initialStock: '',
       });
       triggerRefresh();
@@ -159,6 +163,7 @@ export default function ProductsPage() {
           sizes: matrixForm.sizes,
           colors: colorList,
           price: matrixForm.price ? Number(matrixForm.price) : undefined,
+          costPrice: matrixForm.costPrice ? Number(matrixForm.costPrice) : undefined,
           initialStock:
             matrixForm.initialStock !== '' ? Number(matrixForm.initialStock) : undefined,
         }),
@@ -594,6 +599,21 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Unit Cost ($, wholesale — used for PO totals)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="e.g. 12.50"
+                    value={productForm.costPrice}
+                    onChange={(e) => setProductForm({ ...productForm, costPrice: e.target.value })}
+                    className="mt-1 w-full rounded border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
@@ -793,7 +813,7 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
                       Retail Price ($)
@@ -805,6 +825,20 @@ export default function ProductsPage() {
                       placeholder="28.00"
                       value={matrixForm.price}
                       onChange={(e) => setMatrixForm({ ...matrixForm, price: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
+                      Unit Cost ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="12.00"
+                      value={matrixForm.costPrice}
+                      onChange={(e) => setMatrixForm({ ...matrixForm, costPrice: e.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
                     />
                   </div>
