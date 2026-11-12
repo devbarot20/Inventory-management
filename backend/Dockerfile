@@ -16,3 +16,4 @@ COPY scripts/ ./scripts/
 EXPOSE 5001
 
 CMD ["node", "src/server.js"]
+
