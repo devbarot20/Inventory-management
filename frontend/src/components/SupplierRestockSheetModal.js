@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { downloadCsv } from '@/lib/exportCsv';
 
 export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forecasts, user }) {
   const poId = useId().replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
@@ -58,8 +59,41 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
   const totalCost = restockItems.reduce((sum, item) => sum + (item.lineCost || 0), 0);
   const hasCosts = restockItems.some((i) => i.lineCost != null);
 
+  const poNumber = `PO-${sale.startDate ? sale.startDate.slice(0, 10).replace(/-/g, '') : today}-${poId || '001'}`;
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportCsv = () => {
+    const safeName = (sale.name || 'campaign')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    const filename = `${poNumber.toLowerCase()}-${safeName}-supplier-order.csv`;
+
+    const columns = [
+      { label: 'PO Number', value: () => poNumber },
+      { label: 'Sale Event', value: () => sale.name || '' },
+      { label: 'Order Date', value: () => today },
+      { label: 'SKU Code', value: (i) => i.sku },
+      { label: 'Current Stock', value: (i) => i.stock },
+      { label: 'Expected Demand', value: (i) => i.expected },
+      { label: 'Peak Demand', value: (i) => i.high },
+      { label: 'Stockout Risk', value: (i) => i.riskLevel },
+      { label: 'Safety Buffer %', value: () => `${bufferPct}%` },
+      { label: 'Reorder Quantity', value: (i) => i.needed },
+      {
+        label: 'Unit Wholesale Cost ($)',
+        value: (i) => (i.unitCost != null ? Number(i.unitCost).toFixed(2) : ''),
+      },
+      {
+        label: 'Line Total ($)',
+        value: (i) => (i.lineCost != null ? Number(i.lineCost).toFixed(2) : ''),
+      },
+    ];
+
+    downloadCsv(filename, restockItems, columns);
   };
 
   return (
@@ -77,6 +111,16 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            >
+              <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export PO (CSV)
+            </button>
             <button
               type="button"
               onClick={handlePrint}
@@ -155,7 +199,7 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                 Purchase Order / Advice
               </span>
               <div className="font-mono text-2xl font-black text-slate-900 dark:text-white">
-                PO-{sale.startDate ? sale.startDate.slice(0, 10).replace(/-/g, '') : today}-{poId || '001'}
+                {poNumber}
               </div>
               <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
                 <strong>Generated:</strong> {today}
