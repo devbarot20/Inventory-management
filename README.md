@@ -167,6 +167,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Alternative: Run with Docker Compose (Single Command)
+
+If you have Docker installed, you can launch MongoDB, the backend API, and the Next.js frontend together with:
+
+```bash
+docker compose up --build
+```
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5001/api/health](http://localhost:5001/api/health)
+- **MongoDB**: `localhost:27017`
+
 ---
 
 ## Environment Variables Reference
@@ -406,3 +418,4 @@ To maintain a lean, robust, and transparent MVP, the following are deliberately 
 17. [x] **Section 17**: Direct Supplier Purchase Order CSV Export (`SupplierRestockSheetModal.js`)
 18. [x] **Section 18**: Multi-Currency Preferences & Regional Formats (`USD`, `EUR`, `GBP`, `INR`, `CAD`, `AUD`, `JPY`)
 19. [x] **Section 19**: Playwright Automated E2E Smoke Test Suite (`npm run test:e2e`)
+20. [x] **Section 20**: Production Containerization (`Dockerfile`s & multi-tier `docker-compose.yml`)
