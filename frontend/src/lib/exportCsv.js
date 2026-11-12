@@ -20,3 +20,17 @@ export function downloadCsv(filename, rows, columns) {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+/** Downloads raw CSV text string as a .csv file in the browser. */
+export function downloadRawCsv(filename, rawCsvText) {
+  const blob = new Blob([rawCsvText], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+

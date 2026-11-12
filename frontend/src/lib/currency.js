@@ -23,3 +23,4 @@ export function formatCurrency(amount, currencyCode = 'USD') {
       : num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return `${curr.symbol}${formatted}`;
 }
+

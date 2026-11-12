@@ -5,15 +5,16 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import AuthGuard from '@/components/AuthGuard';
 import { apiFetch, getToken } from '@/lib/api';
+import { downloadRawCsv } from '@/lib/exportCsv';
 
 const SAMPLES = {
-  products: `sku,name
-TEE-BLK-S,Black Crewneck T-Shirt Small
-TEE-BLK-M,Black Crewneck T-Shirt Medium
-TEE-WHT-S,White Crewneck T-Shirt Small
-TEE-WHT-M,White Crewneck T-Shirt Medium
-CAP-NY-NVY,New York Embroidered Navy Cap
-HOODIE-GRY-L,Oversized Fleece Hoodie Grey`,
+  products: `sku,name,category,price,costPrice,size,color
+TEE-BLK-S,Black Crewneck T-Shirt Small,Apparel,25.00,8.50,S,Black
+TEE-BLK-M,Black Crewneck T-Shirt Medium,Apparel,25.00,8.50,M,Black
+TEE-WHT-S,White Crewneck T-Shirt Small,Apparel,25.00,8.50,S,White
+CAP-NY-NVY,New York Embroidered Navy Cap,Accessories,30.00,11.00,One Size,Navy
+MUG-WHT-01,Ceramic Coffee Mug White,Drinkware,15.00,4.25,Standard,White
+HOODIE-GRY-L,Oversized Fleece Hoodie Grey,Apparel,65.00,22.00,L,Grey`,
 
   sales_history: `sku,date,unitsSold,price,discountPct
 TEE-BLK-S,2026-10-01,15,25.00,0
@@ -36,26 +37,42 @@ HOODIE-GRY-L,2026-11-01,250`,
 const TYPE_CONFIG = {
   products: {
     title: 'Products',
-    columns: ['sku', 'name'],
-    description: 'Bulk register products with SKU code and display name.',
+    filename: 'products_template.csv',
+    columns: [
+      'sku (required)',
+      'name (required)',
+      'category (optional: Apparel, Accessories, Drinkware, Footwear, General)',
+      'price (optional, retail unit price)',
+      'costPrice (optional, supplier wholesale cost)',
+      'size (optional)',
+      'color (optional)',
+    ],
+    description: 'Bulk register products with SKU code, display name, category, pricing, and variant attributes.',
   },
   sales_history: {
     title: 'Sales History',
+    filename: 'sales_history_template.csv',
     columns: [
-      'sku',
-      'date (YYYY-MM-DD)',
-      'unitsSold',
+      'sku (required)',
+      'date (required, YYYY-MM-DD)',
+      'unitsSold (required, non-negative integer)',
       'price (optional)',
-      'discountPct (optional)',
+      'discountPct (optional, 0-100)',
     ],
     description: 'Historical daily sales units used to calculate baseline demand.',
   },
   stock_snapshots: {
     title: 'Stock Snapshots',
-    columns: ['sku', 'date (YYYY-MM-DD)', 'unitsAvailable (>= 0)'],
+    filename: 'stock_snapshots_template.csv',
+    columns: [
+      'sku (required)',
+      'date (required, YYYY-MM-DD)',
+      'unitsAvailable (required, 0 = stockout day)',
+    ],
     description: 'Daily stock levels. 0 units indicates a stockout day.',
   },
 };
+
 
 export default function ImportPage() {
   const [activeType, setActiveType] = useState('products');
@@ -169,9 +186,33 @@ export default function ImportPage() {
         {/* Left Column: Form & Editor */}
         <div className="space-y-6 lg:col-span-2">
           <Card title={`Import ${TYPE_CONFIG[activeType].title}`}>
-            <p className="mb-5 text-sm text-slate-600 dark:text-zinc-400">
-              {TYPE_CONFIG[activeType].description}
-            </p>
+            <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-indigo-900/40 dark:bg-indigo-950/20">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                    Ready-to-use CSV template
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400">
+                    {TYPE_CONFIG[activeType].description}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => downloadRawCsv(TYPE_CONFIG[activeType].filename, SAMPLES[activeType])}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-indigo-700 active:scale-95"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download Starter Template (.csv)
+              </button>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* File Upload Box */}
@@ -341,6 +382,16 @@ export default function ImportPage() {
                     </li>
                   ))}
                 </ul>
+                <button
+                  type="button"
+                  onClick={() => downloadRawCsv(TYPE_CONFIG[activeType].filename, SAMPLES[activeType])}
+                  className="mt-3.5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                >
+                  <svg className="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download {TYPE_CONFIG[activeType].title} .CSV
+                </button>
               </div>
 
               <div className="border-t border-slate-100 pt-4 dark:border-zinc-800">
