@@ -16,7 +16,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 | **Backend** | Node.js (v20+), Express.js (JavaScript REST API) |
 | **Database** | MongoDB with Mongoose |
 | **Security & Validation** | Helmet, Express Rate Limit, Zod, JWT (`jsonwebtoken`), Bcryptjs |
-| **Testing & Tooling** | Jest, Supertest, MongoDB Memory Server, ESLint, Prettier |
+| **Testing & Tooling** | Jest, Supertest, MongoDB Memory Server, Playwright E2E, ESLint, Prettier |
 | **Version Control** | Git + GitHub (`main`, `dev`, `feature/*` branches with Conventional Commits) |
 
 ---
@@ -41,8 +41,9 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   │   └── backtest.service.js   # Time-ordered backtest evaluation engine
 │   │   ├── app.js               # Express app factory (used by server and test runner)
 │   │   └── server.js            # HTTP server entry point (Port 5001)
-│   └── tests/                   # 16 Jest test suites (129 tests, in-memory MongoDB)
+│   └── tests/                   # 16 Jest test suites (133 tests, in-memory MongoDB)
 ├── frontend/
+│   ├── e2e/                     # Playwright End-to-End smoke test suite (5 smoke tests)
 │   └── src/
 │       ├── app/
 │       │   ├── page.js          # Overview landing & feature navigation hub
@@ -77,14 +78,16 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 - **Password reset**: `POST /api/auth/forgot-password` and `POST /api/auth/reset-password`. Links are valid for 1 hour and single-use. Set `RESEND_API_KEY` (and `MAIL_FROM`, `APP_URL`) to send real emails; without it the link is printed in the server log.
 - **Email verification**: new accounts must confirm their email (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`) before using data routes, which otherwise return `403` with `details.code` `EMAIL_NOT_VERIFIED`. It is enforced automatically when `RESEND_API_KEY` is set (override with `EMAIL_VERIFICATION=true|false`), so a missing email setup never locks users out. Accounts created before the feature, and anyone who completes a password reset, count as verified.
 - **Existing data from before isolation** can be assigned to one account with `node scripts/claimLegacyData.js user@example.com` (run from `backend/`).
-- **Account settings & profile management**: Dedicated `/settings` portal with profile name updates, email verification status, secure in-app password changes (`POST /api/auth/change-password`), notification preference switches (opt in/out of stockout alert emails), and live plan quota progress bars.
+- **Account settings & profile management**: Dedicated `/settings` portal with profile name updates, preferred store currency (`USD`, `EUR`, `GBP`, `INR`, `CAD`, `AUD`, `JPY`), email verification status, secure in-app password changes (`POST /api/auth/change-password`), notification preference switches (opt in/out of stockout alert emails), and live plan quota progress bars.
+- **Multi-currency formatting**: Real-time currency conversion display formatted across Dashboard, Products catalogue, Campaign planning, Post-sale actuals, and Purchase Order sheets according to user profile preference.
 - **Stockout risk alerts & notifications**: Live bell indicator in the Navbar (`GET /api/forecast/alerts`) lists active stockout hazards across all campaigns with quick navigation. Automated email alerts via Resend/mailer notify when a forecast run reveals high-risk items.
 - **One-click demo store seeder**: `POST /api/demo/seed` instantly loads 5 curated products, 30 days of sales history, current stock levels, an upcoming flash sale with forecasts and risk warnings, and a past flash sale with recorded actuals. Easily cleared with `POST /api/demo/clear`.
 - **Forecasting visualisations**: Interactive toggle between Grouped Bar chart and Shaded Confidence Band (Low to High demand range, expected demand line, available stock).
 - **Actuals lifecycle management**: Clear all recorded actuals or delete specific SKU entries (`DELETE /api/actuals/:saleEventId` and `DELETE /api/actuals/:saleEventId/:sku`) with automatic metric re-computation.
 - **Multi-variant retail catalogue & SKU matrix generator**: Supports category categorization (`Apparel`, `Accessories`, `Drinkware`, `Footwear`, `General`), multi-attribute variants (`size`, `color`, `parentGroup`, `price`, `costPrice`), and a single-click matrix batch generator (`POST /api/products/variants/matrix`) producing comprehensive combinations of sizes and colors with default stock snapshots.
 - **Auto-drafted purchase orders**: The PO sheet auto-fills reorder quantities from forecast deficits (peak demand minus stock) plus a configurable safety buffer, with at-risk-only filtering, editable quantities, and estimated cost totals from product `costPrice`.
-- **Supplier PO & Executive Reports**: Printable Purchase Order Restock Advice sheet (`window.print` with print-optimized CSS) detailing recommended reorder volumes and authorization lines, plus instant CSV exports for both the SKU Restock Plan and historical Forecast vs Actuals Accuracy Audits.
+- **Supplier PO & Executive Reports**: Printable Purchase Order Restock Advice sheet (`window.print` with print-optimized CSS) detailing recommended reorder volumes and authorization lines, plus instant CSV exports for both direct Supplier Purchase Orders (`Export PO (CSV)` in restock modal) and historical Forecast vs Actuals Accuracy Audits.
+- **Automated E2E Testing**: Headless Playwright test suite (`npm run test:e2e`) validating public informational routing, pricing tiers, auth gates, and modal forms.
 - **CI**: `.github/workflows/ci.yml` runs backend tests and frontend lint + build on every push.
 
 ---
@@ -357,8 +360,8 @@ MUG-WHT-01,98,false
 ### Backend Tests & Code Quality
 ```bash
 cd backend
-npm test                # Runs 16 test suites (131 tests) in-memory
-npm run lint            # ESLint static analysis
+npm test                # Runs 16 test suites (133 tests) in-memory
+npm run lint            # ESLint static analysis (0 errors, 0 warnings)
 npm run format:check    # Prettier formatting verification
 npm run backtest        # CLI time-ordered backtest evaluation
 ```
@@ -366,8 +369,9 @@ npm run backtest        # CLI time-ordered backtest evaluation
 ### Frontend Build & Code Quality
 ```bash
 cd frontend
-npm run lint            # Next.js ESLint verification
-npm run build           # Production Turbopack build & SSG prerender test
+npm run lint            # Next.js ESLint verification (0 errors, 0 warnings)
+npm run build           # Production Turbopack build & SSG prerender test (18/18 static pages)
+npm run test:e2e        # Playwright headless browser E2E smoke test suite (5 tests)
 ```
 
 ---
@@ -399,3 +403,6 @@ To maintain a lean, robust, and transparent MVP, the following are deliberately 
 14. [x] **Section 14**: Supplier Reorder & PDF / Executive Restock Reports (A4 Purchase Order sheet, Audit CSV exports)
 15. [x] **Section 15**: Stripe Checkout integration & Customer Billing Portal (`/billing`, `@stripe/stripe-node`, webhooks)
 16. [x] **Section 16**: Multi-Variant SKUs, Size & Color Matrix Generator, and Category Catalog Filtering (`/products`)
+17. [x] **Section 17**: Direct Supplier Purchase Order CSV Export (`SupplierRestockSheetModal.js`)
+18. [x] **Section 18**: Multi-Currency Preferences & Regional Formats (`USD`, `EUR`, `GBP`, `INR`, `CAD`, `AUD`, `JPY`)
+19. [x] **Section 19**: Playwright Automated E2E Smoke Test Suite (`npm run test:e2e`)
