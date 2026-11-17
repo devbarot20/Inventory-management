@@ -67,6 +67,48 @@ const MOCK_PRODUCTS = [
   },
 ];
 
+const MOCK_COMPARISON = {
+  summary: {
+    totalSkus: 2,
+    evaluatedSkus: 2,
+    totalActualUnits: 190,
+    totalExpectedUnits: 210,
+    mae: 10,
+    wapePct: 9.52,
+    biasPct: 10.53,
+    withinRangePct: 100,
+    warningAccuracyPct: 100,
+  },
+  comparisons: [
+    {
+      sku: 'TEE-BLK-S',
+      expected: 150,
+      low: 80,
+      high: 220,
+      actualUnits: 140,
+      error: 10,
+      absError: 10,
+      withinRange: true,
+      stockoutOccurred: true,
+      riskLevel: 'high',
+      warningAccurate: true,
+    },
+    {
+      sku: 'HOODIE-GRY-L',
+      expected: 60,
+      low: 30,
+      high: 90,
+      actualUnits: 50,
+      error: 10,
+      absError: 10,
+      withinRange: true,
+      stockoutOccurred: false,
+      riskLevel: 'low',
+      warningAccurate: true,
+    },
+  ],
+};
+
 test.describe('Authenticated Planner Journey', () => {
   test.beforeEach(async ({ page }) => {
     // Intercept API routes with mock responses
@@ -121,6 +163,22 @@ test.describe('Authenticated Planner Journey', () => {
           plan: 'growth',
           usage: { products: 2, sales: 1 },
         }),
+      });
+    });
+
+    await page.route(/\/api\/actuals\/comparison/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_COMPARISON),
+      });
+    });
+
+    await page.route(/\/api\/actuals\/sale_1/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_COMPARISON),
       });
     });
 
@@ -202,5 +260,51 @@ test.describe('Authenticated Planner Journey', () => {
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('products_template.csv');
+  });
+
+  test('authenticated user can view and record flash sale actuals on /actuals', async ({ page }) => {
+    await page.goto('/actuals');
+
+    await expect(page.locator('h1')).toContainText('Forecast vs Actual Comparison');
+    await expect(page.locator('text=Mean Abs Error (MAE)')).toBeVisible();
+    await expect(page.locator('text=WAPE Error Rate')).toBeVisible();
+    await expect(page.locator('text=TEE-BLK-S').first()).toBeVisible();
+
+    // Click Record / Import Actuals
+    await page.locator('button:has-text("Record / Import Actuals")').click();
+    await expect(page.locator('text=Record Actual Flash Sale Results')).toBeVisible();
+
+    // Fill in actual units
+    const actualInputs = page.locator('input[type="number"]');
+    if ((await actualInputs.count()) > 0) {
+      await actualInputs.first().fill('140');
+    }
+
+    // Submit form
+    await page.locator('button:has-text("Save & Calculate Metrics")').click();
+
+    // Modal closes and table displays evaluated comparisons
+    await expect(page.locator('text=Record Actual Flash Sale Results')).toBeHidden();
+    await expect(page.locator('text=TEE-BLK-S').first()).toBeVisible();
+  });
+
+  test('expired session returning 401 triggers session toast banner', async ({ page }) => {
+    // Override /api/sales to return 401
+    await page.route(/\/api\/sales/, async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: { message: 'Token expired or invalid', code: 'UNAUTHORIZED' },
+        }),
+      });
+    });
+
+    await page.goto('/dashboard');
+
+    // Should display the session-expired alert banner from AuthContext
+    await expect(
+      page.locator('text=Your session has expired. Please sign in again.'),
+    ).toBeVisible();
   });
 });

@@ -4,6 +4,22 @@ const API_URL = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 
 const TOKEN_KEY = 'ifc_auth_token';
 
+/**
+ * Subscribers notified when a 401 response clears the session.
+ * AuthProvider registers a handler to wipe React state without
+ * needing a module-level import of React hooks.
+ */
+const _session401Listeners = new Set();
+
+export function on401(handler) {
+  _session401Listeners.add(handler);
+  return () => _session401Listeners.delete(handler);
+}
+
+function _fire401() {
+  _session401Listeners.forEach((fn) => fn());
+}
+
 export function getToken() {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(TOKEN_KEY);
@@ -49,6 +65,11 @@ export async function apiFetch(path, options = {}) {
   const body = await res.json().catch(() => null);
 
   if (!res.ok) {
+    // 401 = expired / invalid JWT → wipe token and notify AuthProvider
+    if (res.status === 401) {
+      removeToken();
+      _fire401();
+    }
     const message = body?.error?.message || `Request failed with status ${res.status}`;
     const err = new Error(message);
     err.status = res.status;

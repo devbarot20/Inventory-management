@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiFetch, getToken, setToken, removeToken } from '@/lib/api';
+import { apiFetch, getToken, setToken, removeToken, on401 } from '@/lib/api';
 
 const AuthContext = createContext({
   user: null,
@@ -10,6 +10,7 @@ const AuthContext = createContext({
   authModalOpen: false,
   authModalMode: 'login',
   theme: 'light',
+  sessionToast: null,
   toggleTheme: () => {},
   login: async () => {},
   register: async () => {},
@@ -27,6 +28,24 @@ export function AuthProvider({ children }) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
   const [theme, setTheme] = useState('light');
+  const [sessionToast, setSessionToast] = useState(null);
+
+  // Auto-dismiss session-expired toast after 5 s
+  useEffect(() => {
+    if (!sessionToast) return undefined;
+    const id = setTimeout(() => setSessionToast(null), 5000);
+    return () => clearTimeout(id);
+  }, [sessionToast]);
+
+  // Listen for 401 responses from apiFetch and wipe React auth state
+  useEffect(() => {
+    const unsubscribe = on401(() => {
+      setUser(null);
+      setTokenState(null);
+      setSessionToast('Your session has expired. Please sign in again.');
+    });
+    return unsubscribe;
+  }, []);
 
   // Hydrate theme on mount matching stored preference
   useEffect(() => {
@@ -173,6 +192,7 @@ export function AuthProvider({ children }) {
         authModalOpen,
         authModalMode,
         theme,
+        sessionToast,
         toggleTheme,
         login,
         register,
@@ -183,6 +203,28 @@ export function AuthProvider({ children }) {
         closeAuthModal,
       }}
     >
+      {/* Global session-expired toast banner */}
+      {sessionToast && (
+        <div
+          role="alert"
+          className="fixed bottom-4 left-1/2 z-[9999] flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3.5 shadow-xl dark:border-amber-800/60 dark:bg-amber-950/80"
+        >
+          <svg className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z" />
+          </svg>
+          <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">{sessionToast}</span>
+          <button
+            type="button"
+            onClick={() => setSessionToast(null)}
+            className="ml-2 rounded-lg p-1 text-amber-600 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/50"
+            aria-label="Dismiss"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
       {children}
     </AuthContext.Provider>
   );
