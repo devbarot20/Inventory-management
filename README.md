@@ -43,7 +43,7 @@ An end-to-end MVP web application designed for e-commerce shops to estimate **pr
 │   │   └── server.js            # HTTP server entry point (Port 5001)
 │   └── tests/                   # 16 Jest test suites (133 tests, in-memory MongoDB)
 ├── frontend/
-│   ├── e2e/                     # Playwright End-to-End smoke test suite (5 smoke tests)
+│   ├── e2e/                     # Playwright End-to-End test suites (11 smoke & journey tests)
 │   └── src/
 │       ├── app/
 │       │   ├── page.js          # Overview landing & feature navigation hub
@@ -383,7 +383,7 @@ npm run backtest        # CLI time-ordered backtest evaluation
 cd frontend
 npm run lint            # Next.js ESLint verification (0 errors, 0 warnings)
 npm run build           # Production Turbopack build & SSG prerender test (18/18 static pages)
-npm run test:e2e        # Playwright headless browser E2E smoke test suite (5 tests)
+npm run test:e2e        # Playwright headless browser E2E test suites (11 tests)
 ```
 
 ---
