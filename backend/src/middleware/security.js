@@ -51,8 +51,28 @@ const authRateLimiter = rateLimit({
   },
 });
 
+/**
+ * Stricter rate limiter for admin endpoints (prevent enumeration / brute-force).
+ * In development / production: 20 requests per 15 min.
+ * In test: 10,000 requests per 15 min.
+ */
+const adminRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: env.isTest ? 10000 : 20,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: (req, res, next) => {
+    next(
+      ApiError.tooManyRequests(
+        'Too many admin requests from this IP, please try again after 15 minutes.',
+      ),
+    );
+  },
+});
+
 module.exports = {
   securityHeaders,
   apiRateLimiter,
   authRateLimiter,
+  adminRateLimiter,
 };

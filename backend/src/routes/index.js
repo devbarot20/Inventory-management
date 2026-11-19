@@ -12,6 +12,7 @@ const forecastRoutes = require('./forecast.routes');
 const actualRoutes = require('./actual.routes');
 const demoRoutes = require('./demo.routes');
 const billingRoutes = require('./billing.routes');
+const adminRoutes = require('./admin.routes');
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/forecast', forecastRoutes);
 router.use('/actuals', actualRoutes);
 router.use('/demo', demoRoutes);
 router.use('/billing', billingRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;
