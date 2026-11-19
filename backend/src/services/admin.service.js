@@ -65,7 +65,7 @@ async function updateUserRole(targetId, newRole, requestingAdminId) {
   const user = await User.findByIdAndUpdate(
     targetId,
     { role: newRole },
-    { new: true, runValidators: true },
+    { returnDocument: 'after', runValidators: true },
   ).select(SAFE_SELECT);
 
   if (!user) throw ApiError.notFound('User not found');
@@ -86,7 +86,7 @@ async function updateUserPlan(targetId, newPlan, requestingAdminId) {
   const user = await User.findByIdAndUpdate(
     targetId,
     { plan: newPlan },
-    { new: true, runValidators: true },
+    { returnDocument: 'after', runValidators: true },
   ).select(SAFE_SELECT);
 
   if (!user) throw ApiError.notFound('User not found');
@@ -95,8 +95,6 @@ async function updateUserPlan(targetId, newPlan, requestingAdminId) {
 
 /**
  * Soft-delete a user by marking deletedAt. Admins cannot delete themselves.
- * Note: We add a `deletedAt` field dynamically — Mongoose will store it as an unschema'd key
- * (works fine with strict: false override or we set strict option per update call).
  */
 async function deleteUser(targetId, requestingAdminId) {
   if (String(targetId) === String(requestingAdminId)) {
@@ -108,7 +106,7 @@ async function deleteUser(targetId, requestingAdminId) {
   if (!user) throw ApiError.notFound('User not found');
   if (user.deletedAt) throw ApiError.badRequest('User is already deactivated');
 
-  await User.findByIdAndUpdate(targetId, { deletedAt: new Date() }, { strict: false });
+  await User.findByIdAndUpdate(targetId, { deletedAt: new Date() });
 
   return { message: 'User deactivated successfully', userId: targetId };
 }
@@ -129,7 +127,7 @@ async function getPlatformStats() {
     User.countDocuments({ $or: [{ emailVerificationRequired: { $ne: true } }, { emailVerifiedAt: { $exists: true } }] }),
     User.aggregate([{ $group: { _id: '$plan', count: { $sum: 1 } } }]),
     // Product and SaleEvent are scoped per user; count all documents
-    require('../models').Product.countDocuments({}),
+    Product.countDocuments({}),
     SaleEvent.countDocuments({}),
     ForecastRun.countDocuments({}),
   ]);

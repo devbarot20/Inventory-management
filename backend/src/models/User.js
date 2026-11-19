@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema(
       enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'JPY'],
       default: 'USD',
     },
+    deletedAt: { type: Date },
   },
   {
     ...baseSchemaOptions,

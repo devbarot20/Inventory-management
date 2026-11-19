@@ -1,0 +1,285 @@
+'use strict';
+
+const request = require('supertest');
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const createApp = require('../src/app');
+const { User, Product } = require('../src/models');
+const { startTestDB, clearTestDB, stopTestDB } = require('./helpers/db');
+const ApiError = require('../src/errors/ApiError');
+const errorHandler = require('../src/middleware/errorHandler');
+
+beforeAll(startTestDB);
+afterEach(clearTestDB);
+afterAll(stopTestDB);
+
+describe('Admin Panel API & Security (Section 21)', () => {
+  let app;
+  let adminUser;
+  let regularUser;
+
+  const as = (user) => ({ Authorization: `Bearer ${user.token}` });
+
+  const registerUser = async (name, email, role = 'user') => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ name, email, password: 'password123', role });
+    return { token: res.body.token, id: res.body.user.id, user: res.body.user };
+  };
+
+  beforeAll(() => {
+    app = createApp();
+  });
+
+  beforeEach(async () => {
+    adminUser = await registerUser('Admin Jane', 'admin@jane.com', 'admin');
+    regularUser = await registerUser('Regular Joe', 'joe@example.com', 'user');
+  });
+
+  describe('RBAC & Route Protection', () => {
+    it('rejects unauthenticated requests with 401', async () => {
+      const endpoints = [
+        ['get', '/api/admin/stats'],
+        ['get', '/api/admin/users'],
+        ['get', `/api/admin/users/${regularUser.id}`],
+        ['patch', `/api/admin/users/${regularUser.id}/role`],
+        ['patch', `/api/admin/users/${regularUser.id}/plan`],
+        ['delete', `/api/admin/users/${regularUser.id}`],
+      ];
+
+      for (const [method, url] of endpoints) {
+        const res = await request(app)[method](url);
+        expect(res.status).toBe(401);
+      }
+    });
+
+    it('rejects non-admin users with 403 Forbidden', async () => {
+      const endpoints = [
+        ['get', '/api/admin/stats'],
+        ['get', '/api/admin/users'],
+        ['get', `/api/admin/users/${regularUser.id}`],
+        ['patch', `/api/admin/users/${regularUser.id}/role`],
+        ['patch', `/api/admin/users/${regularUser.id}/plan`],
+        ['delete', `/api/admin/users/${regularUser.id}`],
+      ];
+
+      for (const [method, url] of endpoints) {
+        const res = await request(app)[method](url).set(as(regularUser)).send({});
+        expect(res.status).toBe(403);
+      }
+    });
+  });
+
+  describe('GET /api/admin/stats', () => {
+    it('returns platform-wide metrics to admin', async () => {
+      // Create a product for regularUser
+      await Product.create({
+        sku: 'SKU-001',
+        name: 'Test Widget',
+        createdBy: regularUser.id,
+      });
+
+      const res = await request(app).get('/api/admin/stats').set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('totalUsers', 2);
+      expect(res.body).toHaveProperty('verifiedUsers');
+      expect(res.body).toHaveProperty('planBreakdown');
+      expect(res.body.planBreakdown).toHaveProperty('starter');
+      expect(res.body.planBreakdown).toHaveProperty('growth');
+      expect(res.body.planBreakdown).toHaveProperty('scale');
+      expect(res.body).toHaveProperty('totalProducts', 1);
+      expect(res.body).toHaveProperty('totalCampaigns', 0);
+      expect(res.body).toHaveProperty('totalForecasts', 0);
+    });
+  });
+
+  describe('GET /api/admin/users', () => {
+    it('returns paginated list of users', async () => {
+      const res = await request(app).get('/api/admin/users').set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('users');
+      expect(Array.isArray(res.body.users)).toBe(true);
+      expect(res.body.total).toBe(2);
+      expect(res.body.page).toBe(1);
+      expect(res.body.totalPages).toBe(1);
+
+      // Verify passwords and hashes are omitted
+      const sample = res.body.users[0];
+      expect(sample).not.toHaveProperty('password');
+      expect(sample).not.toHaveProperty('resetTokenHash');
+      expect(sample).not.toHaveProperty('verifyTokenHash');
+    });
+
+    it('filters users by search query', async () => {
+      const res = await request(app)
+        .get('/api/admin/users?search=joe')
+        .set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBe(1);
+      expect(res.body.users[0].email).toBe('joe@example.com');
+    });
+  });
+
+  describe('GET /api/admin/users/:id', () => {
+    it('returns a single user detail', async () => {
+      const res = await request(app)
+        .get(`/api/admin/users/${regularUser.id}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body.user).toHaveProperty('email', 'joe@example.com');
+      expect(res.body.user).not.toHaveProperty('password');
+    });
+
+    it('returns 404 for non-existent user', async () => {
+      const fakeId = '507f1f77bcf86cd799439011';
+      const res = await request(app)
+        .get(`/api/admin/users/${fakeId}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PATCH /api/admin/users/:id/role', () => {
+    it('allows admin to promote user to admin', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/role`)
+        .set(as(adminUser))
+        .send({ role: 'admin' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.user.role).toBe('admin');
+
+      const updated = await User.findById(regularUser.id);
+      expect(updated.role).toBe('admin');
+    });
+
+    it('prevents an admin from changing their own role', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${adminUser.id}/role`)
+        .set(as(adminUser))
+        .send({ role: 'user' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.message).toMatch(/cannot change their own role/i);
+    });
+
+    it('rejects invalid role with 400', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/role`)
+        .set(as(adminUser))
+        .send({ role: 'superadmin' });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PATCH /api/admin/users/:id/plan', () => {
+    it('allows admin to change user subscription plan', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/plan`)
+        .set(as(adminUser))
+        .send({ plan: 'growth' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.user.plan).toBe('growth');
+    });
+
+    it('prevents admin from changing their own plan via admin route', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${adminUser.id}/plan`)
+        .set(as(adminUser))
+        .send({ plan: 'scale' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.message).toMatch(/cannot change their own plan/i);
+    });
+
+    it('rejects invalid plan with 400', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/plan`)
+        .set(as(adminUser))
+        .send({ plan: 'enterprise_nonexistent' });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('DELETE /api/admin/users/:id', () => {
+    it('soft-deactivates user', async () => {
+      const res = await request(app)
+        .delete(`/api/admin/users/${regularUser.id}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toMatch(/deactivated/i);
+
+      const dbUser = await User.findById(regularUser.id);
+      expect(dbUser.deletedAt).toBeDefined();
+    });
+
+    it('prevents admin from deleting themselves', async () => {
+      const res = await request(app)
+        .delete(`/api/admin/users/${adminUser.id}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.message).toMatch(/cannot delete their own account/i);
+    });
+
+    it('returns 400 if user is already deactivated', async () => {
+      await request(app)
+        .delete(`/api/admin/users/${regularUser.id}`)
+        .set(as(adminUser));
+
+      const res = await request(app)
+        .delete(`/api/admin/users/${regularUser.id}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.message).toMatch(/already deactivated/i);
+    });
+
+    it('returns 404 for non-existent user deletion', async () => {
+      const fakeId = '507f1f77bcf86cd799439011';
+      const res = await request(app)
+        .delete(`/api/admin/users/${fakeId}`)
+        .set(as(adminUser));
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('Admin Rate Limiter', () => {
+    it('returns 429 when admin rate limit threshold is exceeded', async () => {
+      const testApp = express();
+      const testLimiter = rateLimit({
+        windowMs: 60 * 1000,
+        limit: 2,
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        handler: (req, res, next) => {
+          next(ApiError.tooManyRequests('Too many admin requests from this IP.'));
+        },
+      });
+
+      testApp.use(testLimiter);
+      testApp.get('/test-admin', (req, res) => res.json({ ok: true }));
+      testApp.use(errorHandler);
+
+      const r1 = await request(testApp).get('/test-admin');
+      expect(r1.status).toBe(200);
+
+      const r2 = await request(testApp).get('/test-admin');
+      expect(r2.status).toBe(200);
+
+      const r3 = await request(testApp).get('/test-admin');
+      expect(r3.status).toBe(429);
+      expect(r3.body.error.message).toMatch(/Too many admin requests/i);
+    });
+  });
+});

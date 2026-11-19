@@ -54,45 +54,55 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
   const [confirm, setConfirm] = useState(null); // { message, onConfirm }
   const searchTimer = useRef(null);
 
-  const fetchUsers = useCallback(
-    async (pg = 1, q = search) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams({ page: pg, limit: 20 });
-        if (q) params.set('search', q);
-        const data = await apiFetch(`/api/admin/users?${params}`);
-        setUsers(data.users);
-        setTotal(data.total);
-        setPage(data.page);
-        setTotalPages(data.totalPages);
-      } catch (err) {
-        setError(err.message || 'Failed to load users');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [search],
-  );
-
   useEffect(() => {
-    fetchUsers(1, search);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    let ignore = false;
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (search) params.set('search', search);
+
+    apiFetch(`/api/admin/users?${params}`)
+      .then((data) => {
+        if (!ignore) {
+          setUsers(data.users || []);
+          setTotal(data.total || 0);
+          setTotalPages(data.totalPages || 1);
+          setError(null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(err.message || 'Failed to load users');
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [page, search, refreshKey]);
 
   function handleSearchChange(e) {
     const q = e.target.value;
-    setSearch(q);
+    setSearchInput(q);
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
-      fetchUsers(1, q);
-    }, 400);
+      setPage(1);
+      setSearch(q);
+      setLoading(true);
+    }, 350);
+  }
+
+  function reload() {
+    setLoading(true);
+    setRefreshKey((k) => k + 1);
   }
 
   function showToast(msg) {
@@ -111,7 +121,7 @@ export default function AdminUsersPage() {
             body: JSON.stringify({ role: newRole }),
           });
           showToast('Role updated successfully');
-          fetchUsers(page, search);
+          reload();
         } catch (err) {
           showToast(err.message || 'Failed to update role');
         }
@@ -130,7 +140,7 @@ export default function AdminUsersPage() {
             body: JSON.stringify({ plan: newPlan }),
           });
           showToast('Plan updated successfully');
-          fetchUsers(page, search);
+          reload();
         } catch (err) {
           showToast(err.message || 'Failed to update plan');
         }
@@ -146,7 +156,7 @@ export default function AdminUsersPage() {
         try {
           await apiFetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
           showToast('User deactivated');
-          fetchUsers(page, search);
+          reload();
         } catch (err) {
           showToast(err.message || 'Failed to deactivate user');
         }
@@ -169,7 +179,7 @@ export default function AdminUsersPage() {
         {/* Search */}
         <input
           type="search"
-          value={search}
+          value={searchInput}
           onChange={handleSearchChange}
           placeholder="Search name or email…"
           className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 sm:w-72"
@@ -303,14 +313,20 @@ export default function AdminUsersPage() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => fetchUsers(page - 1, search)}
+              onClick={() => {
+                setPage((p) => Math.max(1, p - 1));
+                setLoading(true);
+              }}
               disabled={page <= 1}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400"
             >
               ← Prev
             </button>
             <button
-              onClick={() => fetchUsers(page + 1, search)}
+              onClick={() => {
+                setPage((p) => Math.min(totalPages, p + 1));
+                setLoading(true);
+              }}
               disabled={page >= totalPages}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400"
             >
