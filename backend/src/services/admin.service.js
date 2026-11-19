@@ -1,6 +1,6 @@
 'use strict';
 
-const { User } = require('../models');
+const { User, Product, SaleEvent, ForecastRun } = require('../models');
 const { PLAN_IDS } = require('../config/plans');
 const ApiError = require('../errors/ApiError');
 
@@ -113,10 +113,53 @@ async function deleteUser(targetId, requestingAdminId) {
   return { message: 'User deactivated successfully', userId: targetId };
 }
 
+/**
+ * Platform-wide aggregate stats for the admin dashboard.
+ */
+async function getPlatformStats() {
+  const [
+    totalUsers,
+    verifiedUsers,
+    planBreakdownRaw,
+    totalProducts,
+    totalCampaigns,
+    totalForecasts,
+  ] = await Promise.all([
+    User.countDocuments({}),
+    User.countDocuments({ $or: [{ emailVerificationRequired: { $ne: true } }, { emailVerifiedAt: { $exists: true } }] }),
+    User.aggregate([{ $group: { _id: '$plan', count: { $sum: 1 } } }]),
+    // Product and SaleEvent are scoped per user; count all documents
+    require('../models').Product.countDocuments({}),
+    SaleEvent.countDocuments({}),
+    ForecastRun.countDocuments({}),
+  ]);
+
+  // Convert plan breakdown array to { starter: N, growth: N, scale: N }
+  const planBreakdown = PLAN_IDS.reduce((acc, id) => {
+    acc[id] = 0;
+    return acc;
+  }, {});
+  for (const row of planBreakdownRaw) {
+    if (row._id && planBreakdown[row._id] !== undefined) {
+      planBreakdown[row._id] = row.count;
+    }
+  }
+
+  return {
+    totalUsers,
+    verifiedUsers,
+    planBreakdown,
+    totalProducts,
+    totalCampaigns,
+    totalForecasts,
+  };
+}
+
 module.exports = {
   listUsers,
   getUserById,
   updateUserRole,
   updateUserPlan,
   deleteUser,
+  getPlatformStats,
 };

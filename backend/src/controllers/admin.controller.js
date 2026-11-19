@@ -61,10 +61,21 @@ async function deleteUser(req, res, next) {
   }
 }
 
+/** GET /api/admin/stats */
+async function getStats(req, res, next) {
+  try {
+    const stats = await adminService.getPlatformStats();
+    res.status(200).json(stats);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listUsers,
   getUser,
   updateUserRole,
   updateUserPlan,
   deleteUser,
+  getStats,
 };

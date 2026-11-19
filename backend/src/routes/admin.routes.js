@@ -19,7 +19,7 @@ router.patch('/users/:id/role', validate(adminUpdateRoleSchema), adminController
 router.patch('/users/:id/plan', validate(adminUpdatePlanSchema), adminController.updateUserPlan);
 router.delete('/users/:id', adminController.deleteUser);
 
-// ── Stats (wired in Step 3) ───────────────────────────────────────────────────
-// router.get('/stats', adminController.getStats);
+// ── Stats ─────────────────────────────────────────────────────────────────────
+router.get('/stats', adminController.getStats);
 
 module.exports = router;
