@@ -3,6 +3,7 @@
 const request = require('supertest');
 const createApp = require('../src/app');
 const { User } = require('../src/models');
+const { signToken } = require('../src/utils/token');
 const { startTestDB, clearTestDB, stopTestDB } = require('./helpers/db');
 
 beforeAll(startTestDB);
@@ -172,19 +173,18 @@ describe('Auth API and Authorization', () => {
     let userToken;
 
     beforeEach(async () => {
-      const adminRes = await request(app).post('/api/auth/register').send({
+      const admin = await User.create({
         name: 'Super Admin',
         email: 'superadmin@example.com',
         password: 'password123',
         role: 'admin',
       });
-      adminToken = adminRes.body.token;
+      adminToken = signToken({ id: admin.id, role: admin.role, tokenVersion: admin.authVersion || 0 });
 
       const userRes = await request(app).post('/api/auth/register').send({
         name: 'Regular User',
         email: 'regular@example.com',
         password: 'password123',
-        role: 'user',
       });
       userToken = userRes.body.token;
     });

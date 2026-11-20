@@ -12,7 +12,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "next": "16.4.4",
+    "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "^3.10.1"
@@ -21,7 +21,7 @@
     "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "^4",
     "eslint": "^10.14.0",
-    "eslint-config-next": "16.4.4",
+    "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.10",
     "tailwindcss": "^4"
