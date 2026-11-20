@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema(
       enum: { values: ROLES, message: 'Role must be one of: ' + ROLES.join(', ') },
       default: 'user',
     },
+    authVersion: { type: Number, default: 0, select: false },
     // SHA-256 hash of the emailed reset token (never the token itself).
     // Email verification. Legacy accounts have no `emailVerificationRequired` flag and count as verified.
     emailVerificationRequired: { type: Boolean },
@@ -74,6 +75,7 @@ const userSchema = new mongoose.Schema(
         delete ret.resetTokenExpires;
         delete ret.verifyTokenHash;
         delete ret.verifyTokenExpires;
+        delete ret.authVersion;
         ret.emailVerified = !ret.emailVerificationRequired || Boolean(ret.emailVerifiedAt);
         delete ret.emailVerificationRequired;
         delete ret.emailVerifiedAt;

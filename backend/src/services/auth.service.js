@@ -52,7 +52,7 @@ async function verifyEmail(token) {
   return user;
 }
 
-async function register({ name, email, password, role }) {
+async function register({ name, email, password }) {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw ApiError.conflict('An account with this email already exists');
@@ -62,7 +62,6 @@ async function register({ name, email, password, role }) {
     name,
     email,
     password,
-    role: role || 'user',
     emailVerificationRequired: env.emailVerificationEnabled,
   });
 
@@ -70,7 +69,7 @@ async function register({ name, email, password, role }) {
     await sendVerificationEmail(user);
   }
 
-  const token = signToken({ id: user.id, role: user.role });
+  const token = signToken({ id: user.id, role: user.role, tokenVersion: user.authVersion || 0 });
 
   return {
     user,
@@ -79,8 +78,8 @@ async function register({ name, email, password, role }) {
 }
 
 async function login({ email, password }) {
-  const user = await User.findOne({ email }).select('+password');
-  if (!user) {
+  const user = await User.findOne({ email }).select('+password +authVersion');
+  if (!user || user.deletedAt) {
     throw ApiError.unauthorized('Invalid email or password');
   }
 
@@ -89,7 +88,7 @@ async function login({ email, password }) {
     throw ApiError.unauthorized('Invalid email or password');
   }
 
-  const token = signToken({ id: user.id, role: user.role });
+  const token = signToken({ id: user.id, role: user.role, tokenVersion: user.authVersion || 0 });
 
   return {
     user: user.toJSON(),

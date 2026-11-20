@@ -40,7 +40,7 @@ describe('Auth API and Authorization', () => {
       expect(await userInDb.comparePassword('password123')).toBe(true);
     });
 
-    it('allows specifying admin role upon registration', async () => {
+    it('does not allow public registration to assign the admin role', async () => {
       const res = await request(app).post('/api/auth/register').send({
         name: 'Admin Boss',
         email: 'admin@example.com',
@@ -49,7 +49,7 @@ describe('Auth API and Authorization', () => {
       });
 
       expect(res.status).toBe(201);
-      expect(res.body.user.role).toBe('admin');
+      expect(res.body.user.role).toBe('user');
     });
 
     it('rejects registration with existing email with 409 Conflict', async () => {

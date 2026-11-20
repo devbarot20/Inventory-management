@@ -23,6 +23,7 @@ MongoDB collections managed with Mongoose (`backend/src/models`). All documents 
 | `email`    | String | required, unique, lower-cased                   |
 | `password` | String | bcrypt hash (Section 3); `select: false`, never returned in JSON |
 | `role`     | String | `admin` \| `user` (default `user`)              |
+| `authVersion` | Number | Internal token revocation counter; not returned by the API |
 
 ### Product
 

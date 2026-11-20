@@ -23,6 +23,12 @@ const auditLogSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'succeeded', 'failed'],
+      default: 'succeeded',
+      index: true,
+    },
     targetId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -50,6 +56,24 @@ const auditLogSchema = new mongoose.Schema(
 );
 
 auditLogSchema.index({ createdAt: -1 });
+
+async function allowPendingOutcomeTransition() {
+  const update = this.getUpdate() || {};
+  const nextStatus = update.$set?.status ?? update.status;
+  if (!['succeeded', 'failed'].includes(nextStatus)) {
+    throw new Error('Audit entries may only transition from pending to a final outcome.');
+  }
+
+  const current = await this.model.findOne(this.getQuery()).select('status').lean();
+  if (!current || current.status !== 'pending') {
+    throw new Error('Finalized audit entries are immutable.');
+  }
+}
+
+auditLogSchema.pre(['updateOne', 'findOneAndUpdate'], allowPendingOutcomeTransition);
+auditLogSchema.pre(['deleteOne', 'findOneAndDelete', 'deleteMany'], function preventAuditDeletion() {
+  throw new Error('Audit entries cannot be deleted through the application.');
+});
 
 const AuditLog = mongoose.model('AuditLog', auditLogSchema);
 

@@ -167,11 +167,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+**Provision the first production admin:** never use the demo seed for production; it clears and repopulates application data with local demo credentials. Set `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (12–128 characters), and `ADMIN_BOOTSTRAP_CONFIRM` (the same email) through your deployment secret manager, then run `npm run admin:create` from `backend`. The command creates one verified admin account and refuses to overwrite an existing account.
+
 ### Alternative: Run with Docker Compose (Single Command)
 
 If you have Docker installed, you can launch MongoDB, the backend API, and the Next.js frontend together with:
 
 ```bash
+cp .env.example .env
+# Generate a unique secret with: openssl rand -base64 48
+# Put the generated value in JWT_SECRET in .env before starting Compose.
 docker compose up --build
 ```
 

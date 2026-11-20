@@ -5,12 +5,13 @@ const { PLAN_IDS } = require('../config/plans');
 const ApiError = require('../errors/ApiError');
 
 // Fields to never expose via admin APIs
-const SAFE_SELECT = '-password -resetTokenHash -resetTokenExpires -verifyTokenHash -verifyTokenExpires';
+const SAFE_SELECT = '-password -authVersion -resetTokenHash -resetTokenExpires -verifyTokenHash -verifyTokenExpires';
 
 /**
- * Record an administrative action for audit and compliance.
+ * Persist an audit intent before applying the corresponding change. This makes
+ * an audit storage outage fail closed instead of allowing an unlogged change.
  */
-async function recordAuditLog({
+async function beginAuditEvent({
   adminId,
   adminEmail,
   action,
@@ -20,22 +21,43 @@ async function recordAuditLog({
   ipAddress = null,
   userAgent = null,
 }) {
+  return AuditLog.create({
+    adminId,
+    adminEmail,
+    action,
+    status: 'pending',
+    targetId,
+    targetEmail,
+    details,
+    ipAddress,
+    userAgent,
+  });
+}
+
+async function runAuditedMutation(event, mutation) {
+  const audit = await beginAuditEvent(event);
+  let result;
+
   try {
-    return await AuditLog.create({
-      adminId,
-      adminEmail,
-      action,
-      targetId,
-      targetEmail,
-      details,
-      ipAddress,
-      userAgent,
-    });
+    result = await mutation();
+    if (result === null || result === undefined) throw ApiError.notFound('User not found');
   } catch (err) {
-    // Log error but don't fail the primary request
-    console.error('Failed to create audit log entry:', err.message);
-    return null;
+    try {
+      await AuditLog.updateOne({ _id: audit._id, status: 'pending' }, { $set: { status: 'failed' } });
+    } catch (auditError) {
+      console.error('Failed to finalize admin audit entry:', auditError.message);
+    }
+    throw err;
   }
+
+  try {
+    await AuditLog.updateOne({ _id: audit._id, status: 'pending' }, { $set: { status: 'succeeded' } });
+  } catch (err) {
+    // The durable intent remains visible as pending if outcome finalization fails.
+    console.error('Failed to finalize admin audit entry:', err.message);
+  }
+
+  return result;
 }
 
 /**
@@ -72,19 +94,31 @@ async function listAuditLogs({ action, page = 1, limit = 20 } = {}) {
  * @param {number} [opts.limit]  - Page size, max 100 (default 20)
  * @returns {{ users: User[], total: number, page: number, totalPages: number }}
  */
-async function listUsers({ search = '', page = 1, limit = 20 } = {}) {
+async function listUsers({ search = '', status = 'active', page = 1, limit = 20 } = {}) {
+  if (!['active', 'deactivated', 'all'].includes(status)) {
+    throw ApiError.badRequest('Status must be active, deactivated, or all');
+  }
+
   const safePage = Math.max(1, parseInt(page, 10) || 1);
   const safeLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
   const skip = (safePage - 1) * safeLimit;
+  const safeSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  const filter = search
-    ? {
+  const filter = {
+    ...(status === 'active'
+      ? { deletedAt: { $exists: false } }
+      : status === 'deactivated'
+        ? { deletedAt: { $exists: true } }
+        : {}),
+    ...(search
+      ? {
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
+          { name: { $regex: safeSearch, $options: 'i' } },
+          { email: { $regex: safeSearch, $options: 'i' } },
         ],
       }
-    : {};
+      : {}),
+  };
 
   const [users, total] = await Promise.all([
     User.find(filter).select(SAFE_SELECT).sort({ createdAt: -1 }).skip(skip).limit(safeLimit),
@@ -124,26 +158,23 @@ async function updateUserRole(targetId, newRole, requestingAdmin, meta = {}) {
 
   const existing = await User.findById(targetId);
   if (!existing) throw ApiError.notFound('User not found');
+  if (existing.deletedAt) throw ApiError.notFound('User not found');
   const oldRole = existing.role;
 
-  const user = await User.findByIdAndUpdate(
-    targetId,
-    { role: newRole },
-    { returnDocument: 'after', runValidators: true },
-  ).select(SAFE_SELECT);
-
-  await recordAuditLog({
+  return runAuditedMutation({
     adminId: requestingAdminId,
     adminEmail,
     action: 'USER_ROLE_CHANGE',
-    targetId: user._id,
-    targetEmail: user.email,
+    targetId: existing._id,
+    targetEmail: existing.email,
     details: { oldRole, newRole },
     ipAddress: meta.ip,
     userAgent: meta.userAgent,
-  });
-
-  return user;
+  }, async () => User.findOneAndUpdate(
+    { _id: targetId, deletedAt: { $exists: false } },
+    { role: newRole },
+    { returnDocument: 'after', runValidators: true },
+  ).select(SAFE_SELECT));
 }
 
 /**
@@ -162,26 +193,23 @@ async function updateUserPlan(targetId, newPlan, requestingAdmin, meta = {}) {
 
   const existing = await User.findById(targetId);
   if (!existing) throw ApiError.notFound('User not found');
+  if (existing.deletedAt) throw ApiError.notFound('User not found');
   const oldPlan = existing.plan;
 
-  const user = await User.findByIdAndUpdate(
-    targetId,
-    { plan: newPlan },
-    { returnDocument: 'after', runValidators: true },
-  ).select(SAFE_SELECT);
-
-  await recordAuditLog({
+  return runAuditedMutation({
     adminId: requestingAdminId,
     adminEmail,
     action: 'USER_PLAN_CHANGE',
-    targetId: user._id,
-    targetEmail: user.email,
+    targetId: existing._id,
+    targetEmail: existing.email,
     details: { oldPlan, newPlan },
     ipAddress: meta.ip,
     userAgent: meta.userAgent,
-  });
-
-  return user;
+  }, async () => User.findOneAndUpdate(
+    { _id: targetId, deletedAt: { $exists: false } },
+    { plan: newPlan },
+    { returnDocument: 'after', runValidators: true },
+  ).select(SAFE_SELECT));
 }
 
 /**
@@ -200,9 +228,7 @@ async function deleteUser(targetId, requestingAdmin, meta = {}) {
   if (!user) throw ApiError.notFound('User not found');
   if (user.deletedAt) throw ApiError.badRequest('User is already deactivated');
 
-  await User.findByIdAndUpdate(targetId, { deletedAt: new Date() });
-
-  await recordAuditLog({
+  await runAuditedMutation({
     adminId: requestingAdminId,
     adminEmail,
     action: 'USER_DEACTIVATED',
@@ -211,15 +237,70 @@ async function deleteUser(targetId, requestingAdmin, meta = {}) {
     details: { reason: 'Admin deactivation' },
     ipAddress: meta.ip,
     userAgent: meta.userAgent,
-  });
+  }, () => User.findOneAndUpdate(
+    { _id: targetId, deletedAt: { $exists: false } },
+    { $set: { deletedAt: new Date() }, $inc: { authVersion: 1 } },
+  ));
 
   return { message: 'User deactivated successfully', userId: targetId };
+}
+
+async function updateUserActivation(targetId, active, requestingAdmin, meta = {}) {
+  const requestingAdminId = requestingAdmin?._id || requestingAdmin?.id || requestingAdmin;
+  const adminEmail = requestingAdmin?.email || 'admin@system.local';
+
+  if (String(targetId) === String(requestingAdminId)) {
+    throw ApiError.forbidden('Admins cannot change their own account activation');
+  }
+
+  const user = await User.findById(targetId);
+  if (!user) throw ApiError.notFound('User not found');
+
+  if (active && !user.deletedAt) throw ApiError.badRequest('User is already active');
+  if (!active && user.deletedAt) throw ApiError.badRequest('User is already deactivated');
+
+  const action = active ? 'USER_REACTIVATED' : 'USER_DEACTIVATED';
+  const activationFilter = active
+    ? { _id: targetId, deletedAt: { $exists: true } }
+    : { _id: targetId, deletedAt: { $exists: false } };
+  const update = active
+    ? { $unset: { deletedAt: 1 } }
+    : { $set: { deletedAt: new Date() }, $inc: { authVersion: 1 } };
+  const updatedUser = await runAuditedMutation({
+    adminId: requestingAdminId,
+    adminEmail,
+    action,
+    targetId: user._id,
+    targetEmail: user.email,
+    details: { previousStatus: active ? 'deactivated' : 'active', status: active ? 'active' : 'deactivated' },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  }, () => User.findOneAndUpdate(activationFilter, update, { returnDocument: 'after' }).select(SAFE_SELECT));
+
+  return { message: active ? 'User reactivated successfully' : 'User deactivated successfully', user: updatedUser };
 }
 
 /**
  * Platform-wide aggregate stats for the admin dashboard.
  */
 async function getPlatformStats() {
+  const countForActiveAccounts = async (Model) => {
+    const [result] = await Model.aggregate([
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: 'createdBy',
+          foreignField: '_id',
+          as: 'owner',
+        },
+      },
+      { $unwind: '$owner' },
+      { $match: { 'owner.deletedAt': { $exists: false } } },
+      { $count: 'total' },
+    ]);
+    return result?.total || 0;
+  };
+
   const [
     totalUsers,
     verifiedUsers,
@@ -228,13 +309,18 @@ async function getPlatformStats() {
     totalCampaigns,
     totalForecasts,
   ] = await Promise.all([
-    User.countDocuments({}),
-    User.countDocuments({ $or: [{ emailVerificationRequired: { $ne: true } }, { emailVerifiedAt: { $exists: true } }] }),
-    User.aggregate([{ $group: { _id: '$plan', count: { $sum: 1 } } }]),
-    // Product and SaleEvent are scoped per user; count all documents
-    Product.countDocuments({}),
-    SaleEvent.countDocuments({}),
-    ForecastRun.countDocuments({}),
+    User.countDocuments({ deletedAt: { $exists: false } }),
+    User.countDocuments({
+      deletedAt: { $exists: false },
+      $or: [{ emailVerificationRequired: { $ne: true } }, { emailVerifiedAt: { $exists: true } }],
+    }),
+    User.aggregate([
+      { $match: { deletedAt: { $exists: false } } },
+      { $group: { _id: '$plan', count: { $sum: 1 } } },
+    ]),
+    countForActiveAccounts(Product),
+    countForActiveAccounts(SaleEvent),
+    countForActiveAccounts(ForecastRun),
   ]);
 
   // Convert plan breakdown array to { starter: N, growth: N, scale: N }
@@ -265,6 +351,6 @@ module.exports = {
   updateUserPlan,
   deleteUser,
   getPlatformStats,
-  recordAuditLog,
   listAuditLogs,
+  updateUserActivation,
 };

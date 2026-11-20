@@ -17,9 +17,13 @@ async function authenticate(req, res, next) {
     }
 
     const decoded = verifyToken(token);
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select('+authVersion');
 
-    if (!user) {
+    if (
+      !user ||
+      user.deletedAt ||
+      (decoded.tokenVersion || 0) !== (user.authVersion || 0)
+    ) {
       return next(ApiError.unauthorized('User associated with this token no longer exists'));
     }
 

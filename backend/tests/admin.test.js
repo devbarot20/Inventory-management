@@ -5,6 +5,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const createApp = require('../src/app');
 const { User, Product } = require('../src/models');
+const { signToken } = require('../src/utils/token');
 const { startTestDB, clearTestDB, stopTestDB } = require('./helpers/db');
 const ApiError = require('../src/errors/ApiError');
 const errorHandler = require('../src/middleware/errorHandler');
@@ -21,9 +22,13 @@ describe('Admin Panel API & Security (Section 21)', () => {
   const as = (user) => ({ Authorization: `Bearer ${user.token}` });
 
   const registerUser = async (name, email, role = 'user') => {
+    if (role === 'admin') {
+      const user = await User.create({ name, email, password: 'password123', role });
+      return { token: signToken({ id: user.id, role: user.role }), id: user.id, user: user.toJSON() };
+    }
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ name, email, password: 'password123', role });
+      .send({ name, email, password: 'password123' });
     return { token: res.body.token, id: res.body.user.id, user: res.body.user };
   };
 
@@ -220,6 +225,45 @@ describe('Admin Panel API & Security (Section 21)', () => {
 
       const dbUser = await User.findById(regularUser.id);
       expect(dbUser.deletedAt).toBeDefined();
+
+      const oldTokenRequest = await request(app)
+        .get('/api/admin/stats')
+        .set(as(regularUser));
+      expect(oldTokenRequest.status).toBe(401);
+
+      const loginRequest = await request(app).post('/api/auth/login').send({
+        email: 'joe@example.com',
+        password: 'password123',
+      });
+      expect(loginRequest.status).toBe(401);
+
+      const activationRequest = await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/activation`)
+        .set(as(adminUser))
+        .send({ active: true });
+      expect(activationRequest.status).toBe(200);
+      expect(activationRequest.body.user.deletedAt).toBeUndefined();
+
+      const activeList = await request(app)
+        .get('/api/admin/users?status=active')
+        .set(as(adminUser));
+      expect(activeList.body.total).toBe(2);
+
+      const deactivatedList = await request(app)
+        .get('/api/admin/users?status=deactivated')
+        .set(as(adminUser));
+      expect(deactivatedList.body.total).toBe(0);
+
+      const stillRevoked = await request(app)
+        .get('/api/auth/me')
+        .set(as(regularUser));
+      expect(stillRevoked.status).toBe(401);
+
+      const reactivatedLogin = await request(app).post('/api/auth/login').send({
+        email: 'joe@example.com',
+        password: 'password123',
+      });
+      expect(reactivatedLogin.status).toBe(200);
     });
 
     it('prevents admin from deleting themselves', async () => {
@@ -291,6 +335,7 @@ describe('Admin Panel API & Security (Section 21)', () => {
       expect(roleLog.adminEmail).toBe('admin@jane.com');
       expect(roleLog.targetEmail).toBe('joe@example.com');
       expect(roleLog.details).toEqual({ oldRole: 'user', newRole: 'admin' });
+      expect(res.body.logs.every((log) => log.status === 'succeeded')).toBe(true);
     });
 
     it('filters audit logs by action parameter', async () => {

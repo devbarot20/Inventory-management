@@ -1,7 +1,6 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const env = require('../src/config/env');
 const {
   User,
@@ -39,18 +38,17 @@ async function seed() {
 
   // 1. Seed Users
   console.log('Creating demo users…');
-  const passwordHash = await bcrypt.hash('password123', 10);
   const adminUser = await User.create({
     name: 'Demo Admin',
     email: 'admin@shop.com',
-    password: passwordHash,
+    password: 'password123',
     role: 'admin',
   });
 
   await User.create({
     name: 'Inventory Manager',
     email: 'manager@shop.com',
-    password: passwordHash,
+    password: 'password123',
     role: 'user',
   });
 

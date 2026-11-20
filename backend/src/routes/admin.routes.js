@@ -5,7 +5,11 @@ const { authenticate, authorize } = require('../middleware/auth');
 const { adminRateLimiter } = require('../middleware/security');
 const validate = require('../middleware/validate');
 const adminController = require('../controllers/admin.controller');
-const { adminUpdateRoleSchema, adminUpdatePlanSchema } = require('../validators/admin.validator');
+const {
+  adminUpdateRoleSchema,
+  adminUpdatePlanSchema,
+  adminUpdateActivationSchema,
+} = require('../validators/admin.validator');
 
 const router = Router();
 
@@ -17,6 +21,11 @@ router.get('/users', adminController.listUsers);
 router.get('/users/:id', adminController.getUser);
 router.patch('/users/:id/role', validate(adminUpdateRoleSchema), adminController.updateUserRole);
 router.patch('/users/:id/plan', validate(adminUpdatePlanSchema), adminController.updateUserPlan);
+router.patch(
+  '/users/:id/activation',
+  validate(adminUpdateActivationSchema),
+  adminController.updateUserActivation,
+);
 router.delete('/users/:id', adminController.deleteUser);
 
 // ── Stats ─────────────────────────────────────────────────────────────────────

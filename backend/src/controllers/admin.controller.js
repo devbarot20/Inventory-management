@@ -5,8 +5,8 @@ const adminService = require('../services/admin.service');
 /** GET /api/admin/users?search=&page=&limit= */
 async function listUsers(req, res, next) {
   try {
-    const { search, page, limit } = req.query;
-    const result = await adminService.listUsers({ search, page, limit });
+    const { search, status, page, limit } = req.query;
+    const result = await adminService.listUsers({ search, status, page, limit });
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -66,6 +66,20 @@ async function deleteUser(req, res, next) {
   }
 }
 
+async function updateUserActivation(req, res, next) {
+  try {
+    const result = await adminService.updateUserActivation(
+      req.params.id,
+      req.body.active,
+      req.user,
+      { ip: req.ip, userAgent: req.get('user-agent') },
+    );
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 /** GET /api/admin/stats */
 async function getStats(req, res, next) {
   try {
@@ -93,6 +107,7 @@ module.exports = {
   updateUserRole,
   updateUserPlan,
   deleteUser,
+  updateUserActivation,
   getStats,
   listAuditLogs,
 };

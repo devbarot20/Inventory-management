@@ -56,6 +56,7 @@ export default function Navbar() {
     { href: '/actuals', label: 'Actuals & MAPE' },
     { href: '/import', label: 'Import' },
     { href: '/settings', label: 'Settings' },
+    ...(user?.role === 'admin' ? [{ href: '/admin', label: 'Admin Panel' }] : []),
   ];
   const publicLinks = [
     { href: '/#features', label: 'Features' },
@@ -93,7 +94,9 @@ export default function Navbar() {
         {/* Center: Navigation Links (Desktop) */}
         <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href === '/admin' && pathname.startsWith('/admin/'));
             return (
               <Link
                 key={item.href}
@@ -305,7 +308,9 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl lg:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
           {navLinks.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href === '/admin' && pathname.startsWith('/admin/'));
             return (
               <Link
                 key={item.href}

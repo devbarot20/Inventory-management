@@ -7,12 +7,14 @@ const ACTION_COLORS = {
   USER_ROLE_CHANGE: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
   USER_PLAN_CHANGE: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
   USER_DEACTIVATED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  USER_REACTIVATED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
 };
 
 const ACTION_LABELS = {
   USER_ROLE_CHANGE: 'Role Changed',
   USER_PLAN_CHANGE: 'Plan Changed',
   USER_DEACTIVATED: 'User Deactivated',
+  USER_REACTIVATED: 'User Reactivated',
 };
 
 export default function AdminAuditLogsPage() {
@@ -66,7 +68,7 @@ export default function AdminAuditLogsPage() {
             Audit Trail
           </h1>
           <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-400">
-            Immutable log of all administrative actions ({total} recorded event{total !== 1 ? 's' : ''})
+            Recorded admin actions and their outcomes ({total} event{total !== 1 ? 's' : ''})
           </p>
         </div>
         {/* Action Filter */}
@@ -79,6 +81,7 @@ export default function AdminAuditLogsPage() {
           <option value="USER_ROLE_CHANGE">Role Changes</option>
           <option value="USER_PLAN_CHANGE">Plan Changes</option>
           <option value="USER_DEACTIVATED">Deactivations</option>
+          <option value="USER_REACTIVATED">Reactivations</option>
         </select>
       </div>
 
@@ -94,7 +97,7 @@ export default function AdminAuditLogsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 dark:border-zinc-800">
-                {['Timestamp', 'Action', 'Admin', 'Target User', 'Details', 'IP Address'].map((h) => (
+                {['Timestamp', 'Action', 'Outcome', 'Admin', 'Target User', 'Details', 'IP Address'].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400"
@@ -107,7 +110,7 @@ export default function AdminAuditLogsPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-sm text-slate-400 dark:text-zinc-500">
+                  <td colSpan={7} className="py-10 text-center text-sm text-slate-400 dark:text-zinc-500">
                     No audit records found
                   </td>
                 </tr>
@@ -147,6 +150,17 @@ export default function AdminAuditLogsPage() {
                       <td className="px-4 py-3">
                         <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`}>
                           {label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                          log.status === 'failed'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                            : log.status === 'pending'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        }`}>
+                          {log.status || 'succeeded'}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-800 dark:text-zinc-100">

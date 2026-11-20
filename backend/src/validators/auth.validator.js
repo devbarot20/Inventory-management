@@ -1,7 +1,6 @@
 'use strict';
 
 const { z } = require('zod');
-const { ROLES } = require('../models/User');
 const { PLAN_IDS } = require('../config/plans');
 
 const registerSchema = z.object({
@@ -16,9 +15,6 @@ const registerSchema = z.object({
     .string()
     .min(6, 'Password must be at least 6 characters long')
     .max(128, 'Password cannot exceed 128 characters'),
-  role: z
-    .enum(ROLES, { errorMap: () => ({ message: `Role must be one of: ${ROLES.join(', ')}` }) })
-    .optional(),
 });
 
 const loginSchema = z.object({

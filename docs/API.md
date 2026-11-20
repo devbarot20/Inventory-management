@@ -82,11 +82,10 @@ Register a new user account. Passwords are saved with bcrypt hashing.
 {
   "name": "Jane Doe",
   "email": "jane@example.com",
-  "password": "securepassword123",
-  "role": "user"
+  "password": "securepassword123"
 }
 ```
-* `role` is optional (defaults to `"user"`, choices: `"user"`, `"admin"`).
+New public accounts always receive the `user` role. Administrators must be provisioned through a trusted setup process or promoted by an existing administrator.
 
 **201 Created:**
 
@@ -154,6 +153,19 @@ Retrieve current authenticated user profile. Requires valid token.
 ### `GET /api/auth/admin-check`
 
 Verify administrative permissions. Requires valid token and `admin` role. Returns 403 Forbidden for non-admins.
+
+### Admin endpoints
+
+All `/api/admin/*` endpoints require an authenticated administrator.
+
+- `GET /api/admin/stats` returns platform totals for active accounts and records owned by active accounts.
+- `GET /api/admin/users?search=&status=active&page=1&limit=20` lists users. `status` can be `active`, `deactivated`, or `all`.
+- `GET /api/admin/users/:id` returns account details, including deactivated accounts.
+- `PATCH /api/admin/users/:id/role` and `/plan` update account role or plan.
+- `PATCH /api/admin/users/:id/activation` accepts `{ "active": true }` to reactivate or `false` to deactivate an account.
+- `GET /api/admin/audit-logs?page=1&limit=20&action=` lists administrative events and their outcome (`pending`, `succeeded`, or `failed`).
+
+Admin changes first write an audit event. If the audit store is unavailable, the requested change is rejected. If saving the final outcome fails after a change, the durable audit event remains `pending` for review. Finalized audit records cannot be changed or deleted through the application.
 
 ---
 

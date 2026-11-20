@@ -7,6 +7,13 @@
 require('dotenv').config({ quiet: true });
 
 const nodeEnv = process.env.NODE_ENV || 'development';
+const jwtSecret =
+  process.env.JWT_SECRET ||
+  (nodeEnv === 'production' ? '' : 'dev-jwt-secret-replace-in-production');
+
+if (nodeEnv === 'production' && jwtSecret.length < 32) {
+  throw new Error('JWT_SECRET must be set to at least 32 characters in production!');
+}
 
 const env = {
   nodeEnv,
@@ -18,13 +25,7 @@ const env = {
   mongodbUri:
     process.env.MONGODB_URI ||
     (nodeEnv === 'production' ? '' : 'mongodb://127.0.0.1:27017/inventory_forecaster'),
-  jwtSecret:
-    process.env.JWT_SECRET ||
-    (nodeEnv === 'production'
-      ? (() => {
-          throw new Error('JWT_SECRET must be set in production!');
-        })()
-      : 'dev-jwt-secret-replace-in-production'),
+  jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   // Public URL of the frontend, used in password-reset links.
   appUrl: (process.env.APP_URL || process.env.CORS_ORIGIN || 'http://localhost:3000')

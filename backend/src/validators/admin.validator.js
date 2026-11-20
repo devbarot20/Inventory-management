@@ -16,7 +16,12 @@ const adminUpdatePlanSchema = z.object({
   }),
 });
 
+const adminUpdateActivationSchema = z.object({
+  active: z.boolean(),
+});
+
 module.exports = {
   adminUpdateRoleSchema,
   adminUpdatePlanSchema,
+  adminUpdateActivationSchema,
 };

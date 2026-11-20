@@ -55,16 +55,19 @@ export default function AdminUsersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [statusFilter, setStatusFilter] = useState('active');
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
   const [confirm, setConfirm] = useState(null); // { message, onConfirm }
+  const [detailsUser, setDetailsUser] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const searchTimer = useRef(null);
 
   useEffect(() => {
     let ignore = false;
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    const params = new URLSearchParams({ page: String(page), limit: '20', status: statusFilter });
     if (search) params.set('search', search);
 
     apiFetch(`/api/admin/users?${params}`)
@@ -87,7 +90,7 @@ export default function AdminUsersPage() {
     return () => {
       ignore = true;
     };
-  }, [page, search, refreshKey]);
+  }, [page, search, statusFilter, refreshKey]);
 
   function handleSearchChange(e) {
     const q = e.target.value;
@@ -148,20 +151,38 @@ export default function AdminUsersPage() {
     });
   }
 
-  async function handleDelete(userId) {
+  async function handleActivation(userId, active) {
     setConfirm({
-      message: 'Deactivate this user? They will no longer be able to sign in.',
+      message: active
+        ? 'Reactivate this account? The user will be able to sign in again.'
+        : 'Deactivate this user? They will no longer be able to sign in.',
       onConfirm: async () => {
         setConfirm(null);
         try {
-          await apiFetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-          showToast('User deactivated');
+          await apiFetch(`/api/admin/users/${userId}/activation`, {
+            method: 'PATCH',
+            body: JSON.stringify({ active }),
+          });
+          showToast(active ? 'User reactivated' : 'User deactivated');
           reload();
         } catch (err) {
-          showToast(err.message || 'Failed to deactivate user');
+          showToast(err.message || 'Failed to update user status');
         }
       },
     });
+  }
+
+  async function openUserDetails(userId) {
+    setDetailsLoading(true);
+    setDetailsUser(null);
+    try {
+      const data = await apiFetch(`/api/admin/users/${userId}`);
+      setDetailsUser(data.user);
+    } catch (err) {
+      showToast(err.message || 'Failed to load user details');
+    } finally {
+      setDetailsLoading(false);
+    }
   }
 
   return (
@@ -176,14 +197,29 @@ export default function AdminUsersPage() {
             {total} total user{total !== 1 ? 's' : ''}
           </p>
         </div>
-        {/* Search */}
-        <input
-          type="search"
-          value={searchInput}
-          onChange={handleSearchChange}
-          placeholder="Search name or email…"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 sm:w-72"
-        />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <select
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(1);
+              setLoading(true);
+            }}
+            aria-label="Filter users by account status"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          >
+            <option value="active">Active users</option>
+            <option value="deactivated">Deactivated users</option>
+            <option value="all">All users</option>
+          </select>
+          <input
+            type="search"
+            value={searchInput}
+            onChange={handleSearchChange}
+            placeholder="Search name or email…"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 sm:w-72"
+          />
+        </div>
       </div>
 
       {/* Toast */}
@@ -205,7 +241,7 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 dark:border-zinc-800">
-                {['Name', 'Email', 'Plan', 'Role', 'Verified', 'Joined', 'Actions'].map((h) => (
+                {['Name', 'Email', 'Plan', 'Role', 'Verified', 'Status', 'Joined', 'Actions'].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400"
@@ -218,18 +254,25 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-sm text-slate-400 dark:text-zinc-500">
+                  <td colSpan={8} className="py-10 text-center text-sm text-slate-400 dark:text-zinc-500">
                     No users found
                   </td>
                 </tr>
               ) : (
                 users.map((u) => {
                   const isSelf = me && String(u.id) === String(me.id);
+                  const isDeactivated = Boolean(u.deletedAt);
                   return (
                     <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                       {/* Name */}
                       <td className="px-4 py-3 font-medium text-slate-800 dark:text-zinc-100">
-                        {u.name}
+                        <button
+                          type="button"
+                          onClick={() => openUserDetails(u.id)}
+                          className="text-left font-medium text-indigo-700 hover:underline dark:text-indigo-300"
+                        >
+                          {u.name}
+                        </button>
                         {isSelf && (
                           <span className="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
                             You
@@ -240,7 +283,7 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-3 text-slate-600 dark:text-zinc-400">{u.email}</td>
                       {/* Plan */}
                       <td className="px-4 py-3">
-                        {isSelf ? (
+                        {isSelf || isDeactivated ? (
                           <Badge label={PLAN_LABELS[u.plan] ?? u.plan} colorClass={PLAN_COLORS[u.plan] ?? ''} />
                         ) : (
                           <select
@@ -258,7 +301,7 @@ export default function AdminUsersPage() {
                       </td>
                       {/* Role */}
                       <td className="px-4 py-3">
-                        {isSelf ? (
+                        {isSelf || isDeactivated ? (
                           <Badge label={u.role} colorClass={ROLE_COLORS[u.role] ?? ''} />
                         ) : (
                           <select
@@ -279,6 +322,14 @@ export default function AdminUsersPage() {
                           <span className="text-slate-400 dark:text-zinc-500">✗ No</span>
                         )}
                       </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          label={isDeactivated ? 'Deactivated' : 'Active'}
+                          colorClass={isDeactivated
+                            ? 'bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400'
+                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}
+                        />
+                      </td>
                       {/* Joined */}
                       <td className="px-4 py-3 text-slate-500 dark:text-zinc-400">
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
@@ -289,10 +340,12 @@ export default function AdminUsersPage() {
                           <span className="text-xs text-slate-300 dark:text-zinc-600">—</span>
                         ) : (
                           <button
-                            onClick={() => handleDelete(u.id)}
-                            className="rounded-lg bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60"
+                            onClick={() => handleActivation(u.id, isDeactivated)}
+                            className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${isDeactivated
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400'
+                              : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60'}`}
                           >
-                            Deactivate
+                            {isDeactivated ? 'Reactivate' : 'Deactivate'}
                           </button>
                         )}
                       </td>
@@ -343,6 +396,55 @@ export default function AdminUsersPage() {
           onConfirm={confirm.onConfirm}
           onCancel={() => setConfirm(null)}
         />
+      )}
+
+      {(detailsLoading || detailsUser) && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4" role="presentation">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-user-details-title"
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="admin-user-details-title" className="text-lg font-bold text-slate-900 dark:text-zinc-100">
+                  User details
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">
+                  {detailsLoading ? 'Loading account…' : detailsUser?.email}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailsUser(null)}
+                aria-label="Close user details"
+                className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800"
+              >
+                Close
+              </button>
+            </div>
+            {detailsUser && (
+              <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+                {[
+                  ['Name', detailsUser.name],
+                  ['Email', detailsUser.email],
+                  ['Role', detailsUser.role],
+                  ['Plan', PLAN_LABELS[detailsUser.plan] || detailsUser.plan],
+                  ['Status', detailsUser.deletedAt ? 'Deactivated' : 'Active'],
+                  ['Email verified', detailsUser.emailVerified ? 'Yes' : 'No'],
+                  ['Joined', detailsUser.createdAt ? new Date(detailsUser.createdAt).toLocaleString() : '—'],
+                  ['User ID', detailsUser.id],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
+                    <dd className="mt-1 break-all font-medium text-slate-800 dark:text-zinc-200">{value || '—'}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </section>
+        </div>
       )}
     </div>
   );
