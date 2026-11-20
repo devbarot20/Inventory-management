@@ -57,6 +57,8 @@ const MOCK_PRODUCTS = [
     category: 'Apparel',
     price: 25.0,
     costPrice: 8.5,
+    supplierName: 'Apex Garments',
+    leadTimeDays: 7,
   },
   {
     sku: 'HOODIE-GRY-L',
@@ -64,6 +66,8 @@ const MOCK_PRODUCTS = [
     category: 'Apparel',
     price: 65.0,
     costPrice: 22.0,
+    supplierName: 'Apex Garments',
+    leadTimeDays: 7,
   },
 ];
 
@@ -222,6 +226,7 @@ test.describe('Authenticated Planner Journey', () => {
     await expect(page.locator('text=Supplier Restock & Purchase Order Preview')).toBeVisible();
     await expect(page.locator('text=Auto-Drafted from forecast')).toBeVisible();
     await expect(page.locator('text=TEE-BLK-S').first()).toBeVisible();
+    await expect(page.locator('td:has-text("Apex Garments")').first()).toBeVisible();
 
     // Trigger PO CSV export and verify download
     const downloadPromise = page.waitForEvent('download');

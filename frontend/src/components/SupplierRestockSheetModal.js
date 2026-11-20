@@ -12,7 +12,8 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
   const [onlyAtRisk, setOnlyAtRisk] = useState(true);
   const [bufferPct, setBufferPct] = useState(10);
   const [overrides, setOverrides] = useState({});
-  const [costs, setCosts] = useState({});
+  const [productDetails, setProductDetails] = useState({});
+  const [selectedSupplier, setSelectedSupplier] = useState('ALL');
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -22,9 +23,14 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
         if (ignore) return;
         const map = {};
         (data.products || []).forEach((p) => {
-          if (p.costPrice != null) map[p.sku] = Number(p.costPrice);
+          map[p.sku] = {
+            costPrice: p.costPrice != null ? Number(p.costPrice) : null,
+            supplierName: p.supplierName || 'Primary Supplier',
+            supplierEmail: p.supplierEmail || null,
+            leadTimeDays: p.leadTimeDays != null ? Number(p.leadTimeDays) : 7,
+          };
         });
-        setCosts(map);
+        setProductDetails(map);
       })
       .catch(() => {});
     return () => {
@@ -35,7 +41,7 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
   if (!isOpen || !sale) return null;
 
   const buffer = Math.max(0, Number(bufferPct) || 0) / 100;
-  const restockItems = (forecasts || [])
+  const rawItems = (forecasts || [])
     .filter((f) => f.status === 'ok')
     .map((f) => {
       const stock = f.unitsAvailable ?? 0;
@@ -43,18 +49,45 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
       const suggested = deficit > 0 ? Math.ceil(deficit * (1 + buffer)) : 0;
       const needed =
         overrides[f.sku] !== undefined ? Math.max(0, Number(overrides[f.sku]) || 0) : suggested;
-      const unitCost = costs[f.sku];
+      const details = productDetails[f.sku] || {
+        costPrice: null,
+        supplierName: 'Primary Supplier',
+        supplierEmail: null,
+        leadTimeDays: 7,
+      };
+
+      const leadDays = details.leadTimeDays ?? 7;
+      let orderDeadline = null;
+      let isUrgent = false;
+      if (sale.startDate) {
+        const saleStart = new Date(sale.startDate);
+        const deadlineDate = new Date(saleStart.getTime() - leadDays * 86400000);
+        orderDeadline = deadlineDate.toISOString().slice(0, 10);
+        isUrgent = deadlineDate.getTime() <= new Date().getTime();
+      }
+
       return {
         ...f,
         stock,
         suggested,
         needed,
-        unitCost,
-        lineCost: unitCost != null ? unitCost * needed : null,
+        unitCost: details.costPrice,
+        supplierName: details.supplierName,
+        supplierEmail: details.supplierEmail,
+        leadTimeDays: leadDays,
+        orderDeadline,
+        isUrgent,
+        lineCost: details.costPrice != null ? details.costPrice * needed : null,
       };
     })
     .filter((i) => !onlyAtRisk || i.riskLevel === 'high' || i.riskLevel === 'medium' || i.needed > 0)
     .sort((a, b) => (b.riskLevel === 'high' ? 1 : 0) - (a.riskLevel === 'high' ? 1 : 0));
+
+  const supplierList = Array.from(new Set(rawItems.map((i) => i.supplierName))).filter(Boolean);
+
+  const restockItems = rawItems.filter(
+    (i) => selectedSupplier === 'ALL' || i.supplierName === selectedSupplier,
+  );
 
   const totalRestockUnits = restockItems.reduce((sum, item) => sum + item.needed, 0);
   const totalCost = restockItems.reduce((sum, item) => sum + (item.lineCost || 0), 0);
@@ -80,6 +113,10 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
       { label: 'PO Number', value: () => poNumber },
       { label: 'Sale Event', value: () => sale.name || '' },
       { label: 'Order Date', value: () => today },
+      { label: 'Supplier Name', value: (i) => i.supplierName || 'Primary Supplier' },
+      { label: 'Supplier Email', value: (i) => i.supplierEmail || '' },
+      { label: 'Lead Time (Days)', value: (i) => i.leadTimeDays ?? 7 },
+      { label: 'Order Deadline', value: (i) => i.orderDeadline || '' },
       { label: 'SKU Code', value: (i) => i.sku },
       { label: 'Current Stock', value: (i) => i.stock },
       { label: 'Expected Demand', value: (i) => i.expected },
@@ -148,6 +185,23 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
         {/* Auto-Draft Controls (screen only) */}
         <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 bg-indigo-50/50 px-6 py-3 text-xs print:hidden dark:border-zinc-800 dark:bg-indigo-950/20">
           <span className="font-bold text-indigo-700 dark:text-indigo-300">⚡ Auto-Drafted from forecast</span>
+          {supplierList.length > 0 && (
+            <label className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
+              Supplier:
+              <select
+                value={selectedSupplier}
+                onChange={(e) => setSelectedSupplier(e.target.value)}
+                className="rounded border border-slate-300 bg-white px-2 py-1 font-semibold dark:border-zinc-700 dark:bg-zinc-800"
+              >
+                <option value="ALL">All Suppliers ({supplierList.length})</option>
+                {supplierList.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="flex items-center gap-1.5 text-slate-700 dark:text-zinc-300">
             Safety buffer %
             <input
@@ -195,6 +249,11 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
               <div className="mt-4 text-xs text-slate-600 dark:text-zinc-400">
                 <p><strong>Prepared By:</strong> {user?.name || 'Demand Planner'}</p>
                 <p><strong>Account Email:</strong> {user?.email || 'operations@store.com'}</p>
+                {selectedSupplier !== 'ALL' && (
+                  <p className="mt-1 font-bold text-indigo-700 dark:text-indigo-400">
+                    <strong>Designated Supplier:</strong> {selectedSupplier}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -249,10 +308,11 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
               <thead className="border-b-2 border-slate-200 pb-2 font-bold uppercase tracking-wider text-slate-600 dark:border-zinc-700 dark:text-zinc-400">
                 <tr>
                   <th className="py-2.5">SKU Code</th>
+                  <th className="py-2.5">Supplier / Lead Time</th>
                   <th className="py-2.5">Current Stock</th>
                   <th className="py-2.5">Exp Demand</th>
                   <th className="py-2.5">Peak Demand</th>
-                  <th className="py-2.5">Risk Level</th>
+                  <th className="py-2.5">Risk & Deadline</th>
                   <th className="py-2.5 text-right">Reorder Qty</th>
                   <th className="py-2.5 text-right">Unit Cost ({currSymbol})</th>
                   <th className="py-2.5 text-right">Line Total ({currSymbol})</th>
@@ -264,6 +324,10 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                     <td className="py-3 font-mono font-bold text-slate-900 dark:text-white">
                       {item.sku}
                     </td>
+                    <td className="py-3 text-xs text-slate-600 dark:text-zinc-400">
+                      <p className="font-semibold text-slate-800 dark:text-zinc-200">{item.supplierName || 'Primary Supplier'}</p>
+                      <p className="text-[10px] text-slate-400">{item.leadTimeDays ?? 7}d lead time</p>
+                    </td>
                     <td className="py-3 font-mono text-slate-600 dark:text-zinc-300">
                       {item.stock.toLocaleString()}
                     </td>
@@ -274,17 +338,28 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
                       {item.high.toLocaleString()}
                     </td>
                     <td className="py-3">
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold uppercase ${
-                          item.riskLevel === 'high'
-                            ? 'bg-rose-100 text-rose-800'
-                            : item.riskLevel === 'medium'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        {item.riskLevel} risk
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span
+                          className={`inline-block w-fit rounded px-2 py-0.5 font-mono text-[10px] font-bold uppercase ${
+                            item.riskLevel === 'high'
+                              ? 'bg-rose-100 text-rose-800'
+                              : item.riskLevel === 'medium'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-emerald-100 text-emerald-800'
+                          }`}
+                        >
+                          {item.riskLevel} risk
+                        </span>
+                        {item.orderDeadline && (
+                          <span
+                            className={`text-[10px] font-semibold ${
+                              item.isUrgent ? 'text-red-600 font-bold dark:text-red-400' : 'text-slate-500 dark:text-zinc-400'
+                            }`}
+                          >
+                            {item.isUrgent ? '⚠️ Order ASAP' : `Order by ${item.orderDeadline}`}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 text-right font-mono font-bold">
                       <input
@@ -306,7 +381,7 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
               </tbody>
               <tfoot className="border-t-2 border-slate-900 font-bold dark:border-white">
                 <tr>
-                  <td colSpan={5} className="py-3 text-right uppercase tracking-wider">
+                  <td colSpan={6} className="py-3 text-right uppercase tracking-wider">
                     Total Reorder Volume Required:
                   </td>
                   <td className="py-3 text-right font-mono text-base font-black text-indigo-600 dark:text-indigo-400">

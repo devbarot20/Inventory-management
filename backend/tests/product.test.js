@@ -130,6 +130,45 @@ describe('Product and Stock Management (E1)', () => {
       expect(delRes.status).toBe(200);
       expect(await Product.findById(productId)).toBeNull();
     });
+
+    it('creates product with supplier name, email and lead time days', async () => {
+      const res = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          sku: 'JACKET-01',
+          name: 'Winter Puffer Jacket',
+          supplierName: 'Alpine Apparel Co',
+          supplierEmail: 'orders@alpineapparel.com',
+          leadTimeDays: 14,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.product).toMatchObject({
+        sku: 'JACKET-01',
+        supplierName: 'Alpine Apparel Co',
+        supplierEmail: 'orders@alpineapparel.com',
+        leadTimeDays: 14,
+      });
+
+      const inDb = await Product.findOne({ sku: 'JACKET-01' });
+      expect(inDb.supplierName).toBe('Alpine Apparel Co');
+      expect(inDb.leadTimeDays).toBe(14);
+    });
+
+    it('rejects negative leadTimeDays with 400 Bad Request', async () => {
+      const res = await request(app)
+        .post('/api/products')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          sku: 'JACKET-02',
+          name: 'Invalid Lead Time Jacket',
+          leadTimeDays: -5,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.message).toBe('Validation failed');
+    });
   });
 
   describe('CSV Import (Products, Sales History, Stock Snapshots)', () => {

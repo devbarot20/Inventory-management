@@ -63,6 +63,9 @@ async function listProducts({ search, category } = {}, userId) {
     color: p.color || null,
     price: p.price ?? null,
     costPrice: p.costPrice ?? null,
+    supplierName: p.supplierName || 'Primary Supplier',
+    supplierEmail: p.supplierEmail || null,
+    leadTimeDays: p.leadTimeDays ?? 7,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
     currentStock: stockMap.get(p.sku) || null,
@@ -115,7 +118,20 @@ async function getProductById(id, userId) {
 }
 
 async function createProduct(
-  { sku, name, category, parentGroup, size, color, price, costPrice, initialStock },
+  {
+    sku,
+    name,
+    category,
+    parentGroup,
+    size,
+    color,
+    price,
+    costPrice,
+    supplierName,
+    supplierEmail,
+    leadTimeDays,
+    initialStock,
+  },
   userId,
 ) {
   const owner = toOwnerId(userId);
@@ -133,6 +149,9 @@ async function createProduct(
     color: color || null,
     price: price !== undefined && price !== null ? Number(price) : undefined,
     costPrice: costPrice !== undefined && costPrice !== null ? Number(costPrice) : undefined,
+    supplierName: supplierName || undefined,
+    supplierEmail: supplierEmail || undefined,
+    leadTimeDays: leadTimeDays !== undefined && leadTimeDays !== null ? Number(leadTimeDays) : undefined,
     createdBy: owner,
   });
 
@@ -174,6 +193,9 @@ async function updateProduct(id, updateData, userId) {
   if (updateData.color !== undefined) product.color = updateData.color;
   if (updateData.price !== undefined) product.price = Number(updateData.price);
   if (updateData.costPrice !== undefined) product.costPrice = Number(updateData.costPrice);
+  if (updateData.supplierName !== undefined) product.supplierName = updateData.supplierName;
+  if (updateData.supplierEmail !== undefined) product.supplierEmail = updateData.supplierEmail;
+  if (updateData.leadTimeDays !== undefined) product.leadTimeDays = Number(updateData.leadTimeDays);
 
   await product.save();
   return product;
@@ -183,7 +205,18 @@ async function updateProduct(id, updateData, userId) {
  * Generates an entire SKU variant matrix for a product family (e.g. Size x Color).
  */
 async function generateVariantMatrix(
-  { baseName, baseSkuPrefix, category = 'Apparel', sizes, colors, price, costPrice, initialStock },
+  {
+    baseName,
+    baseSkuPrefix,
+    category = 'Apparel',
+    sizes,
+    colors,
+    price,
+    costPrice,
+    supplierName,
+    leadTimeDays,
+    initialStock,
+  },
   userId,
 ) {
   const owner = toOwnerId(userId);
@@ -217,6 +250,8 @@ async function generateVariantMatrix(
           color: cleanColor,
           price: price !== undefined ? Number(price) : undefined,
           costPrice: costPrice !== undefined ? Number(costPrice) : undefined,
+          supplierName: supplierName || undefined,
+          leadTimeDays: leadTimeDays !== undefined ? Number(leadTimeDays) : undefined,
           createdBy: owner,
         },
         { upsert: true, returnDocument: 'after', runValidators: true },

@@ -24,6 +24,9 @@ const productCreateSchema = z.object({
   color: z.string().trim().max(50).optional(),
   price: z.number().min(0).optional(),
   costPrice: z.number().min(0).optional(),
+  supplierName: z.string().trim().max(100).optional(),
+  supplierEmail: z.string().trim().email('Invalid email address').max(254).optional().or(z.literal('')),
+  leadTimeDays: z.number().int().min(0, 'Lead time cannot be negative').max(365).optional(),
   initialStock: z.number().int().min(0).optional(),
 });
 
@@ -50,6 +53,9 @@ const productUpdateSchema = z.object({
   color: z.string().trim().max(50).optional(),
   price: z.number().min(0).optional(),
   costPrice: z.number().min(0).optional(),
+  supplierName: z.string().trim().max(100).optional(),
+  supplierEmail: z.string().trim().email('Invalid email address').max(254).optional().or(z.literal('')),
+  leadTimeDays: z.number().int().min(0, 'Lead time cannot be negative').max(365).optional(),
 });
 
 const variantMatrixSchema = z.object({
@@ -68,6 +74,8 @@ const variantMatrixSchema = z.object({
   colors: z.array(z.string().trim().min(1)).min(1, 'At least one color is required'),
   price: z.number().min(0).optional(),
   costPrice: z.number().min(0).optional(),
+  supplierName: z.string().trim().max(100).optional(),
+  leadTimeDays: z.number().int().min(0, 'Lead time cannot be negative').max(365).optional(),
   initialStock: z.number().int().min(0).optional(),
 });
 

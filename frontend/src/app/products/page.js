@@ -39,6 +39,9 @@ export default function ProductsPage() {
     color: '',
     price: '',
     costPrice: '',
+    supplierName: '',
+    supplierEmail: '',
+    leadTimeDays: '7',
     initialStock: '',
   });
   const [matrixForm, setMatrixForm] = useState({
@@ -49,6 +52,8 @@ export default function ProductsPage() {
     colors: 'Black, White, Navy',
     price: '28',
     costPrice: '',
+    supplierName: 'Apex Garments Sourcing',
+    leadTimeDays: '7',
     initialStock: '40',
   });
   const [formError, setFormError] = useState(null);
@@ -107,6 +112,9 @@ export default function ProductsPage() {
           color: productForm.color ? productForm.color.trim() : undefined,
           price: productForm.price ? Number(productForm.price) : undefined,
           costPrice: productForm.costPrice ? Number(productForm.costPrice) : undefined,
+          supplierName: productForm.supplierName ? productForm.supplierName.trim() : undefined,
+          supplierEmail: productForm.supplierEmail ? productForm.supplierEmail.trim() : undefined,
+          leadTimeDays: productForm.leadTimeDays ? Number(productForm.leadTimeDays) : undefined,
         }),
       });
 
@@ -131,6 +139,9 @@ export default function ProductsPage() {
         color: '',
         price: '',
         costPrice: '',
+        supplierName: '',
+        supplierEmail: '',
+        leadTimeDays: '7',
         initialStock: '',
       });
       triggerRefresh();
@@ -167,6 +178,8 @@ export default function ProductsPage() {
           colors: colorList,
           price: matrixForm.price ? Number(matrixForm.price) : undefined,
           costPrice: matrixForm.costPrice ? Number(matrixForm.costPrice) : undefined,
+          supplierName: matrixForm.supplierName ? matrixForm.supplierName.trim() : undefined,
+          leadTimeDays: matrixForm.leadTimeDays ? Number(matrixForm.leadTimeDays) : undefined,
           initialStock:
             matrixForm.initialStock !== '' ? Number(matrixForm.initialStock) : undefined,
         }),
@@ -224,6 +237,9 @@ export default function ProductsPage() {
           category: editing.category || 'General',
           price: editing.price !== '' ? Number(editing.price) : undefined,
           costPrice: editing.costPrice !== '' ? Number(editing.costPrice) : undefined,
+          supplierName: editing.supplierName ? editing.supplierName.trim() : undefined,
+          supplierEmail: editing.supplierEmail ? editing.supplierEmail.trim() : undefined,
+          leadTimeDays: editing.leadTimeDays ? Number(editing.leadTimeDays) : undefined,
           size: editing.size ? editing.size.trim() : undefined,
           color: editing.color ? editing.color.trim() : undefined,
         }),
@@ -411,6 +427,7 @@ export default function ProductsPage() {
                   <tr>
                     <th className="pb-3.5 font-bold">SKU / Category</th>
                     <th className="pb-3.5 font-bold">Product Name & Variant</th>
+                    <th className="pb-3.5 font-bold">Supplier & Lead Time</th>
                     <th className="pb-3.5 font-bold">Price</th>
                     <th className="pb-3.5 font-bold">Current Stock</th>
                     <th className="pb-3.5 font-bold">Stock As Of</th>
@@ -448,6 +465,14 @@ export default function ProductsPage() {
                               )}
                             </div>
                           )}
+                        </td>
+                        <td className="py-4 text-xs">
+                          <p className="font-semibold text-slate-800 dark:text-zinc-200">
+                            {p.supplierName || 'Primary Supplier'}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {p.leadTimeDays ?? 7}d restock lead
+                          </p>
                         </td>
                         <td className="py-4 font-mono text-sm text-slate-700 dark:text-zinc-300">
                           {p.price !== undefined && p.price !== null
@@ -510,6 +535,9 @@ export default function ProductsPage() {
                                     p.costPrice !== undefined && p.costPrice !== null
                                       ? String(p.costPrice)
                                       : '',
+                                  supplierName: p.supplierName || '',
+                                  supplierEmail: p.supplierEmail || '',
+                                  leadTimeDays: p.leadTimeDays != null ? String(p.leadTimeDays) : '7',
                                   size: p.size || '',
                                   color: p.color || '',
                                 });
@@ -661,6 +689,35 @@ export default function ProductsPage() {
                       placeholder="e.g. Heather Grey"
                       value={productForm.color}
                       onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                      className="mt-1 w-full rounded border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      Supplier / Vendor Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Apex Garments"
+                      value={productForm.supplierName}
+                      onChange={(e) => setProductForm({ ...productForm, supplierName: e.target.value })}
+                      className="mt-1 w-full rounded border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                      Restock Lead Time (Days)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      placeholder="7"
+                      value={productForm.leadTimeDays}
+                      onChange={(e) => setProductForm({ ...productForm, leadTimeDays: e.target.value })}
                       className="mt-1 w-full rounded border border-zinc-300 p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
                     />
                   </div>
@@ -884,6 +941,35 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
+                      Supplier Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Apex Garments Sourcing"
+                      value={matrixForm.supplierName}
+                      onChange={(e) => setMatrixForm({ ...matrixForm, supplierName: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
+                      Lead Time (Days)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      placeholder="7"
+                      value={matrixForm.leadTimeDays}
+                      onChange={(e) => setMatrixForm({ ...matrixForm, leadTimeDays: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+
                 {/* Summary Preview */}
                 {(() => {
                   const colorCount = matrixForm.colors
@@ -1027,6 +1113,35 @@ export default function ProductsPage() {
                       placeholder="e.g. Black"
                       value={editing.color}
                       onChange={(e) => setEditing({ ...editing, color: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Supplier / Vendor Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Apex Garments"
+                      value={editing.supplierName}
+                      onChange={(e) => setEditing({ ...editing, supplierName: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                      Restock Lead Time (Days)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      placeholder="7"
+                      value={editing.leadTimeDays}
+                      onChange={(e) => setEditing({ ...editing, leadTimeDays: e.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
                     />
                   </div>

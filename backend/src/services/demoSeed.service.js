@@ -22,6 +22,9 @@ const DEMO_PRODUCTS = [
     color: 'Black',
     price: 28,
     costPrice: 11.5,
+    supplierName: 'Apex Garments Sourcing',
+    supplierEmail: 'orders@apexgarments.com',
+    leadTimeDays: 7,
   },
   {
     sku: 'HOODIE-GRY-L',
@@ -31,6 +34,9 @@ const DEMO_PRODUCTS = [
     color: 'Grey',
     price: 58,
     costPrice: 24.0,
+    supplierName: 'Apex Garments Sourcing',
+    supplierEmail: 'orders@apexgarments.com',
+    leadTimeDays: 7,
   },
   {
     sku: 'CAP-NVY-01',
@@ -40,6 +46,9 @@ const DEMO_PRODUCTS = [
     color: 'Navy',
     price: 24,
     costPrice: 8.5,
+    supplierName: 'Pacific Print & Merch',
+    supplierEmail: 'sales@pacificprint.com',
+    leadTimeDays: 5,
   },
   {
     sku: 'MUG-WHT-01',
@@ -49,6 +58,9 @@ const DEMO_PRODUCTS = [
     color: 'White',
     price: 16,
     costPrice: 4.8,
+    supplierName: 'Artisan Ceramics Co',
+    supplierEmail: 'support@artisanceramics.com',
+    leadTimeDays: 12,
   },
   {
     sku: 'TOTE-NAT-01',
@@ -58,6 +70,9 @@ const DEMO_PRODUCTS = [
     color: 'Natural',
     price: 22,
     costPrice: 7.2,
+    supplierName: 'Pacific Print & Merch',
+    supplierEmail: 'sales@pacificprint.com',
+    leadTimeDays: 5,
   },
 ];
 

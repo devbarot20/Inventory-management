@@ -42,6 +42,23 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, 'Cost price cannot be negative'],
     },
+    supplierName: {
+      type: String,
+      trim: true,
+      default: 'Primary Supplier',
+      maxlength: [100, 'Supplier name cannot exceed 100 characters'],
+    },
+    supplierEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: [254, 'Supplier email cannot exceed 254 characters'],
+    },
+    leadTimeDays: {
+      type: Number,
+      min: [0, 'Lead time cannot be negative'],
+      default: 7,
+    },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   baseSchemaOptions,

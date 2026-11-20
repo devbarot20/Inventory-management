@@ -16,6 +16,9 @@ function validateProductRow(row) {
   const rawCostPrice = (row.costPrice || row.cost_price || row.CostPrice || row.cost || '').trim();
   const size = (row.size || row.Size || '').trim();
   const color = (row.color || row.Color || '').trim();
+  const supplierName = (row.supplierName || row.supplier_name || row.supplier || row.Supplier || '').trim();
+  const supplierEmail = (row.supplierEmail || row.supplier_email || '').trim().toLowerCase();
+  const rawLeadTime = (row.leadTimeDays || row.lead_time_days || row.lead_time || row.leadTime || '').trim();
 
   if (!sku) {
     return { valid: false, reason: 'Missing SKU' };
@@ -46,6 +49,14 @@ function validateProductRow(row) {
     }
   }
 
+  let leadTimeDays;
+  if (rawLeadTime !== '') {
+    leadTimeDays = Number(rawLeadTime);
+    if (Number.isNaN(leadTimeDays) || leadTimeDays < 0) {
+      return { valid: false, reason: `Invalid leadTimeDays: "${rawLeadTime}" (cannot be negative)` };
+    }
+  }
+
   return {
     valid: true,
     data: {
@@ -56,6 +67,9 @@ function validateProductRow(row) {
       costPrice,
       size: size || undefined,
       color: color || undefined,
+      supplierName: supplierName || undefined,
+      supplierEmail: supplierEmail || undefined,
+      leadTimeDays,
     },
   };
 }
