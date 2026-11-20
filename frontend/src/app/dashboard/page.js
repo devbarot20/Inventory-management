@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import RiskBadge from '@/components/ui/RiskBadge';
-import ForecastChart from '@/components/ui/ForecastChart';
+import ForecastChart, { applyConfidence } from '@/components/ui/ForecastChart';
 import AuthGuard from '@/components/AuthGuard';
 import { downloadCsv } from '@/lib/exportCsv';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [runningForecast, setRunningForecast] = useState(false);
   const [error, setError] = useState(null);
   const [enableSpendOption, setEnableSpendOption] = useState(false);
+  const [confidencePct, setConfidencePct] = useState(95);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [demoToast, setDemoToast] = useState(null);
   const [showPoModal, setShowPoModal] = useState(false);

@@ -15,6 +15,34 @@ import {
   Legend,
 } from 'recharts';
 
+/**
+ * Map confidence % to a half-width factor applied symmetrically around expected.
+ * 95 → null means use the raw backend low/high values (widest / most conservative).
+ * 90 → ±25% around expected.
+ * 80 → ±15% around expected (tightest).
+ */
+const CONFIDENCE_FACTORS = {
+  95: null,
+  90: 0.25,
+  80: 0.15,
+};
+
+/**
+ * Derive display low/high from a forecast row based on the chosen confidence level.
+ */
+function applyConfidence(f, confidencePct) {
+  if (f.status !== 'ok') return { low: 0, high: 0, expected: 0 };
+  const expected = f.expected ?? 0;
+  const factor = CONFIDENCE_FACTORS[confidencePct];
+  if (factor === null) {
+    // 95% → use raw backend values
+    return { low: f.low ?? 0, high: f.high ?? 0, expected };
+  }
+  const low = Math.max(0, Math.round(expected * (1 - factor)));
+  const high = Math.round(expected * (1 + factor));
+  return { low, high, expected };
+}
+
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
   const row = payload[0]?.payload;
@@ -57,18 +85,28 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-export default function ForecastChart({ forecasts = [] }) {
+/**
+ * ForecastChart – visualises forecast demand bands vs available stock.
+ *
+ * @param {Object[]} forecasts  - Array of forecast rows from the API.
+ * @param {number}   confidencePct - 80 | 90 | 95 (default 95). Controls the
+ *                                   displayed low/high band width around expected.
+ */
+export default function ForecastChart({ forecasts = [], confidencePct = 95 }) {
   const [view, setView] = useState('band'); // 'band' | 'bars'
 
-  const chartData = forecasts.map((f) => ({
-    sku: f.sku,
-    'Available Stock': f.unitsAvailable ?? 0,
-    'Low Demand': f.low ?? 0,
-    'Expected Demand': f.expected ?? 0,
-    'High Demand': f.high ?? 0,
-    'Confidence Band': [f.low ?? 0, f.high ?? 0],
-    hasSnapshot: f.unitsAvailable !== null && f.unitsAvailable !== undefined,
-  }));
+  const chartData = forecasts.map((f) => {
+    const { low, high, expected } = applyConfidence(f, confidencePct);
+    return {
+      sku: f.sku,
+      'Available Stock': f.unitsAvailable ?? 0,
+      'Low Demand': low,
+      'Expected Demand': expected,
+      'High Demand': high,
+      'Confidence Band': [low, high],
+      hasSnapshot: f.unitsAvailable !== null && f.unitsAvailable !== undefined,
+    };
+  });
 
   if (chartData.length === 0) {
     return (
@@ -176,3 +214,9 @@ export default function ForecastChart({ forecasts = [] }) {
     </div>
   );
 }
+
+/**
+ * Exported helper so dashboard can derive adjusted low/high for the data table
+ * and CSV export using the same formula as the chart.
+ */
+export { applyConfidence };
