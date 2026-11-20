@@ -22,4 +22,7 @@ router.delete('/users/:id', adminController.deleteUser);
 // ── Stats ─────────────────────────────────────────────────────────────────────
 router.get('/stats', adminController.getStats);
 
+// ── Audit Logs ────────────────────────────────────────────────────────────────
+router.get('/audit-logs', adminController.listAuditLogs);
+
 module.exports = router;

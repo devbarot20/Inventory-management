@@ -137,4 +137,50 @@ test.describe('Admin Panel Journey', () => {
     // Admin's own row displays "You" pill
     await expect(page.locator('text=You')).toBeVisible();
   });
+
+  test('admin user can view audit logs table and filter actions', async ({ page }) => {
+    const MOCK_AUDIT_LOGS = {
+      logs: [
+        {
+          id: 'log_1',
+          adminEmail: 'admin@shop.com',
+          action: 'USER_ROLE_CHANGE',
+          targetEmail: 'regular@shop.com',
+          details: { oldRole: 'user', newRole: 'admin' },
+          ipAddress: '127.0.0.1',
+          createdAt: '2026-03-01T12:00:00.000Z',
+        },
+      ],
+      total: 1,
+      page: 1,
+      totalPages: 1,
+    };
+
+    await page.route(/\/api\/auth\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: MOCK_ADMIN_USER }),
+      });
+    });
+
+    await page.route(/\/api\/admin\/audit-logs/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_AUDIT_LOGS),
+      });
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('ifc_auth_token', 'mock_admin_token');
+    });
+
+    await page.goto('/admin/logs');
+
+    await expect(page.locator('h1:has-text("Audit Trail")')).toBeVisible();
+    await expect(page.locator('text=Role Changed')).toBeVisible();
+    await expect(page.locator('text=regular@shop.com')).toBeVisible();
+    await expect(page.locator('text=user → admin')).toBeVisible();
+  });
 });

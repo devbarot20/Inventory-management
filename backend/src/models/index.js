@@ -9,4 +9,5 @@ module.exports = {
   ForecastRun: require('./ForecastRun'),
   Forecast: require('./Forecast'),
   Actual: require('./Actual'),
+  AuditLog: require('./AuditLog'),
 };

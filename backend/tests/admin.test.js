@@ -254,6 +254,78 @@ describe('Admin Panel API & Security (Section 21)', () => {
     });
   });
 
+  describe('Audit Logging Trail', () => {
+    it('automatically records audit log when role, plan, or user deactivation occurs', async () => {
+      // 1. Change role
+      await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/role`)
+        .set(as(adminUser))
+        .send({ role: 'admin' });
+
+      // 2. Change plan
+      await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/plan`)
+        .set(as(adminUser))
+        .send({ plan: 'growth' });
+
+      // 3. Deactivate user
+      await request(app)
+        .delete(`/api/admin/users/${regularUser.id}`)
+        .set(as(adminUser));
+
+      // Fetch audit logs
+      const res = await request(app)
+        .get('/api/admin/audit-logs')
+        .set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('logs');
+      expect(res.body.total).toBe(3);
+
+      const actions = res.body.logs.map((l) => l.action);
+      expect(actions).toContain('USER_ROLE_CHANGE');
+      expect(actions).toContain('USER_PLAN_CHANGE');
+      expect(actions).toContain('USER_DEACTIVATED');
+
+      const roleLog = res.body.logs.find((l) => l.action === 'USER_ROLE_CHANGE');
+      expect(roleLog.adminEmail).toBe('admin@jane.com');
+      expect(roleLog.targetEmail).toBe('joe@example.com');
+      expect(roleLog.details).toEqual({ oldRole: 'user', newRole: 'admin' });
+    });
+
+    it('filters audit logs by action parameter', async () => {
+      await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/role`)
+        .set(as(adminUser))
+        .send({ role: 'admin' });
+
+      await request(app)
+        .patch(`/api/admin/users/${regularUser.id}/plan`)
+        .set(as(adminUser))
+        .send({ plan: 'growth' });
+
+      const res = await request(app)
+        .get('/api/admin/audit-logs?action=USER_ROLE_CHANGE')
+        .set(as(adminUser));
+
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBe(1);
+      expect(res.body.logs[0].action).toBe('USER_ROLE_CHANGE');
+    });
+
+    it('rejects unauthenticated access to audit logs with 401', async () => {
+      const res = await request(app).get('/api/admin/audit-logs');
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects regular user access to audit logs with 403', async () => {
+      const res = await request(app)
+        .get('/api/admin/audit-logs')
+        .set(as(regularUser));
+      expect(res.status).toBe(403);
+    });
+  });
+
   describe('Admin Rate Limiter', () => {
     it('returns 429 when admin rate limit threshold is exceeded', async () => {
       const testApp = express();
