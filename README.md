@@ -184,6 +184,21 @@ docker compose up --build
 - **Backend API**: [http://localhost:5001/api/health](http://localhost:5001/api/health)
 - **MongoDB**: `localhost:27017`
 
+### Production deployment with Docker Compose
+
+`docker-compose.production.yml` runs the API and web app against an external MongoDB service. It does not start or expose a database container. Supply settings through your deployment platform's environment or secret manager; the required values are `MONGODB_URI`, `JWT_SECRET` (at least 32 characters), `CORS_ORIGIN` (the public frontend origin), `APP_URL` (the public frontend URL), and `NEXT_PUBLIC_API_URL` (the public API URL ending in `/api`). The frontend API URL is embedded at image build time, so rebuild the image if it changes.
+
+Optional email and billing settings are `RESEND_API_KEY`, `MAIL_FROM`, `EMAIL_VERIFICATION`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET`. To provision the initial admin, also provide `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_BOOTSTRAP_CONFIRM` through the same secret manager, then run `docker compose -f docker-compose.production.yml exec backend npm run admin:create`. The bootstrap command is one-time and refuses to overwrite an existing account.
+
+Once those variables are available to Docker Compose, validate and start the stack with:
+
+```bash
+docker compose -f docker-compose.production.yml config
+docker compose -f docker-compose.production.yml up --build -d
+```
+
+Terminate TLS at a trusted reverse proxy or your hosting platform, and route the public frontend and API hostnames to the corresponding web and API ports. Keep the MongoDB service private and allow network access only from the API deployment.
+
 ---
 
 ## Environment Variables Reference

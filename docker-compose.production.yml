@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-5001}:5001"
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: "${MONGODB_URI:?Set MONGODB_URI to a production MongoDB connection string}"
+      JWT_SECRET: "${JWT_SECRET:?Set JWT_SECRET to a random secret of at least 32 characters}"
+      CORS_ORIGIN: "${CORS_ORIGIN:?Set CORS_ORIGIN to the public frontend origin}"
+      APP_URL: "${APP_URL:?Set APP_URL to the public frontend URL}"
+      JWT_EXPIRES_IN: "${JWT_EXPIRES_IN:-7d}"
+      RESEND_API_KEY: "${RESEND_API_KEY:-}"
+      MAIL_FROM: "${MAIL_FROM:-ForecastIQ <onboarding@resend.dev>}"
+      EMAIL_VERIFICATION: "${EMAIL_VERIFICATION:-}"
+      STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
+      ADMIN_NAME: "${ADMIN_NAME:-}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      ADMIN_BOOTSTRAP_CONFIRM: "${ADMIN_BOOTSTRAP_CONFIRM:-}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL to the public API URL ending in /api}"
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy

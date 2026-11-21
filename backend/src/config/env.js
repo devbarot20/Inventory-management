@@ -15,13 +15,26 @@ if (nodeEnv === 'production' && jwtSecret.length < 32) {
   throw new Error('JWT_SECRET must be set to at least 32 characters in production!');
 }
 
+if (nodeEnv === 'production') {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI must be set in production!');
+  }
+  const productionOrigins = (process.env.CORS_ORIGIN || '').split(',').map((origin) => origin.trim());
+  if (!productionOrigins.some(Boolean) || productionOrigins.includes('*')) {
+    throw new Error('CORS_ORIGIN must list the frontend origin(s) in production!');
+  }
+  if (!process.env.APP_URL) {
+    throw new Error('APP_URL must be set to the public frontend URL in production!');
+  }
+}
+
 const env = {
   nodeEnv,
   isProduction: nodeEnv === 'production',
   isTest: nodeEnv === 'test',
   port: Number(process.env.PORT) || 5001,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  // A local default keeps development friction-free; production must set it explicitly.
+  // A local default keeps development friction-free; production validates it above.
   mongodbUri:
     process.env.MONGODB_URI ||
     (nodeEnv === 'production' ? '' : 'mongodb://127.0.0.1:27017/inventory_forecaster'),
