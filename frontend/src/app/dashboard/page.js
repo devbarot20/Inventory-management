@@ -161,20 +161,33 @@ export default function DashboardPage() {
 
   const selectedSale = sales.find((s) => s.id === selectedSaleId);
 
+  // Compute display forecasts with user-selected confidence interval (80%, 90%, 95%)
+  const displayForecasts = forecasts.map((f) => {
+    const { low, high, expected } = applyConfidence(f, confidencePct);
+    return {
+      ...f,
+      displayLow: low,
+      displayHigh: high,
+      displayExpected: expected,
+    };
+  });
+
   const handleExport = () => {
     const sale = sales.find((x) => x.id === selectedSaleId);
     const safeName = (sale?.name || 'forecast').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-    downloadCsv(`${safeName}-restock-plan.csv`, forecasts, [
+    downloadCsv(`${safeName}-restock-plan-${confidencePct}pct.csv`, displayForecasts, [
       { label: 'SKU', value: (f) => f.sku },
       { label: 'Status', value: (f) => f.status },
-      { label: 'Low demand', value: (f) => f.low },
-      { label: 'Expected demand', value: (f) => f.expected },
-      { label: 'High demand', value: (f) => f.high },
+      { label: `Low demand (${confidencePct}%)`, value: (f) => f.displayLow },
+      { label: 'Expected demand', value: (f) => f.displayExpected },
+      { label: `High demand (${confidencePct}%)`, value: (f) => f.displayHigh },
       { label: 'Units available', value: (f) => f.unitsAvailable },
       {
         label: 'Suggested reorder units',
         value: (f) =>
-          f.status === 'ok' && f.unitsAvailable !== null ? Math.max(0, Math.ceil(f.high - f.unitsAvailable)) : '',
+          f.status === 'ok' && f.unitsAvailable !== null
+            ? Math.max(0, Math.ceil((f.displayHigh ?? f.high) - f.unitsAvailable))
+            : '',
       },
       { label: 'Risk level', value: (f) => f.riskLevel },
       { label: 'Expected run-out', value: (f) => f.expectedRunOutTime },
@@ -213,13 +226,13 @@ export default function DashboardPage() {
       render: (row) =>
         row.status === 'ok' ? (
           <div className="flex items-center gap-1.5 font-mono text-sm sm:text-base">
-            <span className="text-slate-500">{row.low}</span>
+            <span className="text-slate-500">{row.displayLow ?? row.low}</span>
             <span className="text-slate-400">/</span>
             <span className="font-extrabold text-indigo-600 dark:text-indigo-400">
-              {row.expected}
+              {row.displayExpected ?? row.expected}
             </span>
             <span className="text-slate-400">/</span>
-            <span className="text-slate-500">{row.high}</span>
+            <span className="text-slate-500">{row.displayHigh ?? row.high}</span>
           </div>
         ) : (
           <span className="text-sm text-slate-400 italic">Not enough data</span>
@@ -466,6 +479,36 @@ export default function DashboardPage() {
       <Card
         title="Demand Forecast Range vs. Available Stock"
         subtitle="Visual comparison of available inventory vs. Low / Expected / High demand scenarios"
+        action={
+          forecasts.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+                Confidence:
+              </span>
+              <div
+                className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-800/70"
+                role="group"
+                aria-label="Confidence Interval Selector"
+              >
+                {[80, 90, 95].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setConfidencePct(pct)}
+                    data-testid={`confidence-btn-${pct}`}
+                    className={`rounded-lg px-2.5 py-1 transition ${
+                      confidencePct === pct
+                        ? 'bg-white text-indigo-600 shadow-xs dark:bg-zinc-900 dark:text-indigo-400'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        }
       >
         {loadingForecast ? (
           <div className="py-24 text-center text-base text-slate-500">Loading forecast chart…</div>
@@ -483,7 +526,7 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : (
-          <ForecastChart forecasts={forecasts} />
+          <ForecastChart forecasts={forecasts} confidencePct={confidencePct} />
         )}
       </Card>
 
@@ -509,7 +552,7 @@ export default function DashboardPage() {
               Export CSV
             </button>
           </div>
-          <Table columns={tableColumns} data={forecasts} keyField="sku" />
+          <Table columns={tableColumns} data={displayForecasts} keyField="sku" />
         </Card>
       )}
 
@@ -567,7 +610,7 @@ export default function DashboardPage() {
         isOpen={showPoModal}
         onClose={() => setShowPoModal(false)}
         sale={selectedSale}
-        forecasts={forecasts}
+        forecasts={displayForecasts}
         user={user}
       />
     </main>

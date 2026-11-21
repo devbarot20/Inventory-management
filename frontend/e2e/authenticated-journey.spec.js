@@ -216,6 +216,29 @@ test.describe('Authenticated Planner Journey', () => {
     await expect(page.locator('text=HOODIE-GRY-L').first()).toBeVisible();
   });
 
+  test('authenticated user can dynamically adjust forecast confidence interval (80%, 90%, 95%)', async ({ page }) => {
+    await page.goto('/dashboard');
+
+    // Default 95% shows raw backend low/high (80 / 150 / 220 for TEE-BLK-S)
+    await expect(page.locator('text=80').first()).toBeVisible();
+    await expect(page.locator('text=220').first()).toBeVisible();
+
+    // Click 80% confidence button (tight band: 150 ± 15% -> 128 / 173)
+    await page.locator('[data-testid="confidence-btn-80"]').click();
+    await expect(page.locator('text=128').first()).toBeVisible();
+    await expect(page.locator('text=173').first()).toBeVisible();
+
+    // Click 90% confidence button (mid band: 150 ± 25% -> 113 / 188)
+    await page.locator('[data-testid="confidence-btn-90"]').click();
+    await expect(page.locator('text=113').first()).toBeVisible();
+    await expect(page.locator('text=188').first()).toBeVisible();
+
+    // Switch back to 95%
+    await page.locator('[data-testid="confidence-btn-95"]').click();
+    await expect(page.locator('text=80').first()).toBeVisible();
+    await expect(page.locator('text=220').first()).toBeVisible();
+  });
+
   test('authenticated user can open supplier restock sheet and trigger direct PO CSV download', async ({ page }) => {
     await page.goto('/dashboard');
 

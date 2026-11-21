@@ -45,7 +45,8 @@ export default function SupplierRestockSheetModal({ isOpen, onClose, sale, forec
     .filter((f) => f.status === 'ok')
     .map((f) => {
       const stock = f.unitsAvailable ?? 0;
-      const deficit = Math.max(0, Math.ceil(f.high - stock));
+      const targetHigh = f.displayHigh ?? f.high;
+      const deficit = Math.max(0, Math.ceil(targetHigh - stock));
       const suggested = deficit > 0 ? Math.ceil(deficit * (1 + buffer)) : 0;
       const needed =
         overrides[f.sku] !== undefined ? Math.max(0, Number(overrides[f.sku]) || 0) : suggested;
