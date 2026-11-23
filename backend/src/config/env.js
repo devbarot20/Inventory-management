@@ -24,7 +24,11 @@ if (nodeEnv === 'production') {
     throw new Error('CORS_ORIGIN must list the frontend origin(s) in production!');
   }
   if (!process.env.APP_URL) {
-    throw new Error('APP_URL must be set to the public frontend URL in production!');
+    if (productionOrigins[0]) {
+      process.env.APP_URL = productionOrigins[0];
+    } else {
+      throw new Error('APP_URL must be set to the public frontend URL in production!');
+    }
   }
 }
 
