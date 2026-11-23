@@ -9,6 +9,9 @@ const router = Router();
 // Active stockout risk alerts across user's sale events
 router.get('/alerts', authenticate, forecastController.getAlerts);
 
+// Automated / scheduled stockout check trigger
+router.post('/check-stockouts', authenticate, forecastController.checkStockouts);
+
 // Execute forecast run for a sale event
 router.post('/run/:saleEventId', authenticate, forecastController.runForecast);
 

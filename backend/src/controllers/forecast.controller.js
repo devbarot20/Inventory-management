@@ -1,6 +1,7 @@
 'use strict';
 
 const forecastRunService = require('../services/forecastRun.service');
+const scheduledStockoutCheckerService = require('../services/scheduledStockoutChecker.service');
 
 async function runForecast(req, res, next) {
   try {
@@ -57,10 +58,27 @@ async function getAlerts(req, res, next) {
   }
 }
 
+async function checkStockouts(req, res, next) {
+  try {
+    const windowHours = req.body?.windowHours ? Number(req.body.windowHours) : 48;
+    // Admins can trigger a sweep for all users; normal users only evaluate their own sales
+    const userId = req.user.role === 'admin' && req.body?.allUsers ? null : req.user.id;
+    const result = await scheduledStockoutCheckerService.checkUpcomingStockouts({
+      windowHours,
+      userId,
+      autoRunMissing: req.body?.autoRunMissing ?? true,
+    });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   runForecast,
   getLatestForecast,
   getForecastRun,
   listForecastRuns,
   getAlerts,
+  checkStockouts,
 };
