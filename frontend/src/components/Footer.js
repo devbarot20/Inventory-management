@@ -34,6 +34,7 @@ const COLUMNS = [
   {
     title: 'Utility',
     links: [
+      { label: 'Admin Portal', href: '/admin/login' },
       { label: 'FAQ', href: '/#faq' },
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '/terms' },

@@ -52,17 +52,28 @@ async function verifyEmail(token) {
   return user;
 }
 
-async function register({ name, email, password }) {
+async function register({ name, email, password, adminKey }) {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw ApiError.conflict('An account with this email already exists');
+  }
+
+  let role = 'user';
+  if (adminKey) {
+    const validKey = process.env.ADMIN_REGISTRATION_KEY || 'forecastiq-admin-secret-2026';
+    if (adminKey !== validKey) {
+      throw ApiError.badRequest('Invalid Admin Secret Key. Registration as administrator denied.');
+    }
+    role = 'admin';
   }
 
   const user = await User.create({
     name,
     email,
     password,
-    emailVerificationRequired: env.emailVerificationEnabled,
+    role,
+    emailVerificationRequired: role === 'admin' ? false : env.emailVerificationEnabled,
+    emailVerifiedAt: role === 'admin' ? new Date() : undefined,
   });
 
   if (env.emailVerificationEnabled) {

@@ -53,6 +53,30 @@ describe('Auth API and Authorization', () => {
       expect(res.body.user.role).toBe('user');
     });
 
+    it('allows registration with valid adminKey to provision an admin account', async () => {
+      const res = await request(app).post('/api/auth/register').send({
+        name: 'Platform Administrator',
+        email: 'superadmin@example.com',
+        password: 'password123',
+        adminKey: process.env.ADMIN_REGISTRATION_KEY || 'forecastiq-admin-secret-2026',
+      });
+
+      expect(res.status).toBe(201);
+      expect(res.body.user.role).toBe('admin');
+    });
+
+    it('rejects registration with invalid adminKey with 400 Bad Request', async () => {
+      const res = await request(app).post('/api/auth/register').send({
+        name: 'Hacker Wannabe',
+        email: 'hacker@example.com',
+        password: 'password123',
+        adminKey: 'wrong-key-attempt',
+      });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.message).toContain('Invalid Admin Secret Key');
+    });
+
     it('rejects registration with existing email with 409 Conflict', async () => {
       await request(app).post('/api/auth/register').send({
         name: 'Bob',

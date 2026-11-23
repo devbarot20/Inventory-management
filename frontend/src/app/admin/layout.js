@@ -37,6 +37,20 @@ const NAV_LINKS = [
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const isLoginPage = pathname === '/admin/login';
+
+  if (isLoginPage) {
+    return (
+      <AdminGuard>
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+          <Navbar />
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </div>
+      </AdminGuard>
+    );
+  }
 
   return (
     <AdminGuard>

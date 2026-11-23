@@ -1,23 +1,26 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 /**
  * AdminGuard — wraps any page/layout that requires admin role.
  * - Shows a spinner while auth is loading.
- * - Redirects to /dashboard if the user is not logged in or not an admin.
+ * - Redirects to /dashboard if the user is not logged in or not an admin (unless on /admin/login).
  */
 export default function AdminGuard({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    if (!loading && (!user || user.role !== 'admin') && !isLoginPage) {
       router.replace('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isLoginPage]);
 
   if (loading) {
     return (
@@ -30,7 +33,7 @@ export default function AdminGuard({ children }) {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if ((!user || user.role !== 'admin') && !isLoginPage) {
     // Will redirect via useEffect; render nothing in the meantime
     return null;
   }
