@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
     const params = new URLSearchParams({ page: String(page), limit: '20', status: statusFilter });
     if (search) params.set('search', search);
 
-    apiFetch(`/api/admin/users?${params}`)
+    apiFetch(`/admin/users?${params}`)
       .then((data) => {
         if (!ignore) {
           setUsers(data.users || []);
@@ -119,7 +119,7 @@ export default function AdminUsersPage() {
       onConfirm: async () => {
         setConfirm(null);
         try {
-          await apiFetch(`/api/admin/users/${userId}/role`, {
+          await apiFetch(`/admin/users/${userId}/role`, {
             method: 'PATCH',
             body: JSON.stringify({ role: newRole }),
           });
@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
       onConfirm: async () => {
         setConfirm(null);
         try {
-          await apiFetch(`/api/admin/users/${userId}/plan`, {
+          await apiFetch(`/admin/users/${userId}/plan`, {
             method: 'PATCH',
             body: JSON.stringify({ plan: newPlan }),
           });
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
       onConfirm: async () => {
         setConfirm(null);
         try {
-          await apiFetch(`/api/admin/users/${userId}/activation`, {
+          await apiFetch(`/admin/users/${userId}/activation`, {
             method: 'PATCH',
             body: JSON.stringify({ active }),
           });
@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
     setDetailsLoading(true);
     setDetailsUser(null);
     try {
-      const data = await apiFetch(`/api/admin/users/${userId}`);
+      const data = await apiFetch(`/admin/users/${userId}`);
       setDetailsUser(data.user);
     } catch (err) {
       showToast(err.message || 'Failed to load user details');

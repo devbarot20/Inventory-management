@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { downloadCsv } from '@/lib/exportCsv';
 
 const ACTION_COLORS = {
   USER_ROLE_CHANGE: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
@@ -31,7 +32,7 @@ export default function AdminAuditLogsPage() {
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (actionFilter) params.set('action', actionFilter);
 
-    apiFetch(`/api/admin/audit-logs?${params}`)
+    apiFetch(`/admin/audit-logs?${params}`)
       .then((data) => {
         if (!ignore) {
           setLogs(data.logs || []);
@@ -59,6 +60,18 @@ export default function AdminAuditLogsPage() {
     setLoading(true);
   }
 
+  const handleExportCsv = () => {
+    downloadCsv(`platform-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`, logs, [
+      { label: 'Timestamp', value: (l) => l.createdAt },
+      { label: 'Admin Email', value: (l) => l.adminEmail },
+      { label: 'Action', value: (l) => l.action },
+      { label: 'Target Email', value: (l) => l.targetEmail || l.targetId },
+      { label: 'IP Address', value: (l) => l.ipAddress || '—' },
+      { label: 'User Agent', value: (l) => l.userAgent || '—' },
+      { label: 'Details', value: (l) => JSON.stringify(l.details || {}) },
+    ]);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -71,18 +84,28 @@ export default function AdminAuditLogsPage() {
             Recorded admin actions and their outcomes ({total} event{total !== 1 ? 's' : ''})
           </p>
         </div>
-        {/* Action Filter */}
-        <select
-          value={actionFilter}
-          onChange={handleFilterChange}
-          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:w-56"
-        >
-          <option value="">All Actions</option>
-          <option value="USER_ROLE_CHANGE">Role Changes</option>
-          <option value="USER_PLAN_CHANGE">Plan Changes</option>
-          <option value="USER_DEACTIVATED">Deactivations</option>
-          <option value="USER_REACTIVATED">Reactivations</option>
-        </select>
+        {/* Actions Bar */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={logs.length === 0}
+            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+          >
+            Export Logs (CSV)
+          </button>
+          <select
+            value={actionFilter}
+            onChange={handleFilterChange}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 sm:w-56"
+          >
+            <option value="">All Actions</option>
+            <option value="USER_ROLE_CHANGE">Role Changes</option>
+            <option value="USER_PLAN_CHANGE">Plan Changes</option>
+            <option value="USER_DEACTIVATED">Deactivations</option>
+            <option value="USER_REACTIVATED">Reactivations</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}

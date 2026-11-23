@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AdminGuard from '@/components/AdminGuard';
-import Navbar from '@/components/Navbar';
 
 const NAV_LINKS = [
   {
@@ -43,7 +42,6 @@ export default function AdminLayout({ children }) {
     return (
       <AdminGuard>
         <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
-          <Navbar />
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             {children}
           </div>
@@ -55,7 +53,6 @@ export default function AdminLayout({ children }) {
   return (
     <AdminGuard>
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
-        <Navbar />
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 lg:flex-row">
             {/* Sidebar */}

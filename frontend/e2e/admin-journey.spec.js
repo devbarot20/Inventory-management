@@ -95,6 +95,20 @@ test.describe('Admin Panel Journey', () => {
       });
     });
 
+    await page.route(/\/api\/health/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'ok',
+          service: 'inventory-forecaster-api',
+          environment: 'production',
+          database: 'connected',
+          uptimeSeconds: 120,
+        }),
+      });
+    });
+
     await page.addInitScript(() => {
       window.localStorage.setItem('ifc_auth_token', 'mock_admin_token');
     });

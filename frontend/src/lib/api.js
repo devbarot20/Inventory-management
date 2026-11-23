@@ -57,7 +57,14 @@ export async function apiFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  // Prevent duplicate /api/api if callers pass a path already prefixed with /api
+  const normalizedPath = path.startsWith('/api/')
+    ? path.slice(4)
+    : path.startsWith('/')
+    ? path
+    : `/${path}`;
+
+  const res = await fetch(`${API_URL}${normalizedPath}`, {
     ...options,
     headers,
   });
