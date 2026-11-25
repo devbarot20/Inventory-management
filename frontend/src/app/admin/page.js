@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
 
 function formatUptime(seconds) {
   if (!seconds && seconds !== 0) return '—';
@@ -18,7 +17,6 @@ function formatUptime(seconds) {
 }
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [health, setHealth] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
@@ -31,19 +29,6 @@ export default function AdminDashboardPage() {
   const [scanResult, setScanResult] = useState(null);
   const [scanError, setScanError] = useState(null);
 
-  // AI Copilot State
-  const [copilotInput, setCopilotInput] = useState('');
-  const [copilotHistory, setCopilotHistory] = useState([
-    {
-      sender: 'ai',
-      text: 'Hi, Admin. I am your ForecastIQ Copilot. Ask me about stockout risks, subscription tier quotas, or platform telemetry.',
-    },
-  ]);
-  const [copilotThinking, setCopilotThinking] = useState(false);
-
-  // Time Range Selector State
-  const [timeRange, setTimeRange] = useState('Today');
-
   useEffect(() => {
     let ignore = false;
     Promise.all([
@@ -51,7 +36,7 @@ export default function AdminDashboardPage() {
         throw new Error(`Stats: ${err.message}`);
       }),
       apiFetch('/health').catch(() => null),
-      apiFetch('/admin/audit-logs?limit=4').catch(() => ({ logs: [] })),
+      apiFetch('/admin/audit-logs?limit=5').catch(() => ({ logs: [] })),
       apiFetch('/admin/campaigns?limit=3').catch(() => ({ campaigns: [] })),
     ])
       .then(([statsData, healthData, logsData, campaignsData]) => {
@@ -65,7 +50,7 @@ export default function AdminDashboardPage() {
       })
       .catch((err) => {
         if (!ignore) {
-          setError(err.message || 'Failed to load admin overview metrics');
+          setError(err.message || 'Failed to load platform telemetry');
         }
       })
       .finally(() => {
@@ -94,45 +79,10 @@ export default function AdminDashboardPage() {
       });
       setScanResult(result);
     } catch (err) {
-      setScanError(err.message || 'Global stockout scan failed');
+      setScanError(err.message || 'Diagnostic scan failed');
     } finally {
       setScanning(false);
     }
-  };
-
-  const handleCopilotAsk = (questionText) => {
-    const q = (questionText || copilotInput).trim();
-    if (!q) return;
-
-    setCopilotHistory((prev) => [...prev, { sender: 'user', text: q }]);
-    setCopilotInput('');
-    setCopilotThinking(true);
-
-    setTimeout(() => {
-      const lower = q.toLowerCase();
-      let answer = '';
-
-      if (lower.includes('stockout') || lower.includes('risk') || lower.includes('warn')) {
-        const warnings = scanResult?.totalWarningsCount ?? 0;
-        answer = `Stockout scan status: ${
-          scanResult
-            ? `Found ${warnings} at-risk items across ${scanResult.usersScanned} accounts.`
-            : 'No scan run yet today. Click "Run Global Stockout Scan" to evaluate all active 48-hour promotional windows.'
-        }`;
-      } else if (lower.includes('plan') || lower.includes('growth') || lower.includes('tier') || lower.includes('scale')) {
-        const p = stats?.planBreakdown || {};
-        answer = `Current tenant plan split: Starter: ${p.starter ?? 0}, Growth: ${p.growth ?? 0}, Scale: ${p.scale ?? 0}. Scale and Growth represent ${Math.round((((p.growth || 0) + (p.scale || 0)) / (stats?.totalUsers || 1)) * 100)}% of total platform volume.`;
-      } else if (lower.includes('health') || lower.includes('uptime') || lower.includes('db') || lower.includes('database')) {
-        answer = `MongoDB is ${health?.database || 'connected'} with 99.98% uptime. Server uptime is ${formatUptime(health?.uptimeSeconds)}. All 18 backend test suites (168 tests) are green.`;
-      } else if (lower.includes('campaign') || lower.includes('sale') || lower.includes('event')) {
-        answer = `There are ${stats?.totalCampaigns ?? 0} active flash sales and promotional blitzes tracked. Average discount across active campaigns is 25%.`;
-      } else {
-        answer = `Platform summary: ${stats?.totalUsers ?? 0} active users, ${stats?.totalProducts ?? 0} SKUs monitored, and ${stats?.totalForecasts ?? 0} AI forecast runs completed. How else can I assist?`;
-      }
-
-      setCopilotHistory((prev) => [...prev, { sender: 'ai', text: answer }]);
-      setCopilotThinking(false);
-    }, 550);
   };
 
   const totalPlanUsers = useMemo(() => {
@@ -145,29 +95,16 @@ export default function AdminDashboardPage() {
   const growthCount = stats?.planBreakdown?.growth || 0;
   const scaleCount = stats?.planBreakdown?.scale || 0;
 
-  // Donut Arc Percentages for SVG circle
   const growthPct = Math.round((growthCount / totalPlanUsers) * 100);
   const scalePct = Math.round((scaleCount / totalPlanUsers) * 100);
   const starterPct = 100 - growthPct - scalePct;
 
-  const adminName = user?.name || user?.email?.split('@')[0] || 'Admin';
-
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    const day = d.getDate();
-    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const month = d.toLocaleDateString('en-US', { month: 'long' });
-    return { day, weekdayMonth: `${weekday}, ${month}` };
-  }, []);
-
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
-          <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Loading Admin Command Center...
-          </p>
+      <div className="flex min-h-[45vh] items-center justify-center">
+        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-zinc-400">
+          <div className="h-4 w-4 animate-spin rounded-full border border-slate-300 border-t-indigo-600 dark:border-zinc-700 dark:border-t-indigo-400" />
+          <span>Loading telemetry...</span>
         </div>
       </div>
     );
@@ -175,777 +112,368 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
-        <div className="font-semibold">Unable to load admin metrics:</div>
-        <p className="mt-1">{error}</p>
+      <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-5 text-sm text-rose-800 dark:border-rose-950/60 dark:bg-rose-950/20 dark:text-rose-300">
+        <div className="font-medium">Platform telemetry unavailable</div>
+        <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{error}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-3 rounded-lg bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+          className="mt-3 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700"
         >
-          Retry Connection
+          Retry
         </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Hero Welcome Bar */}
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/70 pb-5 dark:border-zinc-800">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-            Platform Command Center • Real-Time Engine
-          </p>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-zinc-50 sm:text-3xl">
-              Admin Overview
-            </h1>
-          </div>
-          <p className="mt-0.5 text-base font-medium text-slate-600 dark:text-zinc-300">
-            Welcome Back, <span className="font-bold text-slate-900 dark:text-white">{adminName}</span> 👋
+          <h1 className="text-xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 sm:text-2xl">
+            Admin Overview
+          </h1>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+            Platform telemetry, multi-tenant inventory health, and operational diagnostics
           </p>
         </div>
 
-        {/* Date Pill + Primary Action Button */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          {/* Date Pill Card */}
-          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white px-3.5 py-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-xs font-extrabold text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300">
-              {todayStr.day}
-            </div>
-            <div className="text-left pr-1">
-              <p className="text-xs font-bold leading-tight text-slate-800 dark:text-zinc-200">
-                {todayStr.weekdayMonth}
-              </p>
-              <p className="text-[10px] font-medium leading-none text-emerald-600 dark:text-emerald-400">
-                ● Live Operations
-              </p>
-            </div>
-          </div>
-
-          {/* Primary Action Button: Run Global Stockout Scan */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleRunGlobalStockoutScan}
             disabled={scanning}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 hover:shadow-md disabled:opacity-60 sm:text-sm"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-medium text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-50"
           >
             {scanning ? (
               <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>Scanning All Tenants...</span>
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border border-white border-t-transparent" />
+                <span>Running diagnostic...</span>
               </>
             ) : (
-              <>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span>Run Global Stockout Scan</span>
-              </>
+              <span>Run Global Stockout Scan</span>
             )}
           </button>
         </div>
-      </section>
+      </div>
 
-      {/* Stockout Scan Output Feedback (if executed) */}
+      {/* Stockout Scan Feedback Banner */}
       {scanResult && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-xs shadow-xs dark:border-emerald-900/40 dark:bg-emerald-950/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
-              <span>✓ Global 48h Stockout Scan Complete</span>
-            </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-700 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800">
+            <span className="font-medium text-slate-900 dark:text-zinc-100">
+              48-hour promotional inventory diagnostic complete
+            </span>
             <button
               onClick={() => setScanResult(null)}
-              className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400"
+              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
             >
               Dismiss
             </button>
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-slate-700 dark:text-zinc-300 sm:grid-cols-4">
-            <div>Scanned Accounts: <span className="font-bold">{scanResult.usersScanned}</span></div>
-            <div>Scanned Sales: <span className="font-bold">{scanResult.salesScanned}</span></div>
-            <div>Missing Forecasts Run: <span className="font-bold">{scanResult.forecastsRun}</span></div>
-            <div>At-Risk Items: <span className="font-bold text-rose-600 dark:text-rose-400">{scanResult.totalWarningsCount}</span></div>
+          <div className="mt-3 grid grid-cols-2 gap-4 font-mono sm:grid-cols-4">
+            <div>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Accounts scanned</span>
+              <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{scanResult.usersScanned}</p>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Campaigns verified</span>
+              <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{scanResult.salesScanned}</p>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Simulations generated</span>
+              <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{scanResult.forecastsRun}</p>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Stockout risks identified</span>
+              <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{scanResult.totalWarningsCount}</p>
+            </div>
           </div>
         </div>
       )}
+
       {scanError && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
-          Scan Error: {scanError}
+        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3.5 text-xs text-rose-800 dark:border-rose-950/60 dark:bg-rose-950/20 dark:text-rose-300">
+          Diagnostic error: {scanError}
         </div>
       )}
 
-      {/* ROW 1: BENTO STAT CARDS (4 Cards with Micro-Visualizations) */}
+      {/* Row 1: Four Stat Cards (Numbers only, calm, quiet craft) */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Card 1: Brand Accent Card (Deep Indigo/Violet Gradient) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-5 text-white shadow-md shadow-indigo-600/20">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-wide text-white/90">Total Users</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 text-white backdrop-blur-xs">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </span>
-          </div>
-
-          <div className="mt-3 flex items-baseline justify-between">
-            <div>
-              <p className="text-3xl font-black tracking-tight sm:text-4xl">
-                {stats?.totalUsers ?? '0'}
-              </p>
-              <p className="mt-1 text-[11px] font-medium text-white/80">
-                {stats?.verifiedUsers || 0} active & verified
-              </p>
-            </div>
-
-            {/* Micro Sine Wave SVG */}
-            <div className="w-24 shrink-0">
-              <svg viewBox="0 0 100 35" className="h-9 w-full text-white/80" fill="none">
-                <path
-                  d="M0 20 Q 25 5, 50 20 T 100 15"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <circle cx="50" cy="20" r="3.5" fill="white" />
-                <circle cx="100" cy="15" r="3.5" fill="white" />
-              </svg>
-            </div>
-          </div>
+        {/* Total Users */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Total Users</span>
+          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+            {stats?.totalUsers ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+            {stats?.verifiedUsers || 0} active accounts
+          </p>
         </div>
 
-        {/* Card 2: Total Products (Catalog SKUs) */}
-        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Total Products</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </span>
-          </div>
-
-          <div className="mt-3 flex items-baseline justify-between">
-            <div>
-              <p className="text-3xl font-black tracking-tight text-slate-900 dark:text-zinc-50 sm:text-4xl">
-                {stats?.totalProducts ?? '0'}
-              </p>
-              <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-zinc-500">
-                Monitored catalog SKUs
-              </p>
-            </div>
-
-            {/* Micro Bar Histogram */}
-            <div className="flex items-end gap-1">
-              {[25, 45, 30, 60, 40, 75, 50, 85].map((h, i) => (
-                <div
-                  key={i}
-                  style={{ height: `${h * 0.35}px` }}
-                  className={`w-1.5 rounded-full ${
-                    i >= 5 ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-zinc-700'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Total Products */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Total Products</span>
+          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+            {stats?.totalProducts ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+            Active cross-tenant SKUs
+          </p>
         </div>
 
-        {/* Card 3: Flash Campaigns */}
-        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Flash Campaigns</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </span>
-          </div>
-
-          <div className="mt-3 flex items-baseline justify-between">
-            <div>
-              <p className="text-3xl font-black tracking-tight text-slate-900 dark:text-zinc-50 sm:text-4xl">
-                {stats?.totalCampaigns ?? '0'}
-              </p>
-              <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-zinc-500">
-                Scheduled promotions
-              </p>
-            </div>
-
-            {/* Micro Pulse Indicators */}
-            <div className="flex items-center gap-1.5">
-              {[1, 2, 3, 4, 5].map((idx) => (
-                <span
-                  key={idx}
-                  className={`inline-block h-6 w-1 rounded-full ${
-                    idx === 3 || idx === 4 ? 'bg-amber-500' : 'bg-slate-200 dark:bg-zinc-700'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Flash Campaigns */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Flash Campaigns</span>
+          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+            {stats?.totalCampaigns ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+            Promotional sales windows
+          </p>
         </div>
 
-        {/* Card 4: Forecast Simulations */}
-        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Forecast Runs</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </span>
-          </div>
-
-          <div className="mt-3 flex items-baseline justify-between">
-            <div>
-              <p className="text-3xl font-black tracking-tight text-slate-900 dark:text-zinc-50 sm:text-4xl">
-                {stats?.totalForecasts ?? '0'}
-              </p>
-              <p className="mt-1 text-[11px] font-medium text-slate-400 dark:text-zinc-500">
-                WAPE accuracy 94.2%
-              </p>
-            </div>
-
-            {/* Micro Fluid Wave Chart */}
-            <div className="w-20 shrink-0">
-              <svg viewBox="0 0 80 30" className="h-7 w-full text-violet-500/30" fill="currentColor">
-                <path d="M0,20 Q20,5 40,15 T80,10 L80,30 L0,30 Z" />
-              </svg>
-            </div>
-          </div>
+        {/* Forecast Runs */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Forecast Runs</span>
+          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+            {stats?.totalForecasts ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+            94.2% historical accuracy
+          </p>
         </div>
       </section>
 
-      {/* ROW 2: 3-COLUMN BENTO GRID */}
+      {/* Row 2: Two Columns (Plan Breakdown vs Platform Diagnostics) */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* LEFT COLUMN (4 of 12 cols): Daily Operations & Protocols */}
-        <div className="space-y-5 lg:col-span-4">
-          {/* Daily Controls Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
-                Platform Daily Controls
-              </h3>
-              <span className="text-slate-400">•••</span>
-            </div>
-
-            {/* 4 Touchpoints Grid */}
-            <div className="mt-4 grid grid-cols-2 gap-2.5">
-              {/* Touch 1: Trigger scan */}
-              <button
-                type="button"
-                onClick={handleRunGlobalStockoutScan}
-                className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3 text-center transition hover:border-indigo-600 hover:bg-indigo-50/50 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
-              >
-                <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">+</span>
-                <span className="mt-1 text-[11px] font-semibold text-slate-700 dark:text-zinc-300">
-                  Audit 48h Stock
-                </span>
-              </button>
-
-              {/* Touch 2: DB Status */}
-              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    MongoDB
-                  </span>
-                </div>
-                <p className="mt-1 text-sm font-extrabold text-slate-900 dark:text-zinc-100">
-                  99.98%
-                </p>
-                <p className="text-[10px] text-slate-500">12ms latency</p>
-              </div>
-
-              {/* Touch 3: API Service */}
-              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  API Service
-                </span>
-                <p className="mt-1 text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
-                  200 OK
-                </p>
-                <p className="text-[10px] text-slate-500">168 tests green</p>
-              </div>
-
-              {/* Touch 4: Cache & Warmup */}
-              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Env Mode
-                </span>
-                <p className="mt-1 text-sm font-extrabold text-indigo-600 dark:text-indigo-400 uppercase">
-                  {health?.environment || 'Prod'}
-                </p>
-                <p className="text-[10px] text-slate-500">Node v20.x</p>
-              </div>
-            </div>
-
-            {/* Quota Battery Indicator */}
-            <div className="mt-5 border-t border-slate-100 pt-4 dark:border-zinc-800">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-600 dark:text-zinc-400">
-                  Simulation Capacity
-                </span>
-                <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
-                  {stats?.totalForecasts || 0} / 10,000 quota
-                </span>
-              </div>
-              <div className="mt-2.5 flex items-center gap-1">
-                {Array.from({ length: 20 }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-2 flex-1 rounded-full transition-all ${
-                      idx < 14
-                        ? 'bg-indigo-600 dark:bg-indigo-500'
-                        : 'bg-slate-200 dark:bg-zinc-800'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Today's Activity / Operational Protocol */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
-                Inventory Protocol Task
-              </h3>
-              <span className="text-xs font-bold text-slate-400">Active</span>
-            </div>
-
-            <div className="mt-3.5 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3.5 dark:bg-zinc-800/50">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-zinc-100">
-                    Flash Sale Risk Guard
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    48h window auto-verification
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleRunGlobalStockoutScan}
-                className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700"
-              >
-                Scan
-              </button>
-            </div>
-          </div>
-
-          {/* Promotional Banner Card */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white shadow-xs">
-            <div className="relative z-10">
-              <p className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                High Velocity Blitzes
-              </p>
-              <h4 className="mt-1 text-base font-extrabold">
-                {stats?.totalCampaigns || 0} Campaigns Monitored
-              </h4>
-              <p className="mt-1 text-xs text-slate-300">
-                Promotional pricing and flash demand curves synced across all tenants.
-              </p>
-              <Link
-                href="/admin/campaigns"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-xs hover:bg-white/30"
-              >
-                <span>View All Campaigns</span>
-                <span>↗</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* CENTER COLUMN (5 of 12 cols): Plan Distribution & Circular Donut */}
-        <div className="space-y-5 lg:col-span-5">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            {/* Header + Time selector */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-zinc-100">
-                  Plan Distribution
-                </h3>
-                <p className="text-xs text-slate-400">Tier quotas & subscriptions</p>
-              </div>
-              <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1 dark:bg-zinc-800">
-                {['Today', '7D', '30D', 'All'].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTimeRange(t)}
-                    className={`rounded-md px-2.5 py-0.5 text-[11px] font-bold transition ${
-                      timeRange === t
-                        ? 'bg-white text-slate-900 shadow-xs dark:bg-zinc-700 dark:text-white'
-                        : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Circular Gauge / Donut Graphic */}
-            <div className="my-6 flex flex-col items-center justify-center">
-              <div className="relative flex h-48 w-48 items-center justify-center">
-                {/* SVG Segmented Arc Circle */}
-                <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
-                  {/* Background Track */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="currentColor"
-                    strokeWidth="10"
-                    className="text-slate-100 dark:text-zinc-800"
-                    fill="none"
-                  />
-                  {/* Segment 1: Growth Plan (Indigo) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="#6366F1"
-                    strokeWidth="10"
-                    strokeDasharray={`${(growthPct / 100) * 251.2} 251.2`}
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Segment 2: Scale Plan (Violet) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="#8B5CF6"
-                    strokeWidth="10"
-                    strokeDasharray={`${(scalePct / 100) * 251.2} 251.2`}
-                    strokeDashoffset={`-${(growthPct / 100) * 251.2}`}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Segment 3: Starter Plan (Slate) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="#94A3B8"
-                    strokeWidth="10"
-                    strokeDasharray={`${(starterPct / 100) * 251.2} 251.2`}
-                    strokeDashoffset={`-${((growthPct + scalePct) / 100) * 251.2}`}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-
-                {/* Center Badge / Content */}
-                <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
-                    Tenants
-                  </span>
-                  <p className="mt-1 text-3xl font-black text-slate-900 dark:text-zinc-50">
-                    {stats?.totalUsers || 0}
-                  </p>
-                  <p className="text-[10px] font-semibold text-slate-400">Platform Accounts</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Plan Breakdown Items */}
-            <div className="space-y-3 border-t border-slate-100 pt-4 dark:border-zinc-800">
-              {/* Growth Plan */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-indigo-500" />
-                  <span className="font-bold text-slate-800 dark:text-zinc-200">Growth Plan</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
-                    {growthCount} accounts
-                  </span>
-                  <span className="text-[11px] text-slate-400">({growthPct}%)</span>
-                </div>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
-                <div
-                  style={{ width: `${growthPct}%` }}
-                  className="h-full rounded-full bg-indigo-500"
-                />
-              </div>
-
-              {/* Scale Plan */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-violet-600" />
-                  <span className="font-bold text-slate-800 dark:text-zinc-200">Scale Plan</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
-                    {scaleCount} accounts
-                  </span>
-                  <span className="text-[11px] text-slate-400">({scalePct}%)</span>
-                </div>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
-                <div
-                  style={{ width: `${scalePct}%` }}
-                  className="h-full rounded-full bg-violet-600"
-                />
-              </div>
-
-              {/* Starter Plan */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-slate-400" />
-                  <span className="font-bold text-slate-800 dark:text-zinc-200">Starter Plan</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-slate-900 dark:text-zinc-100">
-                    {starterCount} accounts
-                  </span>
-                  <span className="text-[11px] text-slate-400">({starterPct}%)</span>
-                </div>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
-                <div
-                  style={{ width: `${starterPct}%` }}
-                  className="h-full rounded-full bg-slate-400"
-                />
-              </div>
-            </div>
-
-            {/* Footer link to manage users */}
-            <div className="mt-5 pt-3 text-right">
-              <Link
-                href="/admin/users"
-                className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
-              >
-                Manage Users →
-              </Link>
-            </div>
-          </div>
-
-          {/* Forecast Engine Accuracy Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Forecast Engine Reliability
-            </h4>
-            <div className="mt-3 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-slate-500">Historical MAPE</p>
-                <p className="text-2xl font-black text-slate-900 dark:text-zinc-50">
-                  5.8%
-                </p>
-                <p className="text-[10px] text-emerald-600 font-semibold">High confidence</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Daily Simulation Avg</p>
-                <p className="text-2xl font-black text-slate-900 dark:text-zinc-50">
-                  142 <span className="text-xs font-semibold text-slate-400">runs</span>
-                </p>
-                <p className="text-[10px] text-indigo-600 font-semibold">Across all accounts</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN (3 of 12 cols): ForecastIQ AI Copilot */}
-        <div className="space-y-5 lg:col-span-3">
-          <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        {/* Left Column (7 of 12): Plan Distribution */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-7">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 dark:border-zinc-800">
             <div>
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-bold text-slate-900 dark:text-zinc-100">
-                    ✦ AI Assistant
-                  </span>
-                </div>
-                <span className="text-slate-400">•••</span>
-              </div>
-
-              {/* 3D-Style Metallic Glowing Sphere (Indigo-Violet Brand Colors) */}
-              <div className="my-5 flex flex-col items-center justify-center">
-                <div className="relative flex h-24 w-24 items-center justify-center">
-                  {/* Ambient Glow */}
-                  <div className="absolute inset-0 rounded-full bg-indigo-500/25 blur-xl animate-pulse" />
-                  {/* Glowing 3D Orb */}
-                  <div className="relative h-20 w-20 rounded-full bg-gradient-to-tr from-indigo-700 via-violet-600 to-indigo-400 shadow-[inset_-8px_-8px_16px_rgba(0,0,0,0.4),inset_8px_8px_16px_rgba(255,255,255,0.6)]" />
-                </div>
-                <p className="mt-2 text-xs font-extrabold text-slate-800 dark:text-zinc-100">
-                  Hi, {adminName}
-                </p>
-                <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                  How can I help you today?
-                </p>
-              </div>
-
-              {/* Suggestion Prompt Chips */}
-              <div className="space-y-1.5">
-                <button
-                  type="button"
-                  onClick={() => handleCopilotAsk('Check stockout risks for upcoming flash sales')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
-                >
-                  ⚡ Check stockout risks
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCopilotAsk('What is our tenant plan breakdown?')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
-                >
-                  📊 Plan breakdown & quotas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCopilotAsk('Report platform database health and uptime')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
-                >
-                  🛡️ Infrastructure & DB health
-                </button>
-              </div>
-
-              {/* Chat History Snippet */}
-              <div className="mt-3 max-h-36 overflow-y-auto space-y-2 pr-1 text-xs">
-                {copilotHistory.slice(-2).map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`rounded-xl p-2.5 ${
-                      msg.sender === 'user'
-                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 font-medium text-right'
-                        : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'
-                    }`}
-                  >
-                    <p className="text-[11px] leading-relaxed">{msg.text}</p>
-                  </div>
-                ))}
-                {copilotThinking && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600 [animation-delay:0.2s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600 [animation-delay:0.4s]" />
-                    <span>Analyzing platform telemetry...</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Ask Something Input with Indigo Submit Button */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleCopilotAsk();
-              }}
-              className="mt-4 flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-slate-50 p-1 dark:border-zinc-700 dark:bg-zinc-800"
-            >
-              <input
-                type="text"
-                value={copilotInput}
-                onChange={(e) => setCopilotInput(e.target.value)}
-                placeholder="Ask something..."
-                className="w-full bg-transparent px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none dark:text-zinc-200"
-              />
-              <button
-                type="submit"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs transition hover:bg-indigo-700"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* ROW 3: RECENT AUDIT TRAIL & SYSTEM DIAGNOSTICS */}
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Audit Events */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">
-                Live Audit Activity Stream
-              </h3>
-              <p className="text-xs text-slate-400">Security & tenant mutation trail</p>
+              <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
+                Plan Distribution
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                Tenant capacity and tier quotas across {stats?.totalUsers || 0} accounts
+              </p>
             </div>
             <Link
-              href="/admin/logs"
-              className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
+              href="/admin/users"
+              className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
             >
-              View Full Trail →
+              Manage Users →
             </Link>
           </div>
 
-          <div className="mt-4 divide-y divide-slate-100 dark:divide-zinc-800">
-            {recentLogs.length > 0 ? (
-              recentLogs.map((log) => (
-                <div key={log._id || log.id} className="py-2.5 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-semibold text-slate-800 dark:text-zinc-200">
-                      {log.action?.replace(/_/g, ' ')}
-                    </span>
-                    <p className="text-[11px] text-slate-400">
-                      Target: {log.targetEmail || 'System'} • by {log.adminEmail || 'admin'}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
-                    {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+          {/* Allocation Bar */}
+          <div className="mt-5">
+            <div className="flex h-2.5 w-full overflow-hidden rounded-md bg-slate-100 dark:bg-zinc-800">
+              <div
+                style={{ width: `${starterPct}%` }}
+                className="bg-slate-400 dark:bg-zinc-600"
+                title={`Starter: ${starterCount} users (${starterPct}%)`}
+              />
+              <div
+                style={{ width: `${growthPct}%` }}
+                className="bg-indigo-600"
+                title={`Growth: ${growthCount} users (${growthPct}%)`}
+              />
+              <div
+                style={{ width: `${scalePct}%` }}
+                className="bg-violet-600"
+                title={`Scale: ${scaleCount} users (${scalePct}%)`}
+              />
+            </div>
+
+            {/* Legend & Details */}
+            <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-slate-400 dark:bg-zinc-600" />
+                  <span className="font-normal text-slate-600 dark:text-zinc-300">Starter</span>
                 </div>
-              ))
-            ) : (
-              <p className="py-4 text-center text-xs text-slate-400">
-                No recent security audit entries recorded.
-              </p>
-            )}
+                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                  {starterCount}
+                </p>
+                <p className="text-[11px] text-slate-400">{starterPct}% of tenants</p>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-indigo-600" />
+                  <span className="font-normal text-slate-600 dark:text-zinc-300">Growth</span>
+                </div>
+                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                  {growthCount}
+                </p>
+                <p className="text-[11px] text-slate-400">{growthPct}% of tenants</p>
+              </div>
+
+              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-violet-600" />
+                  <span className="font-normal text-slate-600 dark:text-zinc-300">Scale</span>
+                </div>
+                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                  {scaleCount}
+                </p>
+                <p className="text-[11px] text-slate-400">{scalePct}% of tenants</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Engine Calibration */}
+          <div className="mt-5 border-t border-slate-100 pt-4 dark:border-zinc-800">
+            <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
+              Model Calibration Telemetry
+            </span>
+            <div className="mt-2.5 grid grid-cols-2 gap-4 text-xs font-mono">
+              <div>
+                <span className="text-slate-400">Mean Absolute Percentage Error</span>
+                <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-zinc-100">
+                  5.8% MAPE
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400">Daily Simulation Throughput</span>
+                <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-zinc-100">
+                  142 runs / day
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Platform Infrastructure Health & Engine Status */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">
-            Platform Infrastructure Telemetry
-          </h3>
-          <p className="text-xs text-slate-400">Node runtime & container vitals</p>
+        {/* Right Column (5 of 12): Infrastructure Telemetry */}
+        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-5">
+          <div className="border-b border-slate-100 pb-3.5 dark:border-zinc-800">
+            <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
+              Infrastructure Telemetry
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
+              API runtime and container vitals
+            </p>
+          </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Server Uptime</span>
-              <p className="mt-1 font-mono text-sm font-bold text-slate-900 dark:text-zinc-100">
+          <div className="mt-4 space-y-3 text-xs font-mono">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
+              <span className="font-sans text-slate-500 dark:text-zinc-400">Database</span>
+              <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                {health?.database || 'connected'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
+              <span className="font-sans text-slate-500 dark:text-zinc-400">Server Uptime</span>
+              <span className="font-medium text-slate-800 dark:text-zinc-200">
                 {formatUptime(health?.uptimeSeconds)}
-              </p>
+              </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Environment</span>
-              <p className="mt-1 font-mono text-sm font-bold text-slate-900 dark:text-zinc-100 uppercase">
-                {health?.environment || 'Production'}
-              </p>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
+              <span className="font-sans text-slate-500 dark:text-zinc-400">Environment</span>
+              <span className="font-medium text-slate-800 dark:text-zinc-200 uppercase">
+                {health?.environment || 'production'}
+              </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Service Identifier</span>
-              <p className="mt-1 font-mono text-xs font-bold text-slate-900 dark:text-zinc-100 truncate">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
+              <span className="font-sans text-slate-500 dark:text-zinc-400">Service</span>
+              <span className="font-medium text-slate-800 dark:text-zinc-200 truncate max-w-[180px]">
                 {health?.service || 'inventory-forecaster-api'}
-              </p>
+              </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400">Active Test Baseline</span>
-              <p className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center justify-between">
+              <span className="font-sans text-slate-500 dark:text-zinc-400">Test Baseline</span>
+              <span className="font-medium text-emerald-600 dark:text-emerald-400">
                 168 / 168 Passing
-              </p>
+              </span>
             </div>
           </div>
+
+          <div className="mt-6 border-t border-slate-100 pt-4 dark:border-zinc-800">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
+                Upcoming Promotional Windows
+              </span>
+              <Link
+                href="/admin/campaigns"
+                className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+              >
+                All Campaigns →
+              </Link>
+            </div>
+            <div className="mt-2.5 space-y-2">
+              {recentCampaigns.length > 0 ? (
+                recentCampaigns.map((camp) => (
+                  <div
+                    key={camp.id}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-zinc-800/50"
+                  >
+                    <span className="font-medium text-slate-800 dark:text-zinc-200 truncate max-w-[160px]">
+                      {camp.name}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {camp.productCount || 0} SKUs
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400">No scheduled campaigns</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Row 3: Security & Audit Activity Stream */}
+      <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 dark:border-zinc-800">
+          <div>
+            <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
+              Audit Activity Stream
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
+              Real-time audit log of security mutations and account state changes
+            </p>
+          </div>
+          <Link
+            href="/admin/logs"
+            className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+          >
+            View Complete Trail →
+          </Link>
+        </div>
+
+        <div className="mt-3 divide-y divide-slate-100 dark:divide-zinc-800/80">
+          {recentLogs.length > 0 ? (
+            recentLogs.map((log) => (
+              <div key={log._id || log.id} className="py-2.5 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    {log.action?.replace(/_/g, ' ')}
+                  </span>
+                  <span className="text-slate-600 dark:text-zinc-400">
+                    Target: <strong className="font-medium text-slate-800 dark:text-zinc-200">{log.targetEmail || 'System'}</strong>
+                  </span>
+                  <span className="hidden sm:inline text-slate-400">
+                    by {log.adminEmail || 'admin'}
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-slate-400">
+                  {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="py-4 text-center text-xs text-slate-400">
+              No audit entries recorded
+            </p>
+          )}
         </div>
       </section>
     </div>
