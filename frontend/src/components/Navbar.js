@@ -22,6 +22,8 @@ export default function Navbar() {
   const [alerts, setAlerts] = useState([]);
   const alertsRef = useRef(null);
 
+  const isAdminRoute = Boolean(user?.role === 'admin' && pathname.startsWith('/admin'));
+
   useEffect(() => {
     if (!user || user.emailVerified === false) {
       queueMicrotask(() => setAlerts([]));
@@ -49,6 +51,15 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [alertsOpen]);
 
+  // Dedicated Admin navigation links when in the admin section
+  const adminLinks = [
+    { href: '/admin', label: 'Overview' },
+    { href: '/admin/users', label: 'Users' },
+    { href: '/admin/campaigns', label: 'Campaigns' },
+    { href: '/admin/logs', label: 'Audit Logs' },
+  ];
+
+  // Standard application links for the regular planner views
   const appLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/products', label: 'Products & Stock' },
@@ -58,6 +69,7 @@ export default function Navbar() {
     { href: '/settings', label: 'Settings' },
     ...(user?.role === 'admin' ? [{ href: '/admin', label: 'Admin Panel' }] : []),
   ];
+
   const publicLinks = [
     { href: '/#features', label: 'Features' },
     { href: '/#how-it-works', label: 'How it works' },
@@ -66,7 +78,8 @@ export default function Navbar() {
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
   ];
-  const navLinks = user ? appLinks : publicLinks;
+
+  const navLinks = isAdminRoute ? adminLinks : user ? appLinks : publicLinks;
   const highCount = alerts.filter((a) => a.riskLevel === 'high').length;
 
   return (
@@ -74,7 +87,7 @@ export default function Navbar() {
       <nav className="relative flex h-16 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/75 px-4 shadow-lg shadow-slate-900/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-black/20 sm:px-5">
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-3">
-          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
+          <Link href={isAdminRoute ? '/admin' : user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -84,9 +97,15 @@ export default function Navbar() {
               <span className="text-base font-bold tracking-tight text-slate-900 dark:text-zinc-100">
                 Forecast<span className="text-indigo-600 dark:text-indigo-400">IQ</span>
               </span>
-              <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 sm:inline">
-                v1.2
-              </span>
+              {isAdminRoute ? (
+                <span className="hidden rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 sm:inline">
+                  Admin
+                </span>
+              ) : (
+                <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 sm:inline">
+                  v1.2
+                </span>
+              )}
             </div>
           </Link>
         </div>
@@ -95,8 +114,9 @@ export default function Navbar() {
         <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((item) => {
             const isActive =
-              pathname === item.href ||
-              (item.href === '/admin' && pathname.startsWith('/admin/'));
+              item.href === '/admin'
+                ? pathname === '/admin'
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
@@ -115,6 +135,17 @@ export default function Navbar() {
 
         {/* Right: Theme, Alerts & User Controls */}
         <div className="flex items-center gap-2">
+          {/* Quick Switch to App button when in Admin view */}
+          {isAdminRoute && (
+            <Link
+              href="/dashboard"
+              className="hidden items-center gap-1 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-indigo-600 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:text-indigo-400 sm:inline-flex"
+              title="Return to Planner Dashboard"
+            >
+              <span>← App</span>
+            </Link>
+          )}
+
           {/* Stockout Alerts Bell (Signed-in users) */}
           {user && (
             <div ref={alertsRef} className="relative">
@@ -233,13 +264,9 @@ export default function Navbar() {
                   <span className="max-w-[100px] truncate text-xs font-bold text-slate-900 dark:text-zinc-100">
                     {user.name}
                   </span>
-                  <Link
-                    href="/pricing"
-                    title="Change plan"
-                    className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 hover:underline dark:text-indigo-400"
-                  >
-                    {user.plan || 'starter'} plan
-                  </Link>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    {user.role === 'admin' ? 'Admin' : `${user.plan || 'starter'} plan`}
+                  </span>
                 </div>
               </div>
 
@@ -309,42 +336,51 @@ export default function Navbar() {
         <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-xl lg:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
           {navLinks.map((item) => {
             const isActive =
-              pathname === item.href ||
-              (item.href === '/admin' && pathname.startsWith('/admin/'));
+              item.href === '/admin'
+                ? pathname === '/admin'
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold ${
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                   isActive
                     ? 'bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
                 }`}
               >
-                <span>{item.label}</span>
+                {item.label}
               </Link>
             );
           })}
+
+          {isAdminRoute && (
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-1 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-indigo-400"
+            >
+              ← Back to App (Dashboard)
+            </Link>
+          )}
+
           {user && (
-            <div className="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 px-3 pt-2.5 text-xs dark:border-zinc-800">
-              <div>
-                <span className="font-semibold text-slate-700 dark:text-zinc-300">{user.name}</span>
-                <Link
-                  href="/pricing"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="ml-2 font-bold uppercase text-indigo-600 dark:text-indigo-400"
-                >
-                  {user.plan || 'starter'} plan →
-                </Link>
-              </div>
+            <div className="mt-2 border-t border-slate-100 pt-2 dark:border-zinc-800">
+              <Link
+                href="/settings"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                Settings & Preferences
+              </Link>
               <button
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-zinc-700 dark:text-red-400 dark:hover:bg-red-950/30"
+                className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
               >
                 Sign out
               </button>

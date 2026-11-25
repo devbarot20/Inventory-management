@@ -115,7 +115,9 @@ export default function AdminDashboardPage() {
       if (lower.includes('stockout') || lower.includes('risk') || lower.includes('warn')) {
         const warnings = scanResult?.totalWarningsCount ?? 0;
         answer = `Stockout scan status: ${
-          scanResult ? `Found ${warnings} at-risk items across ${scanResult.usersScanned} accounts.` : 'No scan run yet today. Click "Run Global Stockout Scan" to evaluate all active 48-hour promotional windows.'
+          scanResult
+            ? `Found ${warnings} at-risk items across ${scanResult.usersScanned} accounts.`
+            : 'No scan run yet today. Click "Run Global Stockout Scan" to evaluate all active 48-hour promotional windows.'
         }`;
       } else if (lower.includes('plan') || lower.includes('growth') || lower.includes('tier') || lower.includes('scale')) {
         const p = stats?.planBreakdown || {};
@@ -148,7 +150,7 @@ export default function AdminDashboardPage() {
   const scalePct = Math.round((scaleCount / totalPlanUsers) * 100);
   const starterPct = 100 - growthPct - scalePct;
 
-  const adminName = user?.name || user?.email?.split('@')[0] || 'Dev Barot';
+  const adminName = user?.name || user?.email?.split('@')[0] || 'Admin';
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -162,9 +164,9 @@ export default function AdminDashboardPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#FF6B4A] border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
           <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Loading Command Center...
+            Loading Admin Command Center...
           </p>
         </div>
       </div>
@@ -173,13 +175,13 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className="rounded-[28px] border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
         <div className="font-semibold">Unable to load admin metrics:</div>
         <p className="mt-1">{error}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-3 rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+          className="mt-3 rounded-lg bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
         >
           Retry Connection
         </button>
@@ -189,10 +191,10 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Hero Welcome Bar (Matching Reference Header) */}
+      {/* Hero Welcome Bar */}
       <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A]">
+          <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
             Platform Command Center • Real-Time Engine
           </p>
           <div className="flex items-center gap-3">
@@ -208,8 +210,8 @@ export default function AdminDashboardPage() {
         {/* Date Pill + Primary Action Button */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           {/* Date Pill Card */}
-          <div className="flex items-center gap-2.5 rounded-full border border-slate-200/90 bg-white px-3.5 py-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-extrabold text-slate-800 dark:bg-zinc-800 dark:text-zinc-200">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white px-3.5 py-1.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-xs font-extrabold text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300">
               {todayStr.day}
             </div>
             <div className="text-left pr-1">
@@ -222,12 +224,12 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Big Coral Pill Action Button */}
+          {/* Primary Action Button: Run Global Stockout Scan */}
           <button
             type="button"
             onClick={handleRunGlobalStockoutScan}
             disabled={scanning}
-            className="flex items-center gap-2 rounded-full bg-[#FF6B4A] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#FF6B4A]/30 transition hover:bg-[#F25A38] hover:shadow-lg disabled:opacity-60 sm:text-sm"
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/25 transition hover:bg-indigo-700 hover:shadow-md disabled:opacity-60 sm:text-sm"
           >
             {scanning ? (
               <>
@@ -248,7 +250,7 @@ export default function AdminDashboardPage() {
 
       {/* Stockout Scan Output Feedback (if executed) */}
       {scanResult && (
-        <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-xs shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-xs shadow-xs dark:border-emerald-900/40 dark:bg-emerald-950/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300">
               <span>✓ Global 48h Stockout Scan Complete</span>
@@ -269,18 +271,18 @@ export default function AdminDashboardPage() {
         </div>
       )}
       {scanError && (
-        <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-semibold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
           Scan Error: {scanError}
         </div>
       )}
 
       {/* ROW 1: BENTO STAT CARDS (4 Cards with Micro-Visualizations) */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Card 1: Coral Accent Card (Like reference "Weight 72.5kg") */}
-        <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#FF7A59] via-[#FF6B4A] to-[#F85633] p-5 text-white shadow-md shadow-[#FF6B4A]/20">
+        {/* Card 1: Brand Accent Card (Deep Indigo/Violet Gradient) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-5 text-white shadow-md shadow-indigo-600/20">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold tracking-wide text-white/90">Total Users</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 text-white backdrop-blur-xs">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
@@ -293,7 +295,7 @@ export default function AdminDashboardPage() {
                 {stats?.totalUsers ?? '0'}
               </p>
               <p className="mt-1 text-[11px] font-medium text-white/80">
-                {stats?.verifiedUsers || 0} verified accounts
+                {stats?.verifiedUsers || 0} active & verified
               </p>
             </div>
 
@@ -313,11 +315,11 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Total Products (Like reference "Steps 82,641") */}
-        <div className="relative rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        {/* Card 2: Total Products (Catalog SKUs) */}
+        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Total Products</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
@@ -341,7 +343,7 @@ export default function AdminDashboardPage() {
                   key={i}
                   style={{ height: `${h * 0.35}px` }}
                   className={`w-1.5 rounded-full ${
-                    i >= 5 ? 'bg-[#FF6B4A]' : 'bg-slate-200 dark:bg-zinc-700'
+                    i >= 5 ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-zinc-700'
                   }`}
                 />
               ))}
@@ -349,11 +351,11 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: Flash Campaigns (Like reference "Sleep 5h 36m") */}
-        <div className="relative rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        {/* Card 3: Flash Campaigns */}
+        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Flash Campaigns</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -370,13 +372,13 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            {/* Micro Sleep/Pulse Marker */}
+            {/* Micro Pulse Indicators */}
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((idx) => (
                 <span
                   key={idx}
                   className={`inline-block h-6 w-1 rounded-full ${
-                    idx === 3 || idx === 4 ? 'bg-[#FF6B4A]' : 'bg-slate-200 dark:bg-zinc-700'
+                    idx === 3 || idx === 4 ? 'bg-amber-500' : 'bg-slate-200 dark:bg-zinc-700'
                   }`}
                 />
               ))}
@@ -384,11 +386,11 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Card 4: Forecast Simulations (Like reference "Water Intake 1.8L") */}
-        <div className="relative rounded-[26px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        {/* Card 4: Forecast Simulations */}
+        <div className="relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">Forecast Runs</span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
@@ -407,7 +409,7 @@ export default function AdminDashboardPage() {
 
             {/* Micro Fluid Wave Chart */}
             <div className="w-20 shrink-0">
-              <svg viewBox="0 0 80 30" className="h-7 w-full text-[#FF6B4A]/40" fill="currentColor">
+              <svg viewBox="0 0 80 30" className="h-7 w-full text-violet-500/30" fill="currentColor">
                 <path d="M0,20 Q20,5 40,15 T80,10 L80,30 L0,30 Z" />
               </svg>
             </div>
@@ -415,12 +417,12 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* ROW 2: 3-COLUMN BENTO GRID (Exact Structure of Reference Image) */}
+      {/* ROW 2: 3-COLUMN BENTO GRID */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN (4 of 12 cols): Daily Operations & Protocols */}
         <div className="space-y-5 lg:col-span-4">
-          {/* Daily Controls Card (Like reference's "Daily Inputs") */}
-          <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          {/* Daily Controls Card */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                 Platform Daily Controls
@@ -434,16 +436,16 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleRunGlobalStockoutScan}
-                className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-3 text-center transition hover:border-[#FF6B4A] hover:bg-[#FF6B4A]/5 dark:border-zinc-700 dark:bg-zinc-800/50"
+                className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3 text-center transition hover:border-indigo-600 hover:bg-indigo-50/50 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-indigo-500 dark:hover:bg-indigo-950/20"
               >
-                <span className="text-lg font-bold text-[#FF6B4A]">+</span>
+                <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">+</span>
                 <span className="mt-1 text-[11px] font-semibold text-slate-700 dark:text-zinc-300">
                   Audit 48h Stock
                 </span>
               </button>
 
               {/* Touch 2: DB Status */}
-              <div className="flex flex-col justify-center rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/60">
+              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
                 <div className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -457,7 +459,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Touch 3: API Service */}
-              <div className="flex flex-col justify-center rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/60">
+              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   API Service
                 </span>
@@ -468,7 +470,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Touch 4: Cache & Warmup */}
-              <div className="flex flex-col justify-center rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/60">
+              <div className="flex flex-col justify-center rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/60">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Env Mode
                 </span>
@@ -479,7 +481,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Quota Battery Indicator (Like reference's Calories dots) */}
+            {/* Quota Battery Indicator */}
             <div className="mt-5 border-t border-slate-100 pt-4 dark:border-zinc-800">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-600 dark:text-zinc-400">
@@ -495,7 +497,7 @@ export default function AdminDashboardPage() {
                     key={idx}
                     className={`h-2 flex-1 rounded-full transition-all ${
                       idx < 14
-                        ? 'bg-[#FF6B4A]'
+                        ? 'bg-indigo-600 dark:bg-indigo-500'
                         : 'bg-slate-200 dark:bg-zinc-800'
                     }`}
                   />
@@ -504,8 +506,8 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Today's Activity / Operational Protocol (Like reference's "Today's Plan Activity") */}
-          <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          {/* Today's Activity / Operational Protocol */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                 Inventory Protocol Task
@@ -513,9 +515,9 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold text-slate-400">Active</span>
             </div>
 
-            <div className="mt-3.5 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3.5 dark:bg-zinc-800/50">
+            <div className="mt-3.5 flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3.5 dark:bg-zinc-800/50">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF6B4A]/10 text-[#FF6B4A]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
@@ -533,17 +535,17 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleRunGlobalStockoutScan}
-                className="rounded-full bg-[#FF6B4A] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-[#F25A38]"
+                className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700"
               >
                 Scan
               </button>
             </div>
           </div>
 
-          {/* Promotional Banner Card (Like reference's "Your Home Workout Starts Here!") */}
-          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white shadow-sm">
+          {/* Promotional Banner Card */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white shadow-xs">
             <div className="relative z-10">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A]">
+              <p className="text-xs font-bold uppercase tracking-wider text-indigo-400">
                 High Velocity Blitzes
               </p>
               <h4 className="mt-1 text-base font-extrabold">
@@ -554,7 +556,7 @@ export default function AdminDashboardPage() {
               </p>
               <Link
                 href="/admin/campaigns"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md hover:bg-white/30"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-xs hover:bg-white/30"
               >
                 <span>View All Campaigns</span>
                 <span>↗</span>
@@ -563,9 +565,9 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* CENTER COLUMN (5 of 12 cols): Plan Distribution & Circular Donut (Like reference's "Nutrition") */}
+        {/* CENTER COLUMN (5 of 12 cols): Plan Distribution & Circular Donut */}
         <div className="space-y-5 lg:col-span-5">
-          <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             {/* Header + Time selector */}
             <div className="flex items-center justify-between">
               <div>
@@ -574,13 +576,13 @@ export default function AdminDashboardPage() {
                 </h3>
                 <p className="text-xs text-slate-400">Tier quotas & subscriptions</p>
               </div>
-              <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-zinc-800">
+              <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1 dark:bg-zinc-800">
                 {['Today', '7D', '30D', 'All'].map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setTimeRange(t)}
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold transition ${
+                    className={`rounded-md px-2.5 py-0.5 text-[11px] font-bold transition ${
                       timeRange === t
                         ? 'bg-white text-slate-900 shadow-xs dark:bg-zinc-700 dark:text-white'
                         : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
@@ -592,7 +594,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Circular Gauge / Donut Graphic (Matching Reference Center Donut) */}
+            {/* Circular Gauge / Donut Graphic */}
             <div className="my-6 flex flex-col items-center justify-center">
               <div className="relative flex h-48 w-48 items-center justify-center">
                 {/* SVG Segmented Arc Circle */}
@@ -607,19 +609,19 @@ export default function AdminDashboardPage() {
                     className="text-slate-100 dark:text-zinc-800"
                     fill="none"
                   />
-                  {/* Segment 1: Growth Plan (Coral) */}
+                  {/* Segment 1: Growth Plan (Indigo) */}
                   <circle
                     cx="50"
                     cy="50"
                     r="40"
-                    stroke="#FF6B4A"
+                    stroke="#6366F1"
                     strokeWidth="10"
                     strokeDasharray={`${(growthPct / 100) * 251.2} 251.2`}
                     strokeDashoffset="0"
                     strokeLinecap="round"
                     fill="none"
                   />
-                  {/* Segment 2: Scale Plan (Purple) */}
+                  {/* Segment 2: Scale Plan (Violet) */}
                   <circle
                     cx="50"
                     cy="50"
@@ -631,12 +633,12 @@ export default function AdminDashboardPage() {
                     strokeLinecap="round"
                     fill="none"
                   />
-                  {/* Segment 3: Starter Plan (Slate/Blue) */}
+                  {/* Segment 3: Starter Plan (Slate) */}
                   <circle
                     cx="50"
                     cy="50"
                     r="40"
-                    stroke="#64748B"
+                    stroke="#94A3B8"
                     strokeWidth="10"
                     strokeDasharray={`${(starterPct / 100) * 251.2} 251.2`}
                     strokeDashoffset={`-${((growthPct + scalePct) / 100) * 251.2}`}
@@ -658,12 +660,12 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Plan Breakdown Items (Like reference's Carbs / Proteins / Fats list) */}
+            {/* Plan Breakdown Items */}
             <div className="space-y-3 border-t border-slate-100 pt-4 dark:border-zinc-800">
               {/* Growth Plan */}
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[#FF6B4A]" />
+                  <span className="h-3 w-3 rounded-full bg-indigo-500" />
                   <span className="font-bold text-slate-800 dark:text-zinc-200">Growth Plan</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -676,14 +678,14 @@ export default function AdminDashboardPage() {
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
                 <div
                   style={{ width: `${growthPct}%` }}
-                  className="h-full rounded-full bg-[#FF6B4A]"
+                  className="h-full rounded-full bg-indigo-500"
                 />
               </div>
 
               {/* Scale Plan */}
               <div className="flex items-center justify-between text-xs pt-1">
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[#8B5CF6]" />
+                  <span className="h-3 w-3 rounded-full bg-violet-600" />
                   <span className="font-bold text-slate-800 dark:text-zinc-200">Scale Plan</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -696,14 +698,14 @@ export default function AdminDashboardPage() {
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
                 <div
                   style={{ width: `${scalePct}%` }}
-                  className="h-full rounded-full bg-[#8B5CF6]"
+                  className="h-full rounded-full bg-violet-600"
                 />
               </div>
 
               {/* Starter Plan */}
               <div className="flex items-center justify-between text-xs pt-1">
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[#64748B]" />
+                  <span className="h-3 w-3 rounded-full bg-slate-400" />
                   <span className="font-bold text-slate-800 dark:text-zinc-200">Starter Plan</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -716,7 +718,7 @@ export default function AdminDashboardPage() {
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
                 <div
                   style={{ width: `${starterPct}%` }}
-                  className="h-full rounded-full bg-[#64748B]"
+                  className="h-full rounded-full bg-slate-400"
                 />
               </div>
             </div>
@@ -725,15 +727,15 @@ export default function AdminDashboardPage() {
             <div className="mt-5 pt-3 text-right">
               <Link
                 href="/admin/users"
-                className="text-xs font-bold text-[#FF6B4A] hover:underline"
+                className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
               >
                 Manage Users →
               </Link>
             </div>
           </div>
 
-          {/* Forecast Engine Accuracy Card (Like reference's "Nutrients Gained") */}
-          <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          {/* Forecast Engine Accuracy Card */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Forecast Engine Reliability
             </h4>
@@ -756,9 +758,9 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN (3 of 12 cols): ForecastIQ AI Copilot (Exact Mirror of Reference AI Assistant) */}
+        {/* RIGHT COLUMN (3 of 12 cols): ForecastIQ AI Copilot */}
         <div className="space-y-5 lg:col-span-3">
-          <div className="flex h-full flex-col justify-between rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <div>
               {/* Header */}
               <div className="flex items-center justify-between">
@@ -770,13 +772,13 @@ export default function AdminDashboardPage() {
                 <span className="text-slate-400">•••</span>
               </div>
 
-              {/* 3D-Style Metallic Glowing Sphere (Matching Reference AI Orb) */}
+              {/* 3D-Style Metallic Glowing Sphere (Indigo-Violet Brand Colors) */}
               <div className="my-5 flex flex-col items-center justify-center">
                 <div className="relative flex h-24 w-24 items-center justify-center">
                   {/* Ambient Glow */}
-                  <div className="absolute inset-0 rounded-full bg-[#FF6B4A]/25 blur-xl animate-pulse" />
+                  <div className="absolute inset-0 rounded-full bg-indigo-500/25 blur-xl animate-pulse" />
                   {/* Glowing 3D Orb */}
-                  <div className="relative h-20 w-20 rounded-full bg-gradient-to-tr from-[#E64A19] via-[#FF7043] to-[#FFAB91] shadow-[inset_-8px_-8px_16px_rgba(0,0,0,0.4),inset_8px_8px_16px_rgba(255,255,255,0.6)]" />
+                  <div className="relative h-20 w-20 rounded-full bg-gradient-to-tr from-indigo-700 via-violet-600 to-indigo-400 shadow-[inset_-8px_-8px_16px_rgba(0,0,0,0.4),inset_8px_8px_16px_rgba(255,255,255,0.6)]" />
                 </div>
                 <p className="mt-2 text-xs font-extrabold text-slate-800 dark:text-zinc-100">
                   Hi, {adminName}
@@ -786,26 +788,26 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              {/* Suggestion Prompt Chips (Like reference chips) */}
+              {/* Suggestion Prompt Chips */}
               <div className="space-y-1.5">
                 <button
                   type="button"
                   onClick={() => handleCopilotAsk('Check stockout risks for upcoming flash sales')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-[#FF6B4A]/10 hover:text-[#FF6B4A] dark:bg-zinc-800/60 dark:text-zinc-300"
+                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                 >
                   ⚡ Check stockout risks
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleCopilotAsk('What is our tenant plan distribution?')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-[#FF6B4A]/10 hover:text-[#FF6B4A] dark:bg-zinc-800/60 dark:text-zinc-300"
+                  onClick={() => handleCopilotAsk('What is our tenant plan breakdown?')}
+                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                 >
                   📊 Plan breakdown & quotas
                 </button>
                 <button
                   type="button"
                   onClick={() => handleCopilotAsk('Report platform database health and uptime')}
-                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-[#FF6B4A]/10 hover:text-[#FF6B4A] dark:bg-zinc-800/60 dark:text-zinc-300"
+                  className="w-full rounded-xl bg-slate-50 px-3 py-2 text-left text-[11px] font-medium text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/60 dark:text-zinc-300 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                 >
                   🛡️ Infrastructure & DB health
                 </button>
@@ -818,7 +820,7 @@ export default function AdminDashboardPage() {
                     key={i}
                     className={`rounded-xl p-2.5 ${
                       msg.sender === 'user'
-                        ? 'bg-[#FF6B4A]/10 text-[#FF6B4A] font-medium text-right'
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 font-medium text-right'
                         : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300'
                     }`}
                   >
@@ -827,22 +829,22 @@ export default function AdminDashboardPage() {
                 ))}
                 {copilotThinking && (
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FF6B4A]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FF6B4A] [animation-delay:0.2s]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#FF6B4A] [animation-delay:0.4s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600 [animation-delay:0.2s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-600 [animation-delay:0.4s]" />
                     <span>Analyzing platform telemetry...</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Ask Something Input (Matching Reference Input with Coral Send Button) */}
+            {/* Ask Something Input with Indigo Submit Button */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleCopilotAsk();
               }}
-              className="mt-4 flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-slate-50 p-1 dark:border-zinc-700 dark:bg-zinc-800"
+              className="mt-4 flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-slate-50 p-1 dark:border-zinc-700 dark:bg-zinc-800"
             >
               <input
                 type="text"
@@ -853,7 +855,7 @@ export default function AdminDashboardPage() {
               />
               <button
                 type="submit"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FF6B4A] text-white shadow-xs transition hover:bg-[#F25A38]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs transition hover:bg-indigo-700"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -867,7 +869,7 @@ export default function AdminDashboardPage() {
       {/* ROW 3: RECENT AUDIT TRAIL & SYSTEM DIAGNOSTICS */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Audit Events */}
-        <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">
@@ -877,7 +879,7 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/logs"
-              className="text-xs font-bold text-[#FF6B4A] hover:underline"
+              className="text-xs font-bold text-indigo-600 hover:underline dark:text-indigo-400"
             >
               View Full Trail →
             </Link>
@@ -909,35 +911,35 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Platform Infrastructure Health & Engine Status */}
-        <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">
             Platform Infrastructure Telemetry
           </h3>
           <p className="text-xs text-slate-400">Node runtime & container vitals</p>
 
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/50">
+            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
               <span className="text-[11px] text-slate-500 dark:text-zinc-400">Server Uptime</span>
               <p className="mt-1 font-mono text-sm font-bold text-slate-900 dark:text-zinc-100">
                 {formatUptime(health?.uptimeSeconds)}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/50">
+            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
               <span className="text-[11px] text-slate-500 dark:text-zinc-400">Environment</span>
               <p className="mt-1 font-mono text-sm font-bold text-slate-900 dark:text-zinc-100 uppercase">
                 {health?.environment || 'Production'}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/50">
+            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
               <span className="text-[11px] text-slate-500 dark:text-zinc-400">Service Identifier</span>
               <p className="mt-1 font-mono text-xs font-bold text-slate-900 dark:text-zinc-100 truncate">
                 {health?.service || 'inventory-forecaster-api'}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-3 dark:bg-zinc-800/50">
+            <div className="rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/50">
               <span className="text-[11px] text-slate-500 dark:text-zinc-400">Active Test Baseline</span>
               <p className="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
                 168 / 168 Passing
