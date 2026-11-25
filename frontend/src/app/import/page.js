@@ -145,7 +145,7 @@ export default function ImportPage() {
 
   return (
     <AuthGuard moduleName="Bulk Data Importer">
-      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl dark:text-white">

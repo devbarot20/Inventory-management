@@ -144,7 +144,7 @@ export default function Navbar() {
               </button>
 
               {alertsOpen && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:w-96">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:w-96">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800">
                     <span className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                       Stockout Risk Alerts
@@ -243,10 +243,10 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Settings link */}
+              {/* Settings link (hidden on < sm; available in mobile menu) */}
               <Link
                 href="/settings"
-                className="rounded-lg border border-slate-200/80 p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-indigo-400"
+                className="hidden rounded-lg border border-slate-200/80 p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 sm:inline-flex dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-indigo-400"
                 title="Account Settings & Quotas"
                 aria-label="Settings"
               >
@@ -256,11 +256,11 @@ export default function Navbar() {
                 </svg>
               </Link>
 
-              {/* Sign Out */}
+              {/* Sign Out (hidden on < sm; available in mobile menu) */}
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-red-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-red-400"
+                className="hidden rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-red-600 sm:inline-flex dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-red-400"
               >
                 Sign out
               </button>
@@ -327,15 +327,27 @@ export default function Navbar() {
             );
           })}
           {user && (
-            <div className="mt-1 flex items-center justify-between border-t border-slate-200/80 px-3 pt-2.5 text-xs dark:border-zinc-800">
-              <span className="font-semibold text-slate-700 dark:text-zinc-300">{user.name}</span>
-              <Link
-                href="/pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-bold uppercase text-indigo-600 dark:text-indigo-400"
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 px-3 pt-2.5 text-xs dark:border-zinc-800">
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-zinc-300">{user.name}</span>
+                <Link
+                  href="/pricing"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="ml-2 font-bold uppercase text-indigo-600 dark:text-indigo-400"
+                >
+                  {user.plan || 'starter'} plan →
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-zinc-700 dark:text-red-400 dark:hover:bg-red-950/30"
               >
-                {user.plan || 'starter'} plan →
-              </Link>
+                Sign out
+              </button>
             </div>
           )}
         </div>

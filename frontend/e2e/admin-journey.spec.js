@@ -197,4 +197,57 @@ test.describe('Admin Panel Journey', () => {
     await expect(page.locator('text=regular@shop.com')).toBeVisible();
     await expect(page.locator('text=user → admin')).toBeVisible();
   });
+
+  test('admin user can view platform campaigns and responsive mobile layout renders cleanly', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+
+    await page.route(/\/api\/auth\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: MOCK_ADMIN_USER }),
+      });
+    });
+
+    await page.route(/\/api\/admin\/campaigns/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          campaigns: [
+            {
+              id: 'camp_1',
+              name: 'Spring Flash Blitz',
+              campaignLabel: 'TikTok-Q2',
+              startDate: '2026-12-01T00:00:00.000Z',
+              endDate: '2026-12-03T00:00:00.000Z',
+              discountPct: 25,
+              plannedSpend: 450,
+              productCount: 4,
+              ownerName: 'Regular Joe',
+              ownerEmail: 'regular@shop.com',
+              ownerPlan: 'starter',
+            },
+          ],
+          total: 1,
+          page: 1,
+          totalPages: 1,
+        }),
+      });
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('ifc_auth_token', 'mock_admin_token');
+    });
+
+    await page.goto('/admin/campaigns');
+    await expect(page.locator('h1:has-text("Platform Campaigns")')).toBeVisible();
+    await expect(page.locator('text=Spring Flash Blitz')).toBeVisible();
+    await expect(page.locator('text=regular@shop.com')).toBeVisible();
+
+    const hasOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(hasOverflow).toBe(false);
+  });
 });

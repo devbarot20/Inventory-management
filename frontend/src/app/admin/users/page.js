@@ -185,6 +185,38 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleVerifyEmail(userId) {
+    setConfirm({
+      message: 'Manually mark this user account email as verified?',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          const data = await apiFetch(`/admin/users/${userId}/verify-email`, { method: 'POST' });
+          showToast(data.message || 'User email verified');
+          setDetailsUser((prev) => (prev ? { ...prev, emailVerified: true } : prev));
+          reload();
+        } catch (err) {
+          showToast(err.message || 'Failed to verify email');
+        }
+      },
+    });
+  }
+
+  async function handleResetPassword(userId) {
+    setConfirm({
+      message: 'Send a password reset link to this user’s email address?',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          const data = await apiFetch(`/admin/users/${userId}/reset-password`, { method: 'POST' });
+          showToast(data.message || 'Password reset link sent');
+        } catch (err) {
+          showToast(err.message || 'Failed to trigger password reset');
+        }
+      },
+    });
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -404,7 +436,7 @@ export default function AdminUsersPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="admin-user-details-title"
-            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -425,23 +457,69 @@ export default function AdminUsersPage() {
               </button>
             </div>
             {detailsUser && (
-              <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
-                {[
-                  ['Name', detailsUser.name],
-                  ['Email', detailsUser.email],
-                  ['Role', detailsUser.role],
-                  ['Plan', PLAN_LABELS[detailsUser.plan] || detailsUser.plan],
-                  ['Status', detailsUser.deletedAt ? 'Deactivated' : 'Active'],
-                  ['Email verified', detailsUser.emailVerified ? 'Yes' : 'No'],
-                  ['Joined', detailsUser.createdAt ? new Date(detailsUser.createdAt).toLocaleString() : '—'],
-                  ['User ID', detailsUser.id],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
-                    <dd className="mt-1 break-all font-medium text-slate-800 dark:text-zinc-200">{value || '—'}</dd>
+              <>
+                <dl className="mt-5 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+                  {[
+                    ['Name', detailsUser.name],
+                    ['Email', detailsUser.email],
+                    ['Role', detailsUser.role],
+                    ['Plan', PLAN_LABELS[detailsUser.plan] || detailsUser.plan],
+                    ['Status', detailsUser.deletedAt ? 'Deactivated' : 'Active'],
+                    ['Email verified', detailsUser.emailVerified ? 'Yes' : 'No'],
+                    ['Joined', detailsUser.createdAt ? new Date(detailsUser.createdAt).toLocaleString() : '—'],
+                    ['User ID', detailsUser.id],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
+                      <dd className="mt-1 break-all font-medium text-slate-800 dark:text-zinc-200">{value || '—'}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {detailsUser.stats && (
+                  <div className="mt-5 grid grid-cols-3 gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-3 text-center dark:border-zinc-800 dark:bg-zinc-800/50">
+                    <div>
+                      <div className="text-lg font-extrabold text-slate-900 dark:text-zinc-100">
+                        {detailsUser.stats.productsCount}
+                      </div>
+                      <div className="text-[11px] font-semibold uppercase text-slate-500">Products</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-extrabold text-slate-900 dark:text-zinc-100">
+                        {detailsUser.stats.campaignsCount}
+                      </div>
+                      <div className="text-[11px] font-semibold uppercase text-slate-500">Campaigns</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-extrabold text-slate-900 dark:text-zinc-100">
+                        {detailsUser.stats.forecastsCount}
+                      </div>
+                      <div className="text-[11px] font-semibold uppercase text-slate-500">Forecasts</div>
+                    </div>
                   </div>
-                ))}
-              </dl>
+                )}
+
+                {!detailsUser.deletedAt && (
+                  <div className="mt-5 flex flex-wrap gap-2.5 border-t border-slate-100 pt-4 dark:border-zinc-800">
+                    {!detailsUser.emailVerified && (
+                      <button
+                        type="button"
+                        onClick={() => handleVerifyEmail(detailsUser.id)}
+                        className="rounded-xl bg-sky-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-sky-700"
+                      >
+                        Verify Email
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleResetPassword(detailsUser.id)}
+                      className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                    >
+                      Send Password Reset
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </section>
         </div>

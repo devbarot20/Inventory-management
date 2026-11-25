@@ -404,7 +404,7 @@ export default function ActualsComparisonPage() {
 
   return (
     <AuthGuard moduleName="Actuals & Accuracy Comparison">
-      <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
+      <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

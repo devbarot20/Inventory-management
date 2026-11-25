@@ -182,7 +182,7 @@ export default function SalesPage() {
 
   return (
     <AuthGuard moduleName="Flash Sales & Campaigns">
-      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
       <UsageMeter resource="campaigns" refreshKey={sales.length} />
       {/* Page Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

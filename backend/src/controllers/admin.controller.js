@@ -101,6 +101,43 @@ async function listAuditLogs(req, res, next) {
   }
 }
 
+/** POST /api/admin/users/:id/verify-email */
+async function verifyUserEmail(req, res, next) {
+  try {
+    const result = await adminService.verifyUserEmail(req.params.id, req.user, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/admin/users/:id/reset-password */
+async function triggerUserPasswordReset(req, res, next) {
+  try {
+    const result = await adminService.triggerUserPasswordReset(req.params.id, req.user, {
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/admin/campaigns?search=&status=all&page=1&limit=20 */
+async function listCampaigns(req, res, next) {
+  try {
+    const { search, status, page, limit } = req.query;
+    const result = await adminService.listPlatformCampaigns({ search, status, page, limit });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listUsers,
   getUser,
@@ -108,6 +145,9 @@ module.exports = {
   updateUserPlan,
   deleteUser,
   updateUserActivation,
+  verifyUserEmail,
+  triggerUserPasswordReset,
+  listCampaigns,
   getStats,
   listAuditLogs,
 };

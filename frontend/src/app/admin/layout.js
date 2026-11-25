@@ -24,6 +24,15 @@ const NAV_LINKS = [
     ),
   },
   {
+    href: '/admin/campaigns',
+    label: 'Campaigns',
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
     href: '/admin/logs',
     label: 'Audit Logs',
     icon: (
@@ -53,15 +62,15 @@ export default function AdminLayout({ children }) {
   return (
     <AdminGuard>
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="flex flex-col gap-6 lg:flex-row">
-            {/* Sidebar */}
+            {/* Sidebar (horizontal scrollable pills on mobile/tablet, vertical sidebar on lg+) */}
             <aside className="w-full shrink-0 lg:w-52">
-              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500">
+              <div className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-3">
+                <p className="mb-2 hidden px-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-zinc-500 lg:block">
                   Admin Panel
                 </p>
-                <nav className="flex flex-col gap-1">
+                <nav className="flex flex-row gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
                   {NAV_LINKS.map(({ href, label, icon }) => {
                     const isActive =
                       href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
@@ -69,7 +78,7 @@ export default function AdminLayout({ children }) {
                       <Link
                         key={href}
                         href={href}
-                        className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                           isActive
                             ? 'bg-indigo-600 text-white'
                             : 'text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800'

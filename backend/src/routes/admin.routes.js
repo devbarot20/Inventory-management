@@ -26,7 +26,12 @@ router.patch(
   validate(adminUpdateActivationSchema),
   adminController.updateUserActivation,
 );
+router.post('/users/:id/verify-email', adminController.verifyUserEmail);
+router.post('/users/:id/reset-password', adminController.triggerUserPasswordReset);
 router.delete('/users/:id', adminController.deleteUser);
+
+// ── Campaigns ─────────────────────────────────────────────────────────────────
+router.get('/campaigns', adminController.listCampaigns);
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 router.get('/stats', adminController.getStats);

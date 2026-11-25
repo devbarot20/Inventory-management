@@ -269,7 +269,7 @@ export default function ProductsPage() {
 
   return (
     <AuthGuard moduleName="Products & Warehouse Stock">
-      <main className="mx-auto max-w-7xl px-6 py-10 sm:px-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-10">
         {/* Top Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -567,7 +567,7 @@ export default function ProductsPage() {
         {/* Add Product Modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                   Add New Product
@@ -763,7 +763,7 @@ export default function ProductsPage() {
         {/* Variant Matrix Generator Modal */}
         {showMatrixModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -1015,7 +1015,7 @@ export default function ProductsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <form
               onSubmit={handleEditProduct}
-              className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
             >
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Product</h3>
               <p className="mt-1 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">

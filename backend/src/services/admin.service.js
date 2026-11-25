@@ -1,8 +1,14 @@
 'use strict';
 
+const crypto = require('crypto');
 const { User, Product, SaleEvent, ForecastRun, AuditLog } = require('../models');
 const { PLAN_IDS } = require('../config/plans');
+const env = require('../config/env');
+const mailer = require('./mailer');
 const ApiError = require('../errors/ApiError');
+
+const RESET_TTL_MS = 60 * 60 * 1000;
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 // Fields to never expose via admin APIs
 const SAFE_SELECT = '-password -authVersion -resetTokenHash -resetTokenExpires -verifyTokenHash -verifyTokenExpires';
@@ -134,12 +140,22 @@ async function listUsers({ search = '', status = 'active', page = 1, limit = 20 
 }
 
 /**
- * Get a single user by id.
+ * Get a single user by id along with per-user usage counts.
  */
 async function getUserById(id) {
   const user = await User.findById(id).select(SAFE_SELECT);
   if (!user) throw ApiError.notFound('User not found');
-  return user;
+
+  const [productsCount, campaignsCount, forecastsCount] = await Promise.all([
+    Product.countDocuments({ createdBy: user._id }),
+    SaleEvent.countDocuments({ createdBy: user._id }),
+    ForecastRun.countDocuments({ createdBy: user._id }),
+  ]);
+
+  return {
+    ...user.toJSON(),
+    stats: { productsCount, campaignsCount, forecastsCount },
+  };
 }
 
 /**
@@ -344,6 +360,169 @@ async function getPlatformStats() {
   };
 }
 
+/**
+ * Manually verify a user's email address on behalf of support/admin.
+ */
+async function verifyUserEmail(targetId, requestingAdmin, meta = {}) {
+  const requestingAdminId = requestingAdmin?._id || requestingAdmin?.id || requestingAdmin;
+  const adminEmail = requestingAdmin?.email || 'admin@system.local';
+
+  const user = await User.findById(targetId);
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
+  if (!user.emailVerificationRequired || user.emailVerifiedAt) {
+    throw ApiError.badRequest('User email is already verified');
+  }
+
+  const updatedUser = await runAuditedMutation({
+    adminId: requestingAdminId,
+    adminEmail,
+    action: 'USER_EMAIL_VERIFIED',
+    targetId: user._id,
+    targetEmail: user.email,
+    details: { verifiedByAdmin: true },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  }, () => User.findOneAndUpdate(
+    { _id: targetId, deletedAt: { $exists: false } },
+    {
+      $set: { emailVerifiedAt: new Date() },
+      $unset: { verifyTokenHash: 1, verifyTokenExpires: 1 },
+    },
+    { returnDocument: 'after' },
+  ).select(SAFE_SELECT));
+
+  return { message: 'User email verified successfully', user: updatedUser };
+}
+
+/**
+ * Trigger a password reset email for a target user.
+ */
+async function triggerUserPasswordReset(targetId, requestingAdmin, meta = {}) {
+  const requestingAdminId = requestingAdmin?._id || requestingAdmin?.id || requestingAdmin;
+  const adminEmail = requestingAdmin?.email || 'admin@system.local';
+
+  const user = await User.findById(targetId);
+  if (!user || user.deletedAt) throw ApiError.notFound('User not found');
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = hashToken(token);
+  const resetTokenExpires = new Date(Date.now() + RESET_TTL_MS);
+
+  await runAuditedMutation({
+    adminId: requestingAdminId,
+    adminEmail,
+    action: 'USER_PASSWORD_RESET_TRIGGERED',
+    targetId: user._id,
+    targetEmail: user.email,
+    details: { triggeredByAdmin: true },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  }, () => User.findOneAndUpdate(
+    { _id: targetId, deletedAt: { $exists: false } },
+    { $set: { resetTokenHash, resetTokenExpires } },
+  ));
+
+  await mailer.sendPasswordReset(
+    user.email,
+    user.name || 'User',
+    `${env.appUrl}/reset-password?token=${token}`,
+  );
+
+  return { message: `Password reset link sent to ${user.email}` };
+}
+
+/**
+ * List flash sale campaigns across all active users with search, status filter, and pagination.
+ */
+async function listPlatformCampaigns({ search = '', status = 'all', page = 1, limit = 20 } = {}) {
+  if (!['all', 'upcoming', 'active', 'past'].includes(status)) {
+    throw ApiError.badRequest('Status must be all, upcoming, active, or past');
+  }
+
+  const safePage = Math.max(1, parseInt(page, 10) || 1);
+  const safeLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+  const skip = (safePage - 1) * safeLimit;
+  const safeSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const now = new Date();
+
+  const matchStage = {};
+  if (status === 'upcoming') {
+    matchStage.startDate = { $gt: now };
+  } else if (status === 'active') {
+    matchStage.startDate = { $lte: now };
+    matchStage.endDate = { $gte: now };
+  } else if (status === 'past') {
+    matchStage.endDate = { $lt: now };
+  }
+
+  const pipeline = [
+    { $match: matchStage },
+    {
+      $lookup: {
+        from: User.collection.name,
+        localField: 'createdBy',
+        foreignField: '_id',
+        as: 'owner',
+      },
+    },
+    { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+    { $match: { 'owner.deletedAt': { $exists: false } } },
+  ];
+
+  if (safeSearch) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { name: { $regex: safeSearch, $options: 'i' } },
+          { campaignLabel: { $regex: safeSearch, $options: 'i' } },
+          { 'owner.email': { $regex: safeSearch, $options: 'i' } },
+          { 'owner.name': { $regex: safeSearch, $options: 'i' } },
+        ],
+      },
+    });
+  }
+
+  pipeline.push(
+    { $sort: { startDate: -1 } },
+    {
+      $facet: {
+        rows: [
+          { $skip: skip },
+          { $limit: safeLimit },
+          {
+            $project: {
+              _id: 0,
+              id: { $toString: '$_id' },
+              name: 1,
+              campaignLabel: 1,
+              startDate: 1,
+              endDate: 1,
+              discountPct: 1,
+              plannedSpend: 1,
+              productCount: { $size: { $ifNull: ['$products', []] } },
+              ownerEmail: '$owner.email',
+              ownerName: '$owner.name',
+              ownerPlan: '$owner.plan',
+            },
+          },
+        ],
+        meta: [{ $count: 'total' }],
+      },
+    },
+  );
+
+  const [agg] = await SaleEvent.aggregate(pipeline);
+  const campaigns = agg?.rows || [];
+  const total = agg?.meta?.[0]?.total || 0;
+
+  return {
+    campaigns,
+    total,
+    page: safePage,
+    totalPages: Math.ceil(total / safeLimit),
+  };
+}
+
 module.exports = {
   listUsers,
   getUserById,
@@ -353,4 +532,7 @@ module.exports = {
   getPlatformStats,
   listAuditLogs,
   updateUserActivation,
+  verifyUserEmail,
+  triggerUserPasswordReset,
+  listPlatformCampaigns,
 };
