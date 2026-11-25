@@ -15,7 +15,7 @@ const registerSchema = z.object({
     .string()
     .min(6, 'Password must be at least 6 characters long')
     .max(128, 'Password cannot exceed 128 characters'),
-  adminKey: z.string().optional(),
+  adminKey: z.string().trim().optional(),
 });
 
 const loginSchema = z.object({

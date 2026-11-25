@@ -258,7 +258,7 @@ export default function SettingsPage() {
 
   return (
     <AuthGuard moduleName="Account Settings">
-      <main className="mx-auto max-w-7xl space-y-8 px-6 py-10 sm:px-10">
+      <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

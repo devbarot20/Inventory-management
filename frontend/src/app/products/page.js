@@ -1171,7 +1171,7 @@ export default function ProductsPage() {
         {/* Update Stock Modal */}
         {showStockModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Record Stock Snapshot</h3>
                 <button
