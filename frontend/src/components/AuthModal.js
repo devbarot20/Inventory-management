@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
 
 function AuthModalDialog({ initialMode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { closeAuthModal, login, register } = useAuth();
-  const [isRegister, setIsRegister] = useState(initialMode === 'register');
+  const isAdminPath = pathname?.startsWith('/admin');
+  const [isRegister, setIsRegister] = useState(isAdminPath ? false : initialMode === 'register');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -187,7 +189,7 @@ function AuthModalDialog({ initialMode }) {
                 Back to sign in
               </button>
             </div>
-          ) : (
+          ) : !isAdminPath ? (
           <div className="pt-2 text-center text-xs text-slate-500 dark:text-zinc-400">
             {isRegister ? 'Already have an account?' : "Need an account?"}{' '}
             <button
@@ -198,7 +200,7 @@ function AuthModalDialog({ initialMode }) {
               {isRegister ? 'Sign in' : 'Create account'}
             </button>
           </div>
-          )}
+          ) : null}
         </form>
       </div>
     </div>

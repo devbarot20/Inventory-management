@@ -18,7 +18,11 @@ export default function AdminGuard({ children }) {
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'admin') && !isLoginPage) {
-      router.replace('/dashboard');
+      if (!user) {
+        router.replace('/admin/login');
+      } else {
+        router.replace('/dashboard');
+      }
     }
   }, [user, loading, router, isLoginPage]);
 

@@ -58,7 +58,7 @@ const MOCK_USERS_LIST = {
 test.describe('Admin Panel Journey', () => {
   test('redirects unauthenticated users away from /admin', async ({ page }) => {
     await page.goto('/admin');
-    await expect(page).toHaveURL(/.*\/dashboard/);
+    await expect(page).toHaveURL(/.*\/admin\/login/);
   });
 
   test('redirects non-admin users away from /admin', async ({ page }) => {
@@ -320,11 +320,13 @@ test.describe('Admin Panel Journey', () => {
     await expect(roleSelects).toHaveCount(0);
   });
 
-  test('admin login page is dedicated sign-in without provision admin tab', async ({ page }) => {
+  test('admin login page is dedicated sign-in without provision admin tab or create account button', async ({ page }) => {
     await page.goto('/admin/login');
     await expect(page.locator('text=Platform Administration')).toBeVisible();
     await expect(page.locator('text=Sign In to Admin Panel')).toBeVisible();
-    // Provision Admin tab must NOT exist
+    // Provision Admin tab and Create Account buttons must NOT exist
     await expect(page.locator('text=Provision Admin')).toHaveCount(0);
+    await expect(page.locator('button:has-text("Create account")')).toHaveCount(0);
+    await expect(page.locator('button:has-text("Get Started")')).toHaveCount(0);
   });
 });

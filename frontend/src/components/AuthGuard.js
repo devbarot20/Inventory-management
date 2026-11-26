@@ -2,10 +2,13 @@
 
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import VerifyEmailGate from '@/components/VerifyEmailGate';
 
 export default function AuthGuard({ children, moduleName = 'this module' }) {
   const { user, loading, openAuthModal } = useAuth();
+  const pathname = usePathname();
+  const isAdminPath = pathname?.startsWith('/admin');
 
   if (loading) {
     return (
@@ -42,13 +45,15 @@ export default function AuthGuard({ children, moduleName = 'this module' }) {
             >
               Sign in
             </button>
-            <button
-              type="button"
-              onClick={() => openAuthModal('register')}
-              className="rounded-xl border-2 border-slate-300 px-7 py-3 text-base font-bold text-slate-800 transition hover:border-slate-900 dark:border-zinc-700 dark:text-zinc-100"
-            >
-              Create account
-            </button>
+            {!isAdminPath && (
+              <button
+                type="button"
+                onClick={() => openAuthModal('register')}
+                className="rounded-xl border-2 border-slate-300 px-7 py-3 text-base font-bold text-slate-800 transition hover:border-slate-900 dark:border-zinc-700 dark:text-zinc-100"
+              >
+                Create account
+              </button>
+            )}
           </div>
           <Link href="/" className="mt-6 inline-block text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200">
             Back to home
