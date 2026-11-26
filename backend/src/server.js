@@ -2,12 +2,14 @@
 
 const env = require('./config/env');
 const { connectDB, disconnectDB } = require('./config/db');
+const { ensureFixedAdmins } = require('./services/bootstrap.service');
 const createApp = require('./app');
 
 async function start() {
   try {
     await connectDB(env.mongodbUri);
     console.log('MongoDB connected');
+    await ensureFixedAdmins();
   } catch (err) {
     console.error(`Could not connect to MongoDB: ${err.message}`);
     console.error('Is MongoDB running? Check MONGODB_URI in backend/.env.');

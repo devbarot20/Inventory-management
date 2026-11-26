@@ -13,9 +13,6 @@ function AuthModalDialog({ initialMode }) {
     name: '',
     email: '',
     password: '',
-    role: 'user',
-    isAdmin: false,
-    adminKey: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -39,16 +36,19 @@ function AuthModalDialog({ initialMode }) {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          ...(formData.isAdmin && formData.adminKey ? { adminKey: formData.adminKey.trim() } : {}),
         };
         const u = await register(payload);
         if (u?.role === 'admin') {
           router.push('/admin');
+        } else {
+          router.push('/dashboard');
         }
       } else {
         const u = await login(formData.email, formData.password);
         if (u?.role === 'admin') {
           router.push('/admin');
+        } else {
+          router.push('/dashboard');
         }
       }
     } catch (err) {
@@ -67,9 +67,6 @@ function AuthModalDialog({ initialMode }) {
       name: '',
       email: '',
       password: '',
-      role: 'user',
-      isAdmin: false,
-      adminKey: '',
     });
   };
 
@@ -154,43 +151,8 @@ function AuthModalDialog({ initialMode }) {
           </div>
           )}
 
-          {isRegister && !forgot && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-zinc-800 dark:bg-zinc-800/40">
-              <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                <input
-                  type="checkbox"
-                  checked={formData.isAdmin}
-                  onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span>Register as Platform Administrator</span>
-              </label>
-              {formData.isAdmin && (
-                <div className="mt-2.5 space-y-1">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
-                    Admin Secret Key
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter secret provisioning key"
-                    required={formData.isAdmin}
-                    value={formData.adminKey}
-                    onChange={(e) => setFormData({ ...formData, adminKey: e.target.value })}
-                    className="w-full rounded-lg border border-indigo-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-indigo-900/60 dark:bg-zinc-800 dark:text-zinc-100"
-                  />
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400">
-                    Provides access to /admin user management, platform metrics & audit logs.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
           {!forgot && !isRegister && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[11px] text-slate-400 dark:text-zinc-500">
-                🛡️ Admins auto-redirect to /admin
-              </span>
+            <div className="flex items-center justify-end text-xs">
               <button
                 type="button"
                 onClick={() => {

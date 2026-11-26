@@ -7,14 +7,11 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { user, login, register } = useAuth();
+  const { user, login } = useAuth();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
-    adminKey: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -25,28 +22,14 @@ export default function AdminLoginPage() {
     setSubmitting(true);
 
     try {
-      if (mode === 'register') {
-        const u = await register({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          adminKey: formData.adminKey.trim(),
-        });
-        if (u?.role === 'admin') {
-          router.push('/admin');
-        } else {
-          setError('Account was created, but admin role was not granted. Please verify the admin secret key.');
-        }
+      const u = await login(formData.email, formData.password);
+      if (u?.role === 'admin') {
+        router.push('/admin');
       } else {
-        const u = await login(formData.email, formData.password);
-        if (u?.role === 'admin') {
-          router.push('/admin');
-        } else {
-          setError('This account does not have administrator privileges.');
-        }
+        setError('Access denied: This account does not possess platform administrator privileges.');
       }
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please verify credentials.');
+      setError(err.message || 'Authentication failed. Please verify administrator credentials.');
     } finally {
       setSubmitting(false);
     }
@@ -72,7 +55,7 @@ export default function AdminLoginPage() {
               href="/admin"
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700"
             >
-              Go to Admin Panel →
+              Go to Admin Dashboard →
             </Link>
           </div>
         </div>
@@ -94,42 +77,8 @@ export default function AdminLoginPage() {
             Platform Administration
           </h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
-            {mode === 'login'
-              ? 'Sign in to access platform overview, user accounts, and audit trails'
-              : 'Provision a new administrator account with security key'}
+            Sign in to access platform overview, user governance, and audit trails
           </p>
-        </div>
-
-        {/* Mode Selector Tabs */}
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-semibold dark:border-zinc-800 dark:bg-zinc-800/60">
-          <button
-            type="button"
-            onClick={() => {
-              setMode('login');
-              setError(null);
-            }}
-            className={`rounded-lg py-2 transition ${
-              mode === 'login'
-                ? 'bg-white text-indigo-600 shadow-xs dark:bg-zinc-900 dark:text-indigo-400'
-                : 'text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-            }`}
-          >
-            Admin Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode('register');
-              setError(null);
-            }}
-            className={`rounded-lg py-2 transition ${
-              mode === 'register'
-                ? 'bg-white text-indigo-600 shadow-xs dark:bg-zinc-900 dark:text-indigo-400'
-                : 'text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-            }`}
-          >
-            Provision Admin
-          </button>
         </div>
 
         {error && (
@@ -139,22 +88,6 @@ export default function AdminLoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                Full Name
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Platform Administrator"
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
-          )}
-
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
               Admin Email
@@ -164,7 +97,7 @@ export default function AdminLoginPage() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="admin@shop.com"
+              placeholder="admin@forecastiq.com"
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
             />
           </div>
@@ -183,37 +116,27 @@ export default function AdminLoginPage() {
             />
           </div>
 
-          {mode === 'register' && (
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
-              <label className="block text-xs font-bold text-indigo-900 dark:text-indigo-300">
-                Admin Secret Key
-              </label>
-              <input
-                type="password"
-                required
-                value={formData.adminKey}
-                onChange={(e) => setFormData({ ...formData, adminKey: e.target.value })}
-                placeholder="Enter ADMIN_REGISTRATION_KEY"
-                className="mt-1.5 w-full rounded-lg border border-indigo-300 bg-white px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-indigo-800 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-              <p className="mt-1 text-[11px] text-indigo-700 dark:text-indigo-400">
-                Configured via <code className="rounded bg-indigo-100 px-1 dark:bg-indigo-900/40">ADMIN_REGISTRATION_KEY</code>. Default dev key: <code className="rounded bg-indigo-100 px-1 dark:bg-indigo-900/40">forecastiq-admin-secret-2026</code>
-              </p>
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={submitting}
             className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
           >
-            {submitting
-              ? 'Verifying…'
-              : mode === 'register'
-              ? 'Provision Administrator Account'
-              : 'Sign In to Admin Panel'}
+            {submitting ? 'Authenticating…' : 'Sign In to Admin Panel'}
           </button>
         </form>
+
+        {/* Security badge and note */}
+        <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-[11px] text-slate-500 dark:border-zinc-800/80 dark:bg-zinc-800/40 dark:text-zinc-400">
+          <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-zinc-300">
+            <svg className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Restricted Access Portal</span>
+          </div>
+          <p className="mt-1">
+            Admin accounts are provisioned exclusively by platform infrastructure bootstrap. Public creation of administrator credentials is disabled.
+          </p>
+        </div>
 
         <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs text-slate-500 dark:border-zinc-800 dark:text-zinc-400">
           Looking for customer portal?{' '}

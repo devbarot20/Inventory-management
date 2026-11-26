@@ -250,4 +250,81 @@ test.describe('Admin Panel Journey', () => {
     );
     expect(hasOverflow).toBe(false);
   });
+
+  test('clicking user profile avatar reveals Admin Dashboard button for admin, but not for regular user', async ({ page }) => {
+    // 1. Regular user on home page
+    await page.route(/\/api\/auth\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: MOCK_REGULAR_USER }),
+      });
+    });
+    await page.addInitScript(() => {
+      window.localStorage.setItem('ifc_auth_token', 'mock_regular_token');
+    });
+
+    await page.goto('/');
+    // Check that admin panel is NOT in standard nav links
+    await expect(page.locator('nav a:has-text("Admin Panel")')).toHaveCount(0);
+
+    // Click profile dropdown trigger
+    await page.click('button[aria-label="User account profile menu"]');
+    // Dropdown is visible
+    await expect(page.locator('text=Planner Dashboard')).toBeVisible();
+    // Admin Dashboard button should NOT exist for regular user
+    await expect(page.locator('text=Admin Dashboard')).toHaveCount(0);
+
+    // 2. Now as Admin user
+    await page.route(/\/api\/auth\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: MOCK_ADMIN_USER }),
+      });
+    });
+
+    await page.goto('/');
+    await page.click('button[aria-label="User account profile menu"]');
+    await expect(page.locator('text=Planner Dashboard')).toBeVisible();
+    const adminBtn = page.locator('a:has-text("Admin Dashboard")');
+    await expect(adminBtn).toBeVisible();
+  });
+
+  test('admin users table renders role as view-only badge and contains no role select input', async ({ page }) => {
+    await page.route(/\/api\/auth\/me/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: MOCK_ADMIN_USER }),
+      });
+    });
+
+    await page.route(/\/api\/admin\/users/, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(MOCK_USERS_LIST),
+      });
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('ifc_auth_token', 'mock_admin_token');
+    });
+
+    await page.goto('/admin/users');
+    await expect(page.locator('h1:has-text("User Management")')).toBeVisible();
+
+    // Verify role is rendered as text/badge, and no select exists for role
+    const roleSelects = page.locator('select option[value="admin"]');
+    await expect(roleSelects).toHaveCount(0);
+  });
+
+  test('admin login page is dedicated sign-in without provision admin tab', async ({ page }) => {
+    await page.goto('/admin/login');
+    await expect(page.locator('text=Platform Administration')).toBeVisible();
+    await expect(page.locator('text=Sign In to Admin Panel')).toBeVisible();
+    // Provision Admin tab must NOT exist
+    await expect(page.locator('text=Provision Admin')).toHaveCount(0);
+  });
 });

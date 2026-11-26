@@ -113,25 +113,6 @@ export default function AdminUsersPage() {
     setTimeout(() => setToastMsg(null), 3500);
   }
 
-  async function handleRoleChange(userId, newRole) {
-    setConfirm({
-      message: `Change this user's role to "${newRole}"?`,
-      onConfirm: async () => {
-        setConfirm(null);
-        try {
-          await apiFetch(`/admin/users/${userId}/role`, {
-            method: 'PATCH',
-            body: JSON.stringify({ role: newRole }),
-          });
-          showToast('Role updated successfully');
-          reload();
-        } catch (err) {
-          showToast(err.message || 'Failed to update role');
-        }
-      },
-    });
-  }
-
   async function handlePlanChange(userId, newPlan) {
     setConfirm({
       message: `Change this user's plan to "${newPlan}"?`,
@@ -331,20 +312,9 @@ export default function AdminUsersPage() {
                           </select>
                         )}
                       </td>
-                      {/* Role */}
+                      {/* Role (View-Only) */}
                       <td className="px-4 py-3">
-                        {isSelf || isDeactivated ? (
-                          <Badge label={u.role} colorClass={ROLE_COLORS[u.role] ?? ''} />
-                        ) : (
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold capitalize focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        )}
+                        <Badge label={u.role} colorClass={ROLE_COLORS[u.role] ?? ''} />
                       </td>
                       {/* Email verified */}
                       <td className="px-4 py-3">
