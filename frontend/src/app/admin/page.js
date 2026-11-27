@@ -160,19 +160,19 @@ export default function AdminDashboardPage() {
 
       {/* Stockout Scan Feedback Banner */}
       {scanResult && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-700 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800">
-            <span className="font-medium text-slate-900 dark:text-zinc-100">
-              48-hour promotional inventory diagnostic complete
+        <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3.5 text-xs text-slate-700 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 sm:p-4">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-zinc-800">
+            <span className="truncate font-medium text-slate-900 dark:text-zinc-100">
+              48h inventory diagnostic done
             </span>
             <button
               onClick={() => setScanResult(null)}
-              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
+              className="shrink-0 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
             >
-              Dismiss
+              ✕
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-4 font-mono sm:grid-cols-4">
+          <div className="mt-2.5 grid grid-cols-2 gap-3 font-mono sm:mt-3 sm:grid-cols-4 sm:gap-4">
             <div>
               <span className="text-[11px] text-slate-500 dark:text-zinc-400">Accounts scanned</span>
               <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{scanResult.usersScanned}</p>
@@ -200,75 +200,75 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Row 1: Four Stat Cards (Numbers only, calm, quiet craft) */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Total Users */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Total Users</span>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+          <span className="text-[11px] font-normal text-slate-500 dark:text-zinc-400 sm:text-xs">Total Users</span>
+          <p className="mt-1.5 text-xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:mt-2 sm:text-3xl">
             {stats?.totalUsers ?? 0}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
-            {stats?.verifiedUsers || 0} active accounts
+          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-zinc-400 sm:mt-1 sm:text-xs">
+            {stats?.verifiedUsers || 0} active
           </p>
         </div>
 
         {/* Total Products */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Total Products</span>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+          <span className="block truncate text-[11px] font-normal text-slate-500 dark:text-zinc-400 sm:text-xs">Total Products</span>
+          <p className="mt-1.5 text-xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:mt-2 sm:text-3xl">
             {stats?.totalProducts ?? 0}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
-            Active cross-tenant SKUs
+          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-zinc-400 sm:mt-1 sm:text-xs">
+            Cross-tenant SKUs
           </p>
         </div>
 
         {/* Flash Campaigns */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Flash Campaigns</span>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+          <span className="text-[11px] font-normal text-slate-500 dark:text-zinc-400 sm:text-xs">Campaigns</span>
+          <p className="mt-1.5 text-xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:mt-2 sm:text-3xl">
             {stats?.totalCampaigns ?? 0}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
-            Promotional sales windows
+          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-zinc-400 sm:mt-1 sm:text-xs">
+            Sales windows
           </p>
         </div>
 
         {/* Forecast Runs */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-          <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">Forecast Runs</span>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:text-3xl">
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+          <span className="text-[11px] font-normal text-slate-500 dark:text-zinc-400 sm:text-xs">Forecasts</span>
+          <p className="mt-1.5 text-xl font-medium tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums font-mono sm:mt-2 sm:text-3xl">
             {stats?.totalForecasts ?? 0}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
-            94.2% historical accuracy
+          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-zinc-400 sm:mt-1 sm:text-xs">
+            94.2% accuracy
           </p>
         </div>
       </section>
 
       {/* Row 2: Two Columns (Plan Breakdown vs Platform Diagnostics) */}
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
         {/* Left Column (7 of 12): Plan Distribution */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-7">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 dark:border-zinc-800">
-            <div>
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5 lg:col-span-7">
+          <div className="flex flex-col gap-2 border-b border-slate-100 pb-3.5 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
                 Plan Distribution
               </h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Tenant capacity and tier quotas across {stats?.totalUsers || 0} accounts
+              <p className="truncate text-xs text-slate-500 dark:text-zinc-400">
+                Tier quotas · {stats?.totalUsers || 0} accounts
               </p>
             </div>
             <Link
               href="/admin/users"
-              className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+              className="shrink-0 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
             >
               Manage Users →
             </Link>
           </div>
 
           {/* Allocation Bar */}
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <div className="flex h-2.5 w-full overflow-hidden rounded-md bg-slate-100 dark:bg-zinc-800">
               <div
                 style={{ width: `${starterPct}%` }}
@@ -288,58 +288,58 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Legend & Details */}
-            <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-slate-400 dark:bg-zinc-600" />
-                  <span className="font-normal text-slate-600 dark:text-zinc-300">Starter</span>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs sm:mt-4 sm:gap-3">
+              <div className="min-w-0 rounded-lg bg-slate-50 p-2 dark:bg-zinc-800/50 sm:p-3">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 dark:bg-zinc-600" />
+                  <span className="truncate font-normal text-slate-600 dark:text-zinc-300">Starter</span>
                 </div>
-                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                <p className="mt-1.5 text-base font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums sm:mt-2 sm:text-lg">
                   {starterCount}
                 </p>
-                <p className="text-[11px] text-slate-400">{starterPct}% of tenants</p>
+                <p className="text-[10px] text-slate-400 sm:text-[11px]">{starterPct}%</p>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-indigo-600" />
-                  <span className="font-normal text-slate-600 dark:text-zinc-300">Growth</span>
+              <div className="min-w-0 rounded-lg bg-slate-50 p-2 dark:bg-zinc-800/50 sm:p-3">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-indigo-600" />
+                  <span className="truncate font-normal text-slate-600 dark:text-zinc-300">Growth</span>
                 </div>
-                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                <p className="mt-1.5 text-base font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums sm:mt-2 sm:text-lg">
                   {growthCount}
                 </p>
-                <p className="text-[11px] text-slate-400">{growthPct}% of tenants</p>
+                <p className="text-[10px] text-slate-400 sm:text-[11px]">{growthPct}%</p>
               </div>
 
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-zinc-800/50">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-violet-600" />
-                  <span className="font-normal text-slate-600 dark:text-zinc-300">Scale</span>
+              <div className="min-w-0 rounded-lg bg-slate-50 p-2 dark:bg-zinc-800/50 sm:p-3">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-violet-600" />
+                  <span className="truncate font-normal text-slate-600 dark:text-zinc-300">Scale</span>
                 </div>
-                <p className="mt-2 text-lg font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums">
+                <p className="mt-1.5 text-base font-medium text-slate-900 dark:text-zinc-100 font-mono tabular-nums sm:mt-2 sm:text-lg">
                   {scaleCount}
                 </p>
-                <p className="text-[11px] text-slate-400">{scalePct}% of tenants</p>
+                <p className="text-[10px] text-slate-400 sm:text-[11px]">{scalePct}%</p>
               </div>
             </div>
           </div>
 
           {/* Engine Calibration */}
-          <div className="mt-5 border-t border-slate-100 pt-4 dark:border-zinc-800">
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-zinc-800 sm:mt-5 sm:pt-4">
             <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
-              Model Calibration Telemetry
+              Model Calibration
             </span>
-            <div className="mt-2.5 grid grid-cols-2 gap-4 text-xs font-mono">
-              <div>
-                <span className="text-slate-400">Mean Absolute Percentage Error</span>
+            <div className="mt-2 grid grid-cols-2 gap-3 text-xs font-mono sm:mt-2.5 sm:gap-4">
+              <div className="min-w-0">
+                <span className="block truncate text-[11px] text-slate-400 sm:text-xs">MAPE</span>
                 <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-zinc-100">
-                  5.8% MAPE
+                  5.8%
                 </p>
               </div>
-              <div>
-                <span className="text-slate-400">Daily Simulation Throughput</span>
+              <div className="min-w-0">
+                <span className="block truncate text-[11px] text-slate-400 sm:text-xs">Throughput</span>
                 <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-zinc-100">
-                  142 runs / day
+                  142 / day
                 </p>
               </div>
             </div>
@@ -347,78 +347,78 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Right Column (5 of 12): Infrastructure Telemetry */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-5">
+        <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5 lg:col-span-5">
           <div className="border-b border-slate-100 pb-3.5 dark:border-zinc-800">
             <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
-              Infrastructure Telemetry
+              Infrastructure
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400">
-              API runtime and container vitals
+              API runtime vitals
             </p>
           </div>
 
-          <div className="mt-4 space-y-3 text-xs font-mono">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
-              <span className="font-sans text-slate-500 dark:text-zinc-400">Database</span>
-              <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                {health?.database || 'connected'}
+          <div className="mt-3 space-y-2.5 text-xs font-mono sm:mt-4 sm:space-y-3">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-zinc-800/80 sm:pb-2.5">
+              <span className="shrink-0 font-sans text-slate-500 dark:text-zinc-400">Database</span>
+              <span className="inline-flex items-center gap-1.5 truncate font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                <span className="truncate">{health?.database || 'connected'}</span>
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
-              <span className="font-sans text-slate-500 dark:text-zinc-400">Server Uptime</span>
-              <span className="font-medium text-slate-800 dark:text-zinc-200">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-zinc-800/80 sm:pb-2.5">
+              <span className="shrink-0 font-sans text-slate-500 dark:text-zinc-400">Uptime</span>
+              <span className="truncate font-medium text-slate-800 dark:text-zinc-200">
                 {formatUptime(health?.uptimeSeconds)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
-              <span className="font-sans text-slate-500 dark:text-zinc-400">Environment</span>
-              <span className="font-medium text-slate-800 dark:text-zinc-200 uppercase">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-zinc-800/80 sm:pb-2.5">
+              <span className="shrink-0 font-sans text-slate-500 dark:text-zinc-400">Env</span>
+              <span className="truncate font-medium text-slate-800 dark:text-zinc-200 uppercase">
                 {health?.environment || 'production'}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-zinc-800/80">
-              <span className="font-sans text-slate-500 dark:text-zinc-400">Service</span>
-              <span className="font-medium text-slate-800 dark:text-zinc-200 truncate max-w-[180px]">
-                {health?.service || 'inventory-forecaster-api'}
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-zinc-800/80 sm:pb-2.5">
+              <span className="shrink-0 font-sans text-slate-500 dark:text-zinc-400">Service</span>
+              <span className="truncate font-medium text-slate-800 dark:text-zinc-200 max-w-[140px] sm:max-w-[180px]">
+                {health?.service || 'forecaster-api'}
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-slate-500 dark:text-zinc-400">Test Baseline</span>
-              <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                168 / 168 Passing
+            <div className="flex items-center justify-between gap-2">
+              <span className="shrink-0 font-sans text-slate-500 dark:text-zinc-400">Tests</span>
+              <span className="truncate font-medium text-emerald-600 dark:text-emerald-400">
+                168/168
               </span>
             </div>
           </div>
 
-          <div className="mt-6 border-t border-slate-100 pt-4 dark:border-zinc-800">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
-                Upcoming Promotional Windows
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-zinc-800 sm:mt-6 sm:pt-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-xs font-normal text-slate-500 dark:text-zinc-400">
+                Upcoming Promos
               </span>
               <Link
                 href="/admin/campaigns"
-                className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                className="shrink-0 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
               >
-                All Campaigns →
+                All →
               </Link>
             </div>
-            <div className="mt-2.5 space-y-2">
+            <div className="mt-2 space-y-1.5 sm:mt-2.5 sm:space-y-2">
               {recentCampaigns.length > 0 ? (
                 recentCampaigns.map((camp) => (
                   <div
                     key={camp.id}
-                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-zinc-800/50"
+                    className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs dark:bg-zinc-800/50 sm:px-3 sm:py-2"
                   >
-                    <span className="font-medium text-slate-800 dark:text-zinc-200 truncate max-w-[160px]">
+                    <span className="min-w-0 truncate font-medium text-slate-800 dark:text-zinc-200">
                       {camp.name}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {camp.productCount || 0} SKUs
+                    <span className="shrink-0 text-[11px] text-slate-400 font-mono">
+                      {camp.productCount || 0}
                     </span>
                   </div>
                 ))
@@ -431,40 +431,37 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Row 3: Security & Audit Activity Stream */}
-      <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 dark:border-zinc-800">
-          <div>
+      <section className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+        <div className="flex flex-col gap-2 border-b border-slate-100 pb-3 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:pb-3.5">
+          <div className="min-w-0">
             <h2 className="text-sm font-medium text-slate-900 dark:text-zinc-100">
-              Audit Activity Stream
+              Audit Stream
             </h2>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
-              Real-time audit log of security mutations and account state changes
+            <p className="truncate text-xs text-slate-500 dark:text-zinc-400">
+              Security mutations and state changes
             </p>
           </div>
           <Link
             href="/admin/logs"
-            className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+            className="shrink-0 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
           >
-            View Complete Trail →
+            Full Trail →
           </Link>
         </div>
 
-        <div className="mt-3 divide-y divide-slate-100 dark:divide-zinc-800/80">
+        <div className="mt-2.5 divide-y divide-slate-100 dark:divide-zinc-800/80 sm:mt-3">
           {recentLogs.length > 0 ? (
             recentLogs.map((log) => (
-              <div key={log._id || log.id} className="py-2.5 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-3">
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <div key={log._id || log.id} className="flex items-center justify-between gap-2 py-2 text-xs sm:py-2.5">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 sm:px-2 sm:text-[11px]">
                     {log.action?.replace(/_/g, ' ')}
                   </span>
-                  <span className="text-slate-600 dark:text-zinc-400">
-                    Target: <strong className="font-medium text-slate-800 dark:text-zinc-200">{log.targetEmail || 'System'}</strong>
-                  </span>
-                  <span className="hidden sm:inline text-slate-400">
-                    by {log.adminEmail || 'admin'}
+                  <span className="min-w-0 truncate text-slate-600 dark:text-zinc-400">
+                    <strong className="font-medium text-slate-800 dark:text-zinc-200">{log.targetEmail || 'System'}</strong>
                   </span>
                 </div>
-                <span className="font-mono text-[11px] text-slate-400">
+                <span className="shrink-0 font-mono text-[10px] text-slate-400 sm:text-[11px]">
                   {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>

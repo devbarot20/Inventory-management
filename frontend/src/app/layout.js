@@ -20,12 +20,17 @@ export const metadata = {
   title: 'Inventory Demand Forecaster for Flash Sales | ForecastIQ',
   description:
     'All-in-one demand forecasting, stockout risk mitigation, and scenario planning for high-velocity flash sales and seasonal promotions.',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body suppressHydrationWarning className="flex min-h-full flex-col bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
+      <body suppressHydrationWarning className="flex min-h-full w-full max-w-full overflow-x-hidden flex-col bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-50">
         <AuthProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

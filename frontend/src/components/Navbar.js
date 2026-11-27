@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
+import Logo from '@/components/Logo';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -88,31 +89,15 @@ export default function Navbar() {
   const highCount = alerts.filter((a) => a.riskLevel === 'high').length;
 
   return (
-    <div className="sticky top-3 z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-      <nav className="relative flex h-16 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/75 px-4 shadow-lg shadow-slate-900/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-black/20 sm:px-5">
+    <div className="sticky top-3 z-50 mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
+      <nav className="relative flex h-16 items-center justify-between rounded-2xl border border-slate-200/80 bg-white/75 px-3 shadow-lg shadow-slate-900/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-black/20 sm:px-5">
         {/* Left: Brand Logo */}
-        <div className="flex items-center gap-3">
-          <Link href={isAdminPath ? '/admin' : user ? '/dashboard' : '/'} className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-                Forecast<span className="text-indigo-600 dark:text-indigo-400">IQ</span>
-              </span>
-              {isAdminPath ? (
-                <span className="hidden rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 sm:inline">
-                  Admin
-                </span>
-              ) : (
-                <span className="hidden rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 sm:inline">
-                  v1.2
-                </span>
-              )}
-            </div>
-          </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Logo
+            href={isAdminPath ? '/admin' : user ? '/dashboard' : '/'}
+            adminBadge={isAdminPath}
+            versionBadge="v1.2"
+          />
         </div>
 
         {/* Center: Navigation Links (Desktop) */}
@@ -139,7 +124,7 @@ export default function Navbar() {
         </div>
 
         {/* Right: Theme, Alerts & User Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Quick Switch to App button when in Admin view */}
           {isAdminRoute && (
             <Link

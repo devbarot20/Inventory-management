@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="fiq-bg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#4F46E5" />
+      <stop offset="50%" stopColor="#6366F1" />
+      <stop offset="100%" stopColor="#7C3AED" />
+    </linearGradient>
+    <linearGradient id="fiq-accent" x1="15" y1="85" x2="85" y2="15" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#06B6D4" />
+      <stop offset="60%" stopColor="#38BDF8" />
+      <stop offset="100%" stopColor="#FFFFFF" />
+    </linearGradient>
+    <filter id="fiq-glow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#4F46E5" floodOpacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Squircle container -->
+  <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#fiq-bg)" filter="url(#fiq-glow)" />
+  <rect x="3" y="3" width="94" height="94" rx="25" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.25" fill="none" />
+
+  <!-- Data grid dots -->
+  <circle cx="24" cy="24" r="2" fill="#FFFFFF" fill-opacity="0.25" />
+  <circle cx="36" cy="24" r="2" fill="#FFFFFF" fill-opacity="0.25" />
+  <circle cx="24" cy="36" r="2" fill="#FFFFFF" fill-opacity="0.25" />
+
+  <!-- Inventory pillars -->
+  <rect x="24" y="56" width="11" height="22" rx="4.5" fill="#FFFFFF" fill-opacity="0.4" />
+  <rect x="41" y="42" width="11" height="36" rx="4.5" fill="#FFFFFF" fill-opacity="0.75" />
+  <rect x="58" y="28" width="11" height="50" rx="4.5" fill="#FFFFFF" />
+
+  <!-- Predictive surge curve & arrow -->
+  <path d="M20 62 C 32 58, 44 44, 58 32 L 74 18" stroke="url(#fiq-accent)" stroke-width="5" stroke-linecap="round" />
+  <path d="M62 16 L 80 18 L 78 36" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Intelligence spark node -->
+  <circle cx="77" cy="21" r="3.5" fill="#38BDF8" />
+  <circle cx="77" cy="21" r="6.5" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.7" />
+</svg>

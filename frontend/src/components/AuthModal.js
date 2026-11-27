@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
+import { LogoMark } from '@/components/Logo';
 
 function AuthModalDialog({ initialMode }) {
   const router = useRouter();
@@ -77,13 +78,16 @@ function AuthModalDialog({ initialMode }) {
       <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-7">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Account Access
-            </span>
-            <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-              {forgot ? 'Reset Password' : isRegister ? 'Create Account' : 'Sign In'}
-            </h3>
+          <div className="flex items-center gap-3">
+            <LogoMark className="h-10 w-10 shrink-0" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                ForecastIQ Access
+              </span>
+              <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                {forgot ? 'Reset Password' : isRegister ? 'Create Account' : 'Sign In'}
+              </h3>
+            </div>
           </div>
           <button
             type="button"

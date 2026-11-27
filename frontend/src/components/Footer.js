@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { REPO_URL, SITE_NAME } from '@/lib/site';
+import Logo from '@/components/Logo';
 
 const COLUMNS = [
   {
@@ -48,11 +49,9 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-5">
           <div>
-            <Link href="/" className="text-3xl font-bold tracking-tight text-white">
-              Forecast<span className="text-indigo-400">IQ</span>
-            </Link>
-            <p className="mt-4 max-w-xs text-base leading-relaxed text-zinc-500">
-              Demand forecasting and stockout alerts for flash sales.
+            <Logo href="/" size="lg" className="[&_span]:!text-white" />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-zinc-400">
+              Demand forecasting, stockout risk mitigation, and scenario planning for high-velocity flash sales.
             </p>
           </div>
           {COLUMNS.map((col) => (
